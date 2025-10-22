@@ -10,7 +10,6 @@ namespace BMS_project.Controllers
         [HttpGet]
         public IActionResult Login(string role)
         {
-            ViewBag.Role = role;
             return View();
         }
 
@@ -41,28 +40,14 @@ namespace BMS_project.Controllers
         }
 
 
-        [HttpPost]
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Login");
         }
 
-        public IActionResult Register()
-        {
-            ViewData["Title"] = "Register";
-            return View();
-        }
-
-        public IActionResult ForgotPassword()
-        {
-            ViewData["Title"] = "Forgot Password";
-            return View();
-        }
-
         public IActionResult AccessDenied()
         {
-            ViewData["Title"] = "Access Denied";
             return View();
         }
     }
