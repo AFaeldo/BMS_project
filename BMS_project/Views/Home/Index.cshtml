@@ -1,5 +1,61 @@
 ﻿@{
-      Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "Home Page";
+    Layout = "~/Views/Shared/_HomeLayout.cshtml";
+    ViewData["Title"] = "Home";
 }
 
+<!-- HERO SECTION -->
+<div class="hero-banner text-white">
+    <div>
+        <h1 class="hero-title mb-3">EMPOWERING OUR COMMUNITY</h1>
+        <p class="hero-subtitle mb-4">Streamlined Barangay Services at Your Fingertips</p>
+        <a href="@Url.Action("GetStarted", "Home")" class="btn btn-success btn-lg shadow-lg">
+            Get Started
+        </a>
+    </div>
+</div>
+
+<!-- SERVICES / FEATURE CARDS -->
+<div class="services-section d-flex justify-content-center gap-4 flex-wrap">
+    <a href="@Url.Action("Services", "Home")" class="service-card blue text-decoration-none text-white">
+        <i class="bi bi-file-earmark-text fs-1 mb-3"></i>
+        <h4>SERVICES</h4>
+        <p>Request permits, certificates, and more</p>
+    </a>
+
+    <a href="@Url.Action("Events", "Home")" class="service-card green text-decoration-none text-white">
+        <i class="bi bi-calendar-event fs-1 mb-3"></i>
+        <h4>EVENTS</h4>
+        <p>Stay informed on community activities</p>
+    </a>
+
+    <a href="@Url.Action("Directory", "Home")" class="service-card orange text-decoration-none text-white">
+        <i class="bi bi-people fs-1 mb-3"></i>
+        <h4>DIRECTORY</h4>
+        <p>Find contact information for barangay officials</p>
+    </a>
+</div>
+
+<!-- NEWS SECTION -->
+<section class="news-section text-white text-center my-5">
+    <h3 class="mb-4">LATEST NEWS & ANNOUNCEMENTS</h3>
+    <div class="facebook-container d-flex justify-content-center">
+        <div class="fb-page"
+             data-href="https://www.facebook.com/SPCalapanCity"
+             data-tabs="timeline"
+             data-width="300"
+             data-height="400"
+             data-small-header="true"
+             data-adapt-container-width="false"
+             data-hide-cover="false"
+             data-show-facepile="true">
+            <blockquote cite="https://www.facebook.com/SPCalapanCity" class="fb-xfbml-parse-ignore">
+                <a href="https://www.facebook.com/SPCalapanCity">Sangguniang Panlungsod ng Calapan</a>
+            </blockquote>
+        </div>
+    </div>
+</section>
+
+<!-- Facebook SDK -->
+<script async defer crossorigin="anonymous"
+        src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v19.0">
+</script>

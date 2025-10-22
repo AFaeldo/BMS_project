@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BMS_project.Controllers
 {
+    [Authorize(Roles = "FederationPresident")]
     public class FederationPresidentController : Controller
     {
         public IActionResult ComplianceMonitoring()

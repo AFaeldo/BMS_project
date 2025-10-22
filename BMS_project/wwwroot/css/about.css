@@ -1,0 +1,17 @@
+﻿body {
+    background-color: #1f2a47;
+    color: #e0e0e0;
+}
+
+h1, h2, h5, h6 {
+    color: #ffc107;
+}
+
+ul {
+    list-style-type: square;
+    margin-left: 20px;
+}
+
+    ul li {
+        margin-bottom: 5px;
+    }

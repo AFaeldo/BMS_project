@@ -1,0 +1,116 @@
+﻿/* GLOBAL STYLES */
+body {
+    background-color: #1f2a47; /* dark blue base */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+header, .navbar, .navbar-dark {
+    position: relative;
+    z-index: 1000;
+}
+
+/* HERO BANNER */
+.hero-banner {
+    background: url('/images/banner.png') no-repeat center center;
+    background-size: cover;
+    height: 400px;
+    border-radius: 12px;
+    margin: 60px 30px 30px 30px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #fff;
+    position: relative;
+}
+
+/* Hero text styles */
+.hero-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.hero-subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* FEATURE CARDS */
+.service-card {
+    width: 250px;
+    padding: 25px 20px;
+    border-radius: 15px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    text-align: center;
+}
+
+    .service-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+    }
+
+    /* Card color themes */
+    .service-card.blue {
+        background-color: #007bff;
+    }
+
+    .service-card.green {
+        background-color: #28a745;
+    }
+
+    .service-card.orange {
+        background-color: #f39c12;
+    }
+
+/* Facebook News Section - Compact */
+.news-section {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 30px 15px;
+    margin: 40px auto;
+    max-width: 700px;
+}
+
+.facebook-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.fb-page {
+    border-radius: 10px;
+    overflow: hidden;
+    width: 300px !important; /* smaller width */
+    height: 400px !important; /* smaller height */
+    background-color: #fff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+    .hero-banner {
+        height: 280px;
+        margin: 80px 15px 20px 15px;
+        padding: 20px;
+    }
+
+    .hero-title {
+        font-size: 1.8rem;
+    }
+
+    .service-card {
+        width: 90%;
+        margin-bottom: 20px;
+    }
+
+    .news-section {
+        padding: 20px 10px;
+    }
+}

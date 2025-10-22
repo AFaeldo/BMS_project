@@ -1,7 +1,16 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login"; // redirect kung hindi naka-login
+        //options.AccessDeniedPath = "/Account/AccessDenied"; // optional
+    });
 
 var app = builder.Build();
 
@@ -14,21 +23,19 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseRouting();
+app.UseStaticFiles();
 
+app.UseRouting(); //load for images/css/js
+
+//Enable Authentication & Authorization Middleware
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
 
 app.MapControllerRoute(
     name: "default",
-    //pattern: "{controller=Account}/{action=Login}/{id?}")
-    //pattern: "{controller=SuperAdmin}/{action=Dashboard}/{id?}")
-    //pattern: "{controller=BarangaySk}/{action=Dashboard}/{id?}")
-    //pattern: "{controller=FederationPresident}/{action=Dashboard}/{id?}")
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
-
-
 
 app.Run();
