@@ -11,10 +11,10 @@ namespace BMS_project.Controllers
             ViewData["Title"] = "Home";
             return View();
         }
-        //public IActionResult About()
-        //{
-        //    ViewData["Title"] = "About";   
-        // return View();
-        //}
+        public IActionResult About()
+        {
+            ViewData["Title"] = "About";
+            return View();
+        }
     }
 }
