@@ -30,15 +30,15 @@
                 <li class="nav-item"><a class="nav-link active" href="@Url.Action("Index", "Home")">Home</a></li>
                 <li class="nav-item"><a class="nav-link" href="@Url.Action("About", "Home")">About</a></li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="accountDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Roles
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdown">
-                            <li><a class="dropdown-item" href="@Url.Action("Dashboard", "SuperAdmin")">Super Admin</a></li>
-                            <li><a class="dropdown-item" href="@Url.Action("Dashboard", "FederationPresident")">Sk Federation</a></li>
-                            <li><a class="dropdown-item" href="@Url.Action("Dashboard", "BarangaySk")">Barangay SK</a></li>
-                        </ul>
-                    </li>
+    <a class="nav-link dropdown-toggle" href="#" id="accountDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        Login As
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdown">
+        <li><a class="dropdown-item" href="@Url.Action("Login", "Account", new { role = "SuperAdmin" })">Super Admin</a></li>
+        <li><a class="dropdown-item" href="@Url.Action("Login", "Account", new { role = "FederationPresident" })">SK Federation</a></li>
+        <li><a class="dropdown-item" href="@Url.Action("Login", "Account", new { role = "BarangaySk" })">Barangay SK</a></li>
+    </ul>
+</li>
                 </ul>
             </div>
         </div>

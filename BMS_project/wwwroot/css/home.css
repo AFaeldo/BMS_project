@@ -86,8 +86,8 @@ header, .navbar, .navbar-dark {
 .fb-page {
     border-radius: 10px;
     overflow: hidden;
-    width: 400px !important; /* smaller width */
-    height: 500px !important; /* smaller height */
+    width: 300px !important; /* smaller width */
+    height: 400px !important; /* smaller height */
     background-color: #fff;
     box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }

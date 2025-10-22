@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace YourProjectName.Controllers
 {
+    [Authorize(Roles = "SuperAdmin")]
     public class SuperAdminController : Controller
     {
         public IActionResult BackupMaintenance()
