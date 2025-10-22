@@ -22,11 +22,11 @@ app.MapStaticAssets();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Account}/{action=Login}/{id?}")
+    //pattern: "{controller=Account}/{action=Login}/{id?}")
     //pattern: "{controller=SuperAdmin}/{action=Dashboard}/{id?}")
     //pattern: "{controller=BarangaySk}/{action=Dashboard}/{id?}")
     //pattern: "{controller=FederationPresident}/{action=Dashboard}/{id?}")
-    //pattern: "{controller=Home}/{action=Index}/{id?}")
+    pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
 
