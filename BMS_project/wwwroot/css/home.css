@@ -6,7 +6,6 @@ body {
     padding: 0;
 }
 
-/* If navbar is fixed or sticky, ensure hero sits below it */
 header, .navbar, .navbar-dark {
     position: relative;
     z-index: 1000;
@@ -14,11 +13,11 @@ header, .navbar, .navbar-dark {
 
 /* HERO BANNER */
 .hero-banner {
-    background: url('/images/banner.jpg') no-repeat center center;
+    background: url('/images/banner.png') no-repeat center center;
     background-size: cover;
-    height: 350px;
+    height: 400px;
     border-radius: 12px;
-    margin: 60px 30px 30px 30px; /* add top margin to clear navbar */
+    margin: 60px 30px 30px 30px;
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
     display: flex;
     align-items: center;
