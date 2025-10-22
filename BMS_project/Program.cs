@@ -25,7 +25,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-app.UseRouting(); //\load for images/css/js
+app.UseRouting(); //load for images/css/js
 
 //Enable Authentication & Authorization Middleware
 app.UseAuthentication();
