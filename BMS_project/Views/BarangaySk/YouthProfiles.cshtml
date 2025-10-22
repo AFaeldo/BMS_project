@@ -1,0 +1,46 @@
+﻿@{
+    Layout = "~/Views/Shared/_BarangayLayout.cshtml";
+    ViewData["Title"] = "Youth Profiling";
+}
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5>Registered Youth Members</h5>
+    <button class="btn btn-primary"><i class="bi bi-person-plus"></i> Add Youth</button>
+</div>
+
+<table class="table table-bordered table-hover shadow-sm">
+    <thead class="table-primary">
+        <tr>
+            <th>ID</th>
+            <th>Full Name</th>
+            <th>Age</th>
+            <th>Gender</th>
+            <th>Barangay</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Y001</td>
+            <td>Juan Dela Cruz</td>
+            <td>19</td>
+            <td>Male</td>
+            <td>Barangay San Vicente</td>
+            <td>
+                <button class="btn btn-sm btn-warning">Edit</button>
+                <button class="btn btn-sm btn-danger">Delete</button>
+            </td>
+        </tr>
+        <tr>
+            <td>Y002</td>
+            <td>Maria Santos</td>
+            <td>21</td>
+            <td>Female</td>
+            <td>Barangay San Antonio</td>
+            <td>
+                <button class="btn btn-sm btn-warning">Edit</button>
+                <button class="btn btn-sm btn-danger">Delete</button>
+            </td>
+        </tr>
+    </tbody>
+</table>

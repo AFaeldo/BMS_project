@@ -1,0 +1,128 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutFederation.cshtml";
+    ViewData["Title"] = "Report Generation";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold text-primary mb-0"><i class="bi bi-graph-up"></i> Federation Report Generation</h4>
+    </div>
+
+    @* <!-- Administrative Dashboard Overview -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <h6 class="text-muted mb-1">Total Barangays Monitored</h6>
+                <h3 class="fw-bold text-primary">62</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <h6 class="text-muted mb-1">Pending Submissions</h6>
+                <h3 class="fw-bold text-warning">8</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <h6 class="text-muted mb-1">Approved Projects</h6>
+                <h3 class="fw-bold text-success">54</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <h6 class="text-muted mb-1">Compliance Rate</h6>
+                <h3 class="fw-bold text-info">92%</h3>
+            </div>
+        </div>
+    </div> *@
+
+    <!-- Report Generation Form -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white fw-semibold">
+            <i class="bi bi-file-earmark-text me-2"></i>Generate Federation Reports
+        </div>
+        <div class="card-body">
+            <form class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Report Type</label>
+                    <select class="form-select">
+                        <option selected disabled>Select Report Type</option>
+                        <option>Project Summary</option>
+                        <option>Budget Report</option>
+                        <option>Youth Demographics</option>
+                        <option>Activity Compliance</option>
+                        <option>Barangay Submission Status</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">From</label>
+                    <input type="date" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">To</label>
+                    <input type="date" class="form-control">
+                </div>
+                <div class="col-md-2 align-self-end">
+                    <button class="btn btn-primary w-100"><i class="bi bi-printer"></i> Generate</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Compliance Monitoring Section -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-success text-white fw-semibold">
+            <i class="bi bi-clipboard-check me-2"></i>Compliance Monitoring
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-3">Monitor submission status of required documents such as meeting minutes, budget proposals, and project reports.</p>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Barangay</th>
+                            <th>Meeting Minutes</th>
+                            <th>Budget Proposal</th>
+                            <th>Project Report</th>
+                            <th>Last Submission</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Barangay San Isidro</td>
+                            <td>Submitted</td>
+                            <td>Pending</td>
+                            <td>Submitted</td>
+                            <td>Oct 10, 2025</td>
+                            <td><span class="badge bg-warning text-dark">Partial</span></td>
+                        </tr>
+                        <tr>
+                            <td>Barangay Mabini</td>
+                            <td>Submitted</td>
+                            <td>Submitted</td>
+                            <td>Submitted</td>
+                            <td>Oct 15, 2025</td>
+                            <td><span class="badge bg-success">Compliant</span></td>
+                        </tr>
+                        <tr>
+                            <td>Barangay Poblacion</td>
+                            <td>Not Submitted</td>
+                            <td>Submitted</td>
+                            <td>Pending</td>
+                            <td>Sep 28, 2025</td>
+                            <td><span class="badge bg-danger">Non-Compliant</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <button class="btn btn-outline-primary btn-sm mt-3"><i class="bi bi-bar-chart-line"></i> Generate Compliance Report</button>
+        </div>
+    </div>
+
+    <!-- Report Preview Section -->
+    <div class="card shadow-sm mt-4 p-3">
+        <h5 class="fw-semibold"><i class="bi bi-eye"></i> Generated Report Preview</h5>
+        <p class="text-muted mb-0">No report generated yet. Select filters and click “Generate”.</p>
+    </div>
+</div>     

@@ -1,0 +1,133 @@
+﻿@{
+   Layout = "~/Views/Shared/_LayoutFederation.cshtml";
+    ViewData["Title"] = "Project Approvals";
+}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold text-primary mb-0"><i class="bi bi-folder-check"></i> Project Approval Dashboard</h4>
+  
+    </div>
+
+    <!-- Dashboard Overview -->
+    <!--<div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <h6 class="text-muted mb-1">Projects Submitted</h6>
+                <h3 class="fw-bold text-primary">62</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <h6 class="text-muted mb-1">Pending Review</h6>
+                <h3 class="fw-bold text-warning">10</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <h6 class="text-muted mb-1">Approved</h6>
+                <h3 class="fw-bold text-success">48</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <h6 class="text-muted mb-1">Rejected</h6>
+                <h3 class="fw-bold text-danger">4</h3>
+            </div>
+        </div>
+    </div>-->
+
+   <!-- Filter/Search Section -->
+<div class="row mb-3">
+    <div class="col d-flex justify-content-end align-items-end gap-2">
+        <input type="text" class="form-control w-auto" placeholder="Search project....." />
+        
+        <select class="form-select w-auto">
+            <option selected>Filter by Status</option>
+            <option>Pending</option>
+            <option>In Review</option>
+            <option>Approved</option>
+            <option>Rejected</option>
+        </select>
+        
+        <button class="btn btn-primary"><i class="bi bi-funnel"></i> Apply</button>
+    </div>
+</div>
+
+
+    <!-- Project Approval Table -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white fw-semibold">
+            <i class="bi bi-list-task me-2"></i> Barangay Project Submissions
+        </div>
+        <div class="card-body">
+            <table class="table table-hover table-bordered align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Project Title</th>
+                        <th>Barangay</th>
+                        <th>Date Submitted</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Youth Tree Planting</td>
+                        <td>Barangay Lalud</td>
+                        <td>Oct 15, 2025</td>
+                        <td><span class="badge bg-warning text-dark">Pending</span></td>
+                        <td>
+                            <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#reviewModal"><i class="bi bi-check2-circle"></i> Approve</button>
+                            <button class="btn btn-danger btn-sm"><i class="bi bi-x-circle"></i> Reject</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Sports Equipment Request</td>
+                        <td>Barangay Ibaba</td>
+                        <td>Oct 14, 2025</td>
+                        <td><span class="badge bg-info text-dark">In Review</span></td>
+                        <td>
+                            <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#reviewModal"><i class="bi bi-check2-circle"></i> Approve</button>
+                            <button class="btn btn-danger btn-sm"><i class="bi bi-x-circle"></i> Reject</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Leadership Training Seminar</td>
+                        <td>Barangay Mabini</td>
+                        <td>Oct 10, 2025</td>
+                        <td><span class="badge bg-success">Approved</span></td>
+                        <td>
+                            <button class="btn btn-secondary btn-sm" disabled><i class="bi bi-check2-all"></i> Approved</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Review Modal -->
+    <div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="reviewModalLabel"><i class="bi bi-clipboard-data"></i> Review Project Submission</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <h6 class="fw-semibold">Project: Youth Tree Planting</h6>
+                    <p><strong>Barangay:</strong> Lalud</p>
+                    <p><strong>Date Submitted:</strong> Oct 15, 2025</p>
+                    <p><strong>Description:</strong> Community tree-planting activity led by youth volunteers to promote environmental awareness.</p>
+                    <div class="mt-3">
+                        <label class="form-label">Remarks / Feedback</label>
+                        <textarea class="form-control" rows="3" placeholder="Write feedback or reasons for approval/rejection..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-success"><i class="bi bi-check-circle"></i> Approve Project</button>
+                    <button class="btn btn-danger"><i class="bi bi-x-circle"></i> Reject Project</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

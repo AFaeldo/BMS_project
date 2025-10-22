@@ -1,0 +1,35 @@
+﻿@{
+   Layout = "~/Views/Shared/_BarangayLayout.cshtml";
+    ViewData["Title"] = "Reports";
+}
+
+<div class="container-fluid">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <strong>Automated Report Generation</strong>
+        </div>
+        <div class="card-body">
+            <p>Generate quarterly and annual reports using stored system data. All outputs follow standard LGU reporting templates.</p>
+            <button class="btn btn-primary mb-3"><i class="bi bi-file-earmark-text"></i> Generate Report</button>
+
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Report Title</th>
+                        <th>Type</th>
+                        <th>Date Generated</th>
+                        <th>Download</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Q3 Youth Activity Summary</td>
+                        <td>Quarterly</td>
+                        <td>Oct 20, 2025</td>
+                        <td><button class="btn btn-outline-primary btn-sm"><i class="bi bi-download"></i></button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

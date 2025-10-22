@@ -1,0 +1,176 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutFederation.cshtml";
+    ViewData["Title"] = "Administrative Dashboard";
+}
+
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="mb-4">
+        <h3 class="fw-bold text-primary mb-1">
+            <i class="bi bi-building me-2"></i>Calapan City SK Federation Dashboard
+        </h3>
+        <p class="text-muted mb-0">
+            Monitor all 62 barangay SK activities, review submissions, and access comprehensive reports.
+        </p>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center hover-card">
+                <div class="card-body">
+                    <h6 class="fw-bold text-secondary">Total Barangays</h6>
+                    <h2 class="fw-bold text-primary mb-0">62</h2>
+                    <small class="text-muted">Registered SK Councils</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center hover-card">
+                <div class="card-body">
+                    <h6 class="fw-bold text-secondary">Pending Approvals</h6>
+                    <h2 class="fw-bold text-warning mb-0">12</h2>
+                    <small class="text-muted">Awaiting Federation review</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center hover-card">
+                <div class="card-body">
+                    <h6 class="fw-bold text-secondary">Approved Projects</h6>
+                    <h2 class="fw-bold text-success mb-0">50</h2>
+                    <small class="text-muted">Federation-verified projects</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center hover-card">
+                <div class="card-body">
+                    <h6 class="fw-bold text-secondary">Rejected Projects</h6>
+                    <h2 class="fw-bold text-danger mb-0">5</h2>
+                    <small class="text-muted">Returned for revision</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+@*   <!-- QUICK ACTIONS -->
+    <div c<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-body text-center">
+                <button class="btn btn-primary btn-sm mx-1">Review Submissions</button>
+                <button class="btn btn-success btn-sm mx-1">View Reports</button>
+                <button class="btn btn-warning btn-sm mx-1">Manage Users</button>
+                <button class="btn btn-secondary btn-sm mx-1">Security Settings</button>
+            </div>
+        </div>
+    </div>
+</div> *@
+
+
+    <!-- Charts Section -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light fw-bold">
+                    <i class="bi bi-bar-chart-fill text-primary me-2"></i>Youth Profiles by Barangay
+                </div>
+                <div class="card-body">
+                    <canvas id="youthProfilesChart" height="180"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light fw-bold">
+                    <i class="bi bi-graph-up-arrow text-success me-2"></i>Submissions This Quarter
+                </div>
+                <div class="card-body">
+                    <canvas id="submissionsChart" height="180"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activities Section -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white fw-bold">
+            <i class="bi bi-activity me-2"></i>Recent SK Activities
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Barangay</th>
+                        <th>Project Title</th>
+                        <th>Status</th>
+                        <th>Date Submitted</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Barangay Ibaba</td>
+                        <td>Youth Clean-Up Drive</td>
+                        <td><span class="badge bg-success px-3 py-2">Approved</span></td>
+                        <td>Oct 18, 2025</td>
+                    </tr>
+                    <tr>
+                        <td>Barangay Guinobatan</td>
+                        <td>Basketball League</td>
+                        <td><span class="badge bg-warning text-dark px-3 py-2">In Review</span></td>
+                        <td>Oct 17, 2025</td>
+                    </tr>
+                    <tr>
+                        <td>Barangay Tawiran</td>
+                        <td>Youth Tree Planting</td>
+                        <td><span class="badge bg-danger px-3 py-2">Rejected</span></td>
+                        <td>Oct 15, 2025</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<!-- ChartJS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Youth Profiles Chart
+    const ctx1 = document.getElementById('youthProfilesChart').getContext('2d');
+    new Chart(ctx1, {
+        type: 'bar',
+        data: {
+            labels: ['Ibaba', 'Guinobatan', 'Tawiran', 'San Vicente', 'Bayanan'],
+            datasets: [{
+                label: 'Youth Profiles',
+                data: [120, 95, 80, 130, 110],
+                backgroundColor: 'rgba(13, 110, 253, 0.7)'
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+
+    // Submissions Chart
+    const ctx2 = document.getElementById('submissionsChart').getContext('2d');
+    new Chart(ctx2, {
+        type: 'line',
+        data: {
+            labels: ['July', 'August', 'September', 'October'],
+            datasets: [{
+                label: 'Submissions',
+                data: [30, 45, 40, 55],
+                borderColor: 'rgba(25, 135, 84, 0.9)',
+                backgroundColor: 'rgba(25, 135, 84, 0.2)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+</script>

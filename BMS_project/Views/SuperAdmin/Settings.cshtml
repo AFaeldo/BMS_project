@@ -1,0 +1,186 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutSuperAdmin.cshtml";
+    ViewData["Title"] = "Settings";
+}
+
+<div class="container-fluid">
+
+    <!-- PAGE HEADER -->
+    <div class="mb-4">
+        <h2 class="fw-bold">System Settings & Access Control</h2>
+        <p class="text-muted">Configure user roles, manage SK council accounts, and maintain system security for Calapan City's 62 barangays.</p>
+    </div>
+
+    <!-- USER MANAGEMENT DASHBOARD -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-primary text-white">
+            <strong>User Management Dashboard</strong>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-3">
+                Manage access for SK Federation officials. The SK Federation President has full administrative privileges.
+            </p>
+            <ul class="list-unstyled mb-3">
+                <li class="mb-2"><strong>SK Federation President:</strong> Master access to all barangay-level SK operations.</li>
+                <li class="mb-2"><strong>SK Chairpersons:</strong> Responsible for minutes, profiling, and budget entries.</li>
+                <li class="mb-2"><strong>Secretaries:</strong> Maintain records and upload official documentation.</li>
+                <li><strong>Treasurers:</strong> Oversee budget reports and fund transparency.</li>
+            </ul>
+
+            <div class="text-center">
+                <button class="btn btn-success btn-sm mx-1" data-bs-toggle="modal" data-bs-target="#assignRolesModal">
+                    <i class="bi bi-person-check-fill me-1"></i> Assign Roles
+                </button>
+                <button class="btn btn-warning btn-sm mx-1" data-bs-toggle="modal" data-bs-target="#activityLogsModal">
+                    <i class="bi bi-clock-history me-1"></i> View Activity Logs
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECURITY & ACCESS CONTROL -->
+    <div class="card shadow-sm border-0 mb-5">
+        <div class="card-header bg-dark text-white">
+            <strong>Security & Access Control</strong>
+        </div>
+        <div class="card-body text-center">
+            <div class="d-flex flex-wrap justify-content-center gap-2">
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#manageUsersModal">
+                    <i class="bi bi-people-fill me-1"></i> Manage Users
+                </button>
+                <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#auditModal">
+                    <i class="bi bi-shield-lock-fill me-1"></i> Run Security Audit
+                </button>
+                <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#backupModal">
+                    <i class="bi bi-cloud-arrow-up-fill me-1"></i> Data Backup
+                </button>
+                <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#resetModal">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Reset Accounts
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODALS ===== -->
+
+    <!-- Manage Users Modal -->
+    <div class="modal fade" id="manageUsersModal" tabindex="-1" aria-labelledby="manageUsersModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="manageUsersModalLabel">Manage User Accounts</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">Add, review, or deactivate user accounts per barangay SK council.</p>
+                    <ul class="list-unstyled">
+                        <li><span class="fw-semibold">Barangay 1:</span> Active</li>
+                        <li><span class="fw-semibold">Barangay 2:</span> Active</li>
+                        <li><span class="fw-semibold">Barangay 3:</span> Pending</li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assign Roles Modal -->
+    <div class="modal fade" id="assignRolesModal" tabindex="-1" aria-labelledby="assignRolesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="assignRolesModalLabel">Assign Roles</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">Assign user roles such as Chairperson, Secretary, or Treasurer to respective SK officials.</p>
+                    <button class="btn btn-outline-success btn-sm">Add New Role</button>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity Logs Modal -->
+    <div class="modal fade" id="activityLogsModal" tabindex="-1" aria-labelledby="activityLogsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-white">
+                    <h5 class="modal-title" id="activityLogsModalLabel">Recent Activity Logs</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-sm table-striped">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>User</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Oct 21, 2025</td><td>SK Chair - Ibaba</td><td>Uploaded Meeting Minutes</td></tr>
+                            <tr><td>Oct 20, 2025</td><td>SK Chair - Guinobatan</td><td>Submitted Budget Proposal</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Backup Modal -->
+    <div class="modal fade" id="backupModal" tabindex="-1" aria-labelledby="backupModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="backupModalLabel">Backup SK Data</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <p>Initiate a full system backup to securely store all SK records and reports.</p>
+                    <button class="btn btn-primary btn-sm">Run Backup Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Audit Modal -->
+    <div class="modal fade" id="auditModal" tabindex="-1" aria-labelledby="auditModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-secondary text-white">
+                    <h5 class="modal-title" id="auditModalLabel">Security Audit</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <p>Check login patterns, permission changes, and system integrity.</p>
+                    <button class="btn btn-secondary btn-sm">Start Audit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Accounts Modal -->
+    <div class="modal fade" id="resetModal" tabindex="-1" aria-labelledby="resetModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="resetModalLabel">Reset All Accounts</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <p class="mb-3">⚠️ This action will reset all SK council accounts. This cannot be undone.</p>
+                    <button class="btn btn-danger btn-sm">Confirm Reset</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
