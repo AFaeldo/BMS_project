@@ -20,7 +20,7 @@ namespace BMS_project.Data
             // Define relationship between login and role
             modelBuilder.Entity<Login>()
                 .HasOne(l => l.Role)
-                .WithMany(r => r.Logins)
+                .WithMany(r => r.Login)
                 .HasForeignKey(l => l.Role_ID);
         }
     }

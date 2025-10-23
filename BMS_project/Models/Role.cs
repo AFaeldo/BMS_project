@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BMS_project.Models
 {
-    [Table("role")]
+    [Table("Role")]
     public class Role
     {
         [Key]
@@ -14,6 +14,6 @@ namespace BMS_project.Models
         public string Role_Name { get; set; }
 
         // Navigation property
-        public ICollection<Login> Logins { get; set; }
+        public ICollection<Login> Login { get; set; }
     }
 }
