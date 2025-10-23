@@ -13,14 +13,12 @@ namespace BMS_project.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Schema and table mapping
-            modelBuilder.Entity<Login>().ToTable("login");
-            modelBuilder.Entity<Role>().ToTable("role");
+            modelBuilder.Entity<Login>().ToTable("login").HasKey(l => l.Id);
+            modelBuilder.Entity<Role>().ToTable("role").HasKey(r => r.Role_ID);
 
-            // Define relationship between login and role
             modelBuilder.Entity<Login>()
-                .HasOne(l => l.Role)
-                .WithMany(r => r.Login)
+                .HasOne<Role>()
+                .WithMany()
                 .HasForeignKey(l => l.Role_ID);
         }
     }
