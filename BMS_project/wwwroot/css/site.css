@@ -31,10 +31,6 @@ body {
     z-index: 1050;
 }
 
-    .sidebar.collapsed {
-        left: -250px;
-    }
-
     .sidebar .nav-link {
         color: #d1d5db;
         padding: 10px 15px;
@@ -59,8 +55,22 @@ body {
     min-height: 100vh;
     transition: margin-left 0.3s ease;
 }
+/* Collapse sidebar */
+.sidebar.collapsed {
+    left: -250px;
+}
 
-  
+/* Expand main content when sidebar is collapsed */
+.main-content.expanded {
+    margin-left: 0;
+    width: 100%;
+}
+
+/* Expand topbar when sidebar is collapsed */
+.topbar.expanded {
+    left: 0;
+    width: 100%;
+}
 
 /* TOPBAR */
 .topbar {
