@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace BMS_project.Controllers
 {
@@ -10,22 +11,28 @@ namespace BMS_project.Controllers
         [HttpGet]
         public IActionResult Login(string role)
         {
+            // Store role for use in the view (optional)
+            ViewBag.Role = role;
             return View();
         }
 
+        [HttpPost] // ✅ Add this to specify POST for form submission
         public async Task<IActionResult> Login(string username, string password, string role)
         {
             if (username == "admin@gmail.com" && password == "1234")
             {
                 var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.Name, username),
-            new Claim(ClaimTypes.Role, role)
-        };
+                {
+                    new Claim(ClaimTypes.Name, username),
+                    new Claim(ClaimTypes.Role, role)
+                };
 
                 var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+                var principal = new ClaimsPrincipal(identity);
 
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+                // ✅ Use proper role-based redirection
                 return role switch
                 {
                     "SuperAdmin" => RedirectToAction("Dashboard", "SuperAdmin"),
@@ -35,15 +42,16 @@ namespace BMS_project.Controllers
                 };
             }
 
+            // If login fails, show an error message
             ViewBag.Error = "Invalid login credentials.";
             return View();
         }
 
-
+        [HttpPost]
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction("Login");
+            return RedirectToAction("Login", "Account");
         }
 
         public IActionResult AccessDenied()
