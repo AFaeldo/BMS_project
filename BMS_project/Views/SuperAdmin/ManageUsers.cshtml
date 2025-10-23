@@ -26,11 +26,8 @@
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold">Barangay</label>
-                                <select class="form-select">
+                                <select id="barangaySelect" class="form-select">
                                     <option selected disabled>Select Barangay</option>
-                                    <option>Barangay I</option>
-                                    <option>Barangay II</option>
-                                    <option>Barangay III</option>
                                 </select>
                             </div>
 
@@ -111,3 +108,29 @@
         </div>
     </div>
 </div>
+
+<script>
+    fetch('/Jsons/barangays.json')
+  .then(response => response.json())
+  .then(data => {
+    const select = document.getElementById("barangaySelect");
+
+    // Clear existing options (if any)
+    select.innerHTML = "";
+
+    // Add default option
+    const defaultOption = document.createElement("option");
+    defaultOption.text = "Select Barangay";
+    defaultOption.disabled = true;
+    defaultOption.selected = true;
+    select.add(defaultOption);
+
+    // Loop through JSON and add options
+    data.barangays.forEach(barangay => {
+      const option = document.createElement("option");
+      option.text = barangay;
+      select.add(option);
+    });
+  })
+  .catch(error => console.error('Error loading JSON:', error));
+</script>
