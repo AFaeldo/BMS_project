@@ -1,17 +1,29 @@
-﻿using System.Data;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Data;
 
-namespace BaranggayManagementSystem.Models
+namespace BMS_project.Models
 {
-    public class User
+    [Table("login")] // Table name in MySQL
+    public class Login
     {
-        public int User_ID { get; set; }
-        public string First_Name { get; set; }
-        public string Last_Name { get; set; }
-        public string Email { get; set; }
+        [Key]
+        [Column("id")]
+        public int Id { get; set; }
+
+        [Column("username")]
+        [Required]
+        public string Username { get; set; }
+
+        [Column("password")]
+        [Required]
         public string Password { get; set; }
 
-        // Foreign Keys
+        [Column("Role_ID")]
         public int Role_ID { get; set; }
+
+        // Navigation property
+        [ForeignKey("Role_ID")]
         public Role Role { get; set; }
     }
 }

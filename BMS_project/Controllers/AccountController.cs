@@ -1,54 +1,77 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using BMS_project.Data;
+using BMS_project.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace BMS_project.Controllers
 {
     public class AccountController : Controller
     {
+        private readonly ApplicationDbContext _context;
+
+        public AccountController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
         [HttpGet]
-        public IActionResult Login(string role)
+        public IActionResult Login()
         {
             return View();
         }
 
-        public async Task<IActionResult> Login(string username, string password, string role)
+        [HttpPost]
+        public async Task<IActionResult> Login(LoginViewModel model)
         {
-            if (username == "admin@gmail.com" && password == "1234")
+            if (ModelState.IsValid)
             {
-                var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.Name, username),
-            new Claim(ClaimTypes.Role, role)
-        };
+                var user = await _context.Login
+                    .Include(u => u.Role)
+                    .FirstOrDefaultAsync(u => u.Username == model.Username && u.Password == model.Password);
 
-                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
-
-                return role switch
+                if (user != null)
                 {
-                    "SuperAdmin" => RedirectToAction("Dashboard", "SuperAdmin"),
-                    "FederationPresident" => RedirectToAction("Dashboard", "FederationPresident"),
-                    "BarangaySk" => RedirectToAction("Dashboard", "BarangaySk"),
-                    _ => RedirectToAction("Index", "Home")
-                };
+                    var claims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.Name, user.Username),
+                        new Claim(ClaimTypes.Role, user.Role?.Role_Name ?? "")
+                    };
+
+                    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                    var authProperties = new AuthenticationProperties
+                    {
+                        IsPersistent = true
+                    };
+
+                    await HttpContext.SignInAsync(
+                        CookieAuthenticationDefaults.AuthenticationScheme,
+                        new ClaimsPrincipal(claimsIdentity),
+                        authProperties);
+
+                    // Redirect based on role
+                    return user.Role.Role_Name switch
+                    {
+                        "SuperAdmin" => RedirectToAction("Dashboard", "SuperAdmin"),
+                        "SKFederation" => RedirectToAction("Dashboard", "FederationPresident"),
+                        "BarangaySK" => RedirectToAction("Dashboard", "BarangaySk"),
+                        _ => RedirectToAction("Login")
+                    };
+                }
+
+                ModelState.AddModelError("", "Invalid username or password.");
             }
 
-            ViewBag.Error = "Invalid login credentials.";
-            return View();
+            return View(model);
         }
-
 
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Login");
-        }
-
-        public IActionResult AccessDenied()
-        {
-            return View();
         }
     }
 }
