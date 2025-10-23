@@ -6,14 +6,15 @@ namespace BMS_project.Controllers
     [Authorize(Roles = "FederationPresident")]
     public class FederationPresidentController : Controller
     {
-        public IActionResult ComplianceMonitoring()
-        {
-            ViewData["Title"] = "Compliance Monitoring";
-            return View();
-        }
         public IActionResult Dashboard()
         {
             ViewData["Title"] = "Administrative Dashboard";
+            return View();
+        }
+
+        public IActionResult ComplianceMonitoring()
+        {
+            ViewData["Title"] = "Compliance Monitoring";
             return View();
         }
 
