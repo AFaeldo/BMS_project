@@ -39,10 +39,14 @@
                 <input type="text" class="form-control" name="username" placeholder="Enter username" required />
             </div>
 
-            <div class="mb-3">
+            <div class="mb-3 position-relative">
                 <label class="form-label fw-semibold">Password</label>
-                <input type="password" class="form-control" name="password" placeholder="Enter password" required />
+                <input type="password" class="form-control" name="password" id="passwordInput" placeholder="Enter password" required />
+
+                <!-- 👁 Eye Icon -->
+                <i class="bi bi-eye-slash position-absolute" id="togglePassword" style="top: 64%; right: 10px; transform: translateY(-20%); cursor: pointer;">></i>
             </div>
+
 
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <a asp-action="ForgotPassword" class="small text-decoration-none">Forgot Password?</a>
@@ -58,6 +62,19 @@
             </p>
         </div>
     </div>
+    <script>
+    const togglePassword = document.getElementById("togglePassword");
+    const passwordInput = document.getElementById("passwordInput");
+
+    togglePassword.addEventListener("click", function () {
+        const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
+        passwordInput.setAttribute("type", type);
+
+        // Toggle icon
+        this.classList.toggle("bi-eye");
+        this.classList.toggle("bi-eye-slash");
+    });
+</script>
 
 </body>
 </html>
