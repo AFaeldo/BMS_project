@@ -68,7 +68,7 @@
                 <h6 class="fw-bold text-secondary mb-0">
                     <i class="bi bi-clock-history me-2"></i> Recent Uploads
                 </h6>
-                <span class="badge bg-primary">@Model.Count() file(s)</span>
+                <span class="badge bg-primary">@((Model != null) ? Model.Count() : 0) file(s)</span>
             </div>
 
             @if (Model != null && Model.Any())
@@ -79,7 +79,6 @@
                             <tr>
                                 <th>File ID</th>
                                 <th>File Name</th>
-                                <th>File</th>
                                 <th>Category</th>
                                 <th>Project ID</th>
                                 <th>User ID</th>
@@ -92,10 +91,13 @@
                             {
                                 <tr>
                                     <td>@file.File_ID</td>
-                                    <td>@file.File_Name</td>
-                                    <td>@file.File</td>
+                                    <td class="text-truncate" style="max-width: 200px;">
+                                        <a asp-action="DownloadFile" asp-controller="BarangaySk" asp-route-id="@file.File_ID">
+                                            @file.File_Name
+                                        </a>
+                                    </td>
                                     <td>@file.File_Category</td>
-                                    <td>@file.Project_ID</td>
+                                    <td>@(file.Project_ID.HasValue ? file.Project_ID.ToString() : "-")</td>
                                     <td>@file.User_ID</td>
                                     <td>@file.Timestamp.ToString("MMM dd, yyyy - hh:mm tt")</td>
                                     <td class="text-center">

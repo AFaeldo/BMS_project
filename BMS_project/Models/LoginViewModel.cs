@@ -1,4 +1,4 @@
-﻿namespace BMS_project.Models
+﻿ namespace BMS_project.Models
 {
     public class LoginViewModel
     {

@@ -11,8 +11,13 @@ namespace BMS_project.Data
         public DbSet<Login> Login { get; set; }
         public DbSet<Role> Role { get; set; }
 
+        // 👇 Add this line for your youth members
+        public DbSet<YouthMember> YouthMembers { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
             modelBuilder.Entity<Login>().ToTable("login").HasKey(l => l.Id);
             modelBuilder.Entity<Role>().ToTable("role").HasKey(r => r.Role_ID);
 
@@ -20,7 +25,11 @@ namespace BMS_project.Data
                 .HasOne(l => l.Role)
                 .WithMany(r => r.Logins)
                 .HasForeignKey(l => l.Role_ID)
-                .HasConstraintName("fk_login_role"); // optional, for clarity
+                .HasConstraintName("fk_login_role");
+
+            // 👇 Map YouthMember to your existing table
+            modelBuilder.Entity<YouthMember>().ToTable("youth_member").HasKey(y => y.Member_ID);
         }
+
     }
 }

@@ -5,14 +5,19 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h5>Registered Youth Members</h5>
-    <button class="btn btn-primary"><i class="bi bi-person-plus"></i> Add Youth</button>
+    <a class="btn btn-primary" asp-action="Add" asp-controller="Youth">
+        <i class="bi bi-person-plus"></i> Add Youth
+    </a>
 </div>
+
+
 
 <table class="table table-bordered table-hover shadow-sm">
     <thead class="table-primary">
         <tr>
             <th>ID</th>
-            <th>Full Name</th>
+            <th>First Name</th>
+            <th>Last Name</th>
             <th>Age</th>
             <th>Gender</th>
             <th>Sitio</th>
@@ -23,10 +28,12 @@
     <tbody>
         <tr>
             <td>Y001</td>
-            <td>Juan Dela Cruz</td>
+            <td>Juan</td>
+            <td>Dela Cruz</td>
             <td>19</td>
             <td>Male</td>
-            <td>Barangay San Vicente</td>
+            <td>Sitio San Vicente</td>
+            <td>2006-05-14</td>
             <td>
                 <button class="btn btn-sm btn-warning">Edit</button>
                 <button class="btn btn-sm btn-danger">Delete</button>
@@ -34,10 +41,12 @@
         </tr>
         <tr>
             <td>Y002</td>
-            <td>Maria Santos</td>
+            <td>Maria</td>
+            <td>Santos</td>
             <td>21</td>
             <td>Female</td>
-            <td>Barangay San Antonio</td>
+            <td>Sitio San Antonio</td>
+            <td>2004-03-22</td>
             <td>
                 <button class="btn btn-sm btn-warning">Edit</button>
                 <button class="btn btn-sm btn-danger">Delete</button>
