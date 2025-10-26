@@ -6,7 +6,6 @@
 <div class="container-fluid">
     <div class="row">
 
-
         <!-- FORM CARD -->
         <div class="col-12">
             <div class="card shadow-sm border-0 rounded-3">
@@ -17,16 +16,17 @@
                 <div class="card-body">
                     <form>
                         <div class="row g-3">
-                            <!-- Name Fields -->
+                            <!-- Name & Email Fields -->
                             <div class="col-md-4">
                                 <label for="lastName" class="form-label fw-semibold">Last Name</label>
                                 <input type="text" id="lastName" class="form-control" placeholder="Enter last name">
+                            </div>
 
-                                <label for="firstName" class="form-label fw-semibold mt-3">First Name</label>
+                            <div class="col-md-4">
+                                <label for="firstName" class="form-label fw-semibold">First Name</label>
                                 <input type="text" id="firstName" class="form-control" placeholder="Enter first name">
                             </div>
 
-                            <!-- Email -->
                             <div class="col-md-4">
                                 <label for="email" class="form-label fw-semibold">Email</label>
                                 <input type="email" id="email" class="form-control" placeholder="Enter email address">
@@ -78,7 +78,6 @@
                 </div>
             </div>
         </div>
-
 
         <!-- USER LIST TABLE -->
         <div class="col-12 mt-5">
@@ -134,26 +133,22 @@
 
 <script>
     fetch('/Jsons/barangays.json')
-  .then(response => response.json())
-  .then(data => {
-    const select = document.getElementById("barangaySelect");
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById("barangaySelect");
+            select.innerHTML = "";
 
-    // Clear existing options (if any)
-    select.innerHTML = "";
+            const defaultOption = document.createElement("option");
+            defaultOption.text = "Select Barangay";
+            defaultOption.disabled = true;
+            defaultOption.selected = true;
+            select.add(defaultOption);
 
-    // Add default option
-    const defaultOption = document.createElement("option");
-    defaultOption.text = "Select Barangay";
-    defaultOption.disabled = true;
-    defaultOption.selected = true;
-    select.add(defaultOption);
-
-    // Loop through JSON and add options
-    data.barangays.forEach(barangay => {
-      const option = document.createElement("option");
-      option.text = barangay;
-      select.add(option);
-    });
-  })
-  .catch(error => console.error('Error loading JSON:', error));
+            data.barangays.forEach(barangay => {
+                const option = document.createElement("option");
+                option.text = barangay;
+                select.add(option);
+            });
+        })
+        .catch(error => console.error('Error loading JSON:', error));
 </script>
