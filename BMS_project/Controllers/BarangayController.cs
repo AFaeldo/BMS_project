@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BMS_project.Controllers
 {
-    [Authorize(Roles = "BarangaySk")]
     public class BarangaySkController : Controller
     {
         public IActionResult Dashboard()

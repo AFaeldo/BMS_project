@@ -12,34 +12,16 @@
         </div>
 
         <div class="card-body">
-            <!-- ALERTS -->
-            @if (TempData["SuccessMessage"] != null)
-            {
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="bi bi-check-circle me-2"></i> @TempData["SuccessMessage"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            }
-            else if (TempData["ErrorMessage"] != null)
-            {
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="bi bi-exclamation-triangle me-2"></i> @TempData["ErrorMessage"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            }
-
-            <p class="text-muted mb-4">
-                Upload meeting minutes, project reports, and budget documents. Archive old files for record-keeping.
-            </p>
 
             <!-- UPLOAD FORM -->
             <form asp-action="UploadFile" asp-controller="BarangaySk" enctype="multipart/form-data" method="post" class="border rounded p-3 mb-4 bg-light">
                 <div class="row g-3 align-items-end">
-                    <div class="col-md-5">
+                    <div class="col-md-6">
                         <label class="form-label fw-semibold">Select Document</label>
                         <input type="file" name="File" class="form-control" required />
                     </div>
-                    <div class="col-md-3">
+
+                    <div class="col-md-4">
                         <label class="form-label fw-semibold">Category</label>
                         <select name="File_Category" class="form-select" required>
                             <option value="">-- Select Category --</option>
@@ -49,10 +31,7 @@
                             <option>Other</option>
                         </select>
                     </div>
-                    <div class="col-md-2">
-                        <label class="form-label fw-semibold">Project ID</label>
-                        <input type="number" name="Project_ID" class="form-control" placeholder="Optional" />
-                    </div>
+
                     <div class="col-md-2 d-grid">
                         <button type="submit" class="btn btn-secondary text-white">
                             <i class="bi bi-upload me-1"></i> Upload
@@ -68,7 +47,7 @@
                 <h6 class="fw-bold text-secondary mb-0">
                     <i class="bi bi-clock-history me-2"></i> Recent Uploads
                 </h6>
-                <span class="badge bg-primary">@Model.Count() file(s)</span>
+                <span class="badge bg-primary">@Model?.Count() ?? 0 file(s)</span>
             </div>
 
             @if (Model != null && Model.Any())
