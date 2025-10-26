@@ -10,8 +10,6 @@ namespace BMS_project.Data
 
         public DbSet<Login> Login { get; set; }
         public DbSet<Role> Role { get; set; }
-
-        // 👇 Add this line for your youth members
         public DbSet<YouthMember> YouthMembers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
