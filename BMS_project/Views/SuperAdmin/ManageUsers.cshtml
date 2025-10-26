@@ -5,8 +5,6 @@
 
 <div class="container-fluid">
     <div class="row">
-    
-
         <!-- FORM CARD -->
         <div class="col-12">
             <div class="card shadow-sm border-0 rounded-3">
@@ -17,13 +15,18 @@
                     <form>
                         <div class="row g-3">
                             <div class="col-md-4">
-                                <label class="form-label fw-semibold">Full Name</label>
-                                <input type="text" class="form-control" placeholder="Enter full name">
+                                <label class="form-label fw-semibold">First Name</label>
+                                <input type="text" class="form-control" placeholder="Enter first name">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Last Name</label>
+                                <input type="text" class="form-control" placeholder="Enter last name">
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold">Email</label>
                                 <input type="email" class="form-control" placeholder="Enter email address">
                             </div>
+
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold">Barangay</label>
                                 <select id="barangaySelect" class="form-select">
@@ -71,7 +74,8 @@
                         <thead class="table-dark">
                             <tr>
                                 <th>#</th>
-                                <th>Full Name</th>
+                                <th>First Name</th>
+                                <th>Last Name</th>
                                 <th>Barangay</th>
                                 <th>Role</th>
                                 <th>Email</th>
@@ -81,7 +85,8 @@
                         <tbody>
                             <tr>
                                 <td>1</td>
-                                <td>Juan Dela Cruz</td>
+                                <td>Juan</td>
+                                <td>Dela Cruz</td>
                                 <td>Barangay I</td>
                                 <td>SK Chairperson</td>
                                 <td>juan@example.com</td>
@@ -92,7 +97,8 @@
                             </tr>
                             <tr>
                                 <td>2</td>
-                                <td>Maria Santos</td>
+                                <td>Maria</td>
+                                <td>Santos</td>
                                 <td>Barangay II</td>
                                 <td>Secretary</td>
                                 <td>maria@example.com</td>
@@ -111,26 +117,26 @@
 
 <script>
     fetch('/Jsons/barangays.json')
-  .then(response => response.json())
-  .then(data => {
-    const select = document.getElementById("barangaySelect");
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById("barangaySelect");
 
-    // Clear existing options (if any)
-    select.innerHTML = "";
+            // Clear existing options (if any)
+            select.innerHTML = "";
 
-    // Add default option
-    const defaultOption = document.createElement("option");
-    defaultOption.text = "Select Barangay";
-    defaultOption.disabled = true;
-    defaultOption.selected = true;
-    select.add(defaultOption);
+            // Add default option
+            const defaultOption = document.createElement("option");
+            defaultOption.text = "Select Barangay";
+            defaultOption.disabled = true;
+            defaultOption.selected = true;
+            select.add(defaultOption);
 
-    // Loop through JSON and add options
-    data.barangays.forEach(barangay => {
-      const option = document.createElement("option");
-      option.text = barangay;
-      select.add(option);
-    });
-  })
-  .catch(error => console.error('Error loading JSON:', error));
+            // Loop through JSON and add options
+            data.barangays.forEach(barangay => {
+                const option = document.createElement("option");
+                option.text = barangay;
+                select.add(option);
+            });
+        })
+        .catch(error => console.error('Error loading JSON:', error));
 </script>
