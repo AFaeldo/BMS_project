@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container
 builder.Services.AddControllersWithViews();
 
-// ✅ Configure Cookie Authentication (only once)
+//  Configure Cookie Authentication (only once)
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -15,7 +15,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/Account/AccessDenied";
     });
 
-// ✅ Configure DbContext with MySQL
+// Configure DbContext with MySQL
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
@@ -36,7 +36,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// ✅ Authentication before Authorization
+// Authentication before Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 
