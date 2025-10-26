@@ -1,133 +1,188 @@
-﻿@{
-   Layout = "~/Views/Shared/_LayoutFederation.cshtml";
+﻿@model IEnumerable<BMS_project.Models.ProjectApprovalViewModel>
+
+@{
+    Layout = "~/Views/Shared/_LayoutFederation.cshtml";
     ViewData["Title"] = "Project Approvals";
 }
+
 <div class="container-fluid">
+
+    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fw-bold text-primary mb-0"><i class="bi bi-folder-check"></i> Project Approval Dashboard</h4>
-  
+        <h4 class="fw-bold text-primary mb-0">
+            <i class="bi bi-folder-check"></i> Project Approval Dashboard
+        </h4>
     </div>
 
-    <!-- Dashboard Overview -->
-    <!--<div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm text-center p-3">
-                <h6 class="text-muted mb-1">Projects Submitted</h6>
-                <h3 class="fw-bold text-primary">62</h3>
-            </div>
+    <!-- Filter/Search -->
+    <div class="row mb-3">
+        <div class="col d-flex justify-content-end align-items-end gap-2">
+            <input type="text" id="searchInput" class="form-control w-auto" placeholder="Search project..." />
+            <select id="statusFilter" class="form-select w-auto">
+                <option value="">Filter by Status</option>
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Completed">Completed</option>
+            </select>
+            <button id="applyFilter" type="button" class="btn btn-primary">
+                <i class="bi bi-funnel"></i> Apply
+            </button>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm text-center p-3">
-                <h6 class="text-muted mb-1">Pending Review</h6>
-                <h3 class="fw-bold text-warning">10</h3>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm text-center p-3">
-                <h6 class="text-muted mb-1">Approved</h6>
-                <h3 class="fw-bold text-success">48</h3>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm text-center p-3">
-                <h6 class="text-muted mb-1">Rejected</h6>
-                <h3 class="fw-bold text-danger">4</h3>
-            </div>
-        </div>
-    </div>-->
-
-   <!-- Filter/Search Section -->
-<div class="row mb-3">
-    <div class="col d-flex justify-content-end align-items-end gap-2">
-        <input type="text" class="form-control w-auto" placeholder="Search project....." />
-        
-        <select class="form-select w-auto">
-            <option selected>Filter by Status</option>
-            <option>Pending</option>
-            <option>In Review</option>
-            <option>Approved</option>
-            <option>Rejected</option>
-        </select>
-        
-        <button class="btn btn-primary"><i class="bi bi-funnel"></i> Apply</button>
     </div>
-</div>
 
-
-    <!-- Project Approval Table -->
+    <!-- Table -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-primary text-white fw-semibold">
             <i class="bi bi-list-task me-2"></i> Barangay Project Submissions
         </div>
+
         <div class="card-body">
-            <table class="table table-hover table-bordered align-middle">
+            <table class="table table-hover table-bordered align-middle" id="projectTable">
                 <thead class="table-light">
                     <tr>
                         <th>Project Title</th>
                         <th>Barangay</th>
                         <th>Date Submitted</th>
                         <th>Status</th>
-                        <th>Actions</th>
+                        <th class="text-center">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>Youth Tree Planting</td>
-                        <td>Barangay Lalud</td>
-                        <td>Oct 15, 2025</td>
-                        <td><span class="badge bg-warning text-dark">Pending</span></td>
-                        <td>
-                            <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#reviewModal"><i class="bi bi-check2-circle"></i> Approve</button>
-                            <button class="btn btn-danger btn-sm"><i class="bi bi-x-circle"></i> Reject</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Sports Equipment Request</td>
-                        <td>Barangay Ibaba</td>
-                        <td>Oct 14, 2025</td>
-                        <td><span class="badge bg-info text-dark">In Review</span></td>
-                        <td>
-                            <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#reviewModal"><i class="bi bi-check2-circle"></i> Approve</button>
-                            <button class="btn btn-danger btn-sm"><i class="bi bi-x-circle"></i> Reject</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Leadership Training Seminar</td>
-                        <td>Barangay Mabini</td>
-                        <td>Oct 10, 2025</td>
-                        <td><span class="badge bg-success">Approved</span></td>
-                        <td>
-                            <button class="btn btn-secondary btn-sm" disabled><i class="bi bi-check2-all"></i> Approved</button>
-                        </td>
-                    </tr>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.Project_Title</td>
+                                <td>@item.Barangay_Name</td>
+                                <td>@item.Date_Submitted?.ToString("MMM dd, yyyy")</td>
+                                <td>
+                                    @switch (item.Project_Status)
+                                    {
+                                        case "Pending":
+                                            <span class="badge bg-warning text-dark">Pending</span>;
+                                            break;
+                                        case "Approved":
+                                            <span class="badge bg-success">Approved</span>;
+                                            break;
+                                        case "Rejected":
+                                            <span class="badge bg-danger">Rejected</span>;
+                                            break;
+                                        default:
+                                            <span class="badge bg-info text-dark">@item.Project_Status</span>;
+                                            break;
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    @if (item.Project_Status == "Pending")
+                                    {
+                                        <button type="button" class="btn btn-success btn-sm me-1"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#remarksModal"
+                                                data-id="@item.Project_ID"
+                                                data-title="@item.Project_Title"
+                                                data-status="Approved">
+                                            <i class="bi bi-check-circle"></i> Approve
+                                        </button>
+
+                                        <button type="button" class="btn btn-danger btn-sm"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#remarksModal"
+                                                data-id="@item.Project_ID"
+                                                data-title="@item.Project_Title"
+                                                data-status="Rejected">
+                                            <i class="bi bi-x-circle"></i> Reject
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn btn-secondary btn-sm" disabled>
+                                            <i class="bi bi-check2-all"></i> @item.Project_Status
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                <i class="bi bi-exclamation-circle"></i> No project records found.
+                            </td>
+                        </tr>
+                    }
                 </tbody>
             </table>
         </div>
     </div>
+</div>
 
-    <!-- Review Modal -->
-    <div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
+<!-- Remarks Modal -->
+<div class="modal fade" id="remarksModal" tabindex="-1" aria-labelledby="remarksModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" asp-controller="FederationPresident" asp-action="UpdateStatus">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="reviewModalLabel"><i class="bi bi-clipboard-data"></i> Review Project Submission</h5>
+                    <h5 class="modal-title" id="remarksModalLabel">
+                        <i class="bi bi-chat-text"></i> Project Review
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
+
                 <div class="modal-body">
-                    <h6 class="fw-semibold">Project: Youth Tree Planting</h6>
-                    <p><strong>Barangay:</strong> Lalud</p>
-                    <p><strong>Date Submitted:</strong> Oct 15, 2025</p>
-                    <p><strong>Description:</strong> Community tree-planting activity led by youth volunteers to promote environmental awareness.</p>
-                    <div class="mt-3">
-                        <label class="form-label">Remarks / Feedback</label>
-                        <textarea class="form-control" rows="3" placeholder="Write feedback or reasons for approval/rejection..."></textarea>
+                    <input type="hidden" name="projectId" id="projectId" />
+                    <input type="hidden" name="status" id="status" />
+
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold">Project Title</label>
+                        <input type="text" id="projectTitle" class="form-control" readonly />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Remarks / Feedback</label>
+                        <textarea class="form-control" name="remarks" id="remarks" rows="3" placeholder="Write your feedback..."></textarea>
                     </div>
                 </div>
+
                 <div class="modal-footer">
-                    <button class="btn btn-success"><i class="bi bi-check-circle"></i> Approve Project</button>
-                    <button class="btn btn-danger"><i class="bi bi-x-circle"></i> Reject Project</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> Confirm
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
 </div>
+
+<!-- Search & Filter Script -->
+<script>
+    // Filter and search functionality
+    document.getElementById("applyFilter").addEventListener("click", function () {
+        const searchValue = document.getElementById("searchInput").value.toLowerCase();
+        const filterValue = document.getElementById("statusFilter").value;
+        const rows = document.querySelectorAll("#projectTable tbody tr");
+
+        rows.forEach(row => {
+            const title = row.cells[0].textContent.toLowerCase();
+            const status = row.cells[3].textContent.trim();
+            const matchesSearch = title.includes(searchValue);
+            const matchesFilter = filterValue === "" || status === filterValue;
+            row.style.display = matchesSearch && matchesFilter ? "" : "none";
+        });
+    });
+
+    // Modal dynamic data
+    const remarksModal = document.getElementById('remarksModal');
+    remarksModal.addEventListener('show.bs.modal', event => {
+        const button = event.relatedTarget;
+        document.getElementById('projectId').value = button.getAttribute('data-id');
+        document.getElementById('projectTitle').value = button.getAttribute('data-title');
+        document.getElementById('status').value = button.getAttribute('data-status');
+        document.getElementById('remarks').value = "";
+    });
+</script>
