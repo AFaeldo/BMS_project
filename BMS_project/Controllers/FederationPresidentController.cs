@@ -37,7 +37,7 @@ namespace BMS_project.Controllers
         public IActionResult ProjectApprovals()
         {
             ViewData["Title"] = "Project Approvals";
-            var projects = new List<ProjectApprovalViewModel>();
+            var projects = new List<ProjectApprovalModel>();
 
             using (var conn = new MySqlConnection(connectionString))
             {
@@ -61,7 +61,7 @@ namespace BMS_project.Controllers
                 {
                     while (reader.Read())
                     {
-                        projects.Add(new ProjectApprovalViewModel
+                        projects.Add(new ProjectApprovalModel
                         {
                             Project_ID = reader.GetInt32("Project_ID"),
                             Project_Title = reader["Project_Title"].ToString(),

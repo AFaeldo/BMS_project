@@ -1,8 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
-
-namespace BMS_project.Models
+﻿namespace BMS_project.Models
 {
-    public class ProjectApprovalViewModel : Controller
+    public class ProjectApprovalModel
     {
         public int Project_ID { get; set; }
         public string Project_Title { get; set; }
