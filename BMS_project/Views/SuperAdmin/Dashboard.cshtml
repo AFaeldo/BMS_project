@@ -6,8 +6,8 @@
 <div class="container-fluid">
 
     <!-- HEADER -->
-    <div class="mb-4">
-        <h2 class="fw-bold">Super Admin Dashboard</h2>
+     <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark">Super Admin Dashboard</h2>
     </div>
 
     <!-- KPI SUMMARY CARDS -->
@@ -36,87 +36,70 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- COMPLIANCE & ACTIVITY OVERVIEW -->
-    <div class="row g-4 mb-4">
-        <!-- COMPLIANCE CHART -->
-        <div class="col-md-6">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-light">
-                    <strong>Compliance Tracker</strong>
-                </div>
+         <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-3">
                 <div class="card-body">
-                    <p class="text-muted small mb-2">Barangays that submitted required documents:</p>
-                    <div class="progress mb-3">
-                        <div class="progress-bar bg-success" role="progressbar" style="width: 85%;">85%</div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">System Alerts</h6>
+                            <h3 class="fw-bold">3</h3>
+                        </div>
+                        <i class="fa-solid fa-triangle-exclamation fs-2 text-danger"></i>
                     </div>
-                    <ul class="small">
-                        <li><strong>Meeting Minutes:</strong> 56/62 submitted</li>
-                        <li><strong>Youth Profiles:</strong> 59/62 submitted</li>
-                        <li><strong>Budget Reports:</strong> 53/62 submitted</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- RECENT ACTIVITY -->
-        <div class="col-md-6">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-light">
-                    <strong>Recent Activity</strong>
-                </div>
-                <div class="card-body">
-                    <ul class="list-group list-group-flush small">
-                        <li class="list-group-item"> SK Chair - Sta. Isabel uploaded Youth Profile (Oct 21)</li>
-                        <li class="list-group-item"> Treasurer - Biga submitted Budget Report (Oct 20)</li>
-                        <li class="list-group-item"> Secretary - Camansihan added meeting minutes (Oct 19)</li>
-                        <li class="list-group-item"> Security audit performed by Admin (Oct 18)</li>
-                    </ul>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- QUICK ACTIONS & SECURITY -->
-    <div class="row g-4 mb-4">
-        <!-- QUICK ACTIONS -->
-        <div class="col-md-6">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-light">
-                    <strong>Quick Actions</strong>
-                </div>
-                <div class="card-body text-center">
-                    <div class="d-flex flex-wrap justify-content-center gap-3">
-                        <button class="btn btn-outline-primary btn-sm">
-                            <i class="bi bi-person-plus"></i> Add New User
-                        </button>
-                        <button class="btn btn-outline-success btn-sm">
-                            <i class="bi bi-person-badge"></i> Assign Roles
-                        </button>
-                        <button class="btn btn-outline-warning btn-sm">
-                            <i class="bi bi-download"></i> Download Report
-                        </button>
-                        <button class="btn btn-outline-danger btn-sm">
-                            <i class="bi bi-shield-lock"></i> Run Security Audit
-                        </button>
-                    </div>
+   <!-- Activity & Logs -->
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 rounded-3 h-100">
+                <div class="card-header bg-white fw-bold">Recent SK Activities</div>
+                <div class="card-body">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Barangay</th>
+                                <th>Activity</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Barangay San Vicente</td>
+                                <td>Submitted Project Proposal</td>
+                                <td><span class="badge bg-success">Approved</span></td>
+                                <td>Oct 20, 2025</td>
+                            </tr>
+                            <tr>
+                                <td>Barangay Lalud</td>
+                                <td>Budget Request</td>
+                                <td><span class="badge bg-warning">Pending</span></td>
+                                <td>Oct 19, 2025</td>
+                            </tr>
+                            <tr>
+                                <td>Barangay Guinobatan</td>
+                                <td>Minutes of Meeting</td>
+                                <td><span class="badge bg-secondary">Submitted</span></td>
+                                <td>Oct 18, 2025</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
 
-        <!-- SECURITY STATUS -->
-        <div class="col-md-6">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-light">
-                    <strong>System Security</strong>
-                </div>
-                <div class="card-body">
-                    <ul class="list-group list-group-flush small">
-                        <li class="list-group-item text-success">All systems operational</li>
-                        <li class="list-group-item text-warning"> 2 failed login attempts (Oct 20)</li>
-                        <li class="list-group-item"> Last password update: 18 days ago</li>
-                        <li class="list-group-item"> Last system backup: Oct 20, 2025</li>
+        <!-- Right Panel: System Logs or Calendar -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 rounded-3 h-100">
+                <div class="card-header bg-white fw-bold">System Logs</div>
+                <div class="card-body overflow-auto" style="max-height: 400px;">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fa-solid fa-user-plus text-primary me-2"></i> New SK account created</li>
+                        <li class="list-group-item"><i class="fa-solid fa-file-upload text-success me-2"></i> File uploaded by Barangay II</li>
+                        <li class="list-group-item"><i class="fa-solid fa-lock text-danger me-2"></i> Unauthorized access attempt blocked</li>
                     </ul>
                 </div>
             </div>

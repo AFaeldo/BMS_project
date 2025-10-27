@@ -7,7 +7,6 @@
     <!-- HEADER -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="fw-bold text-primary mb-0">SK Barangay Dashboard</h3>
-        <small class="text-muted">Last updated: @DateTime.Now.ToString("MMMM dd, yyyy")</small>
     </div>
 
     <!-- KPI CARDS -->
@@ -17,8 +16,10 @@
                 <div class="card-body">
                     <h6 class="fw-semibold text-secondary mb-1">Total Youth Registered</h6>
                     <h3 class="fw-bold mb-0 text-primary">1,245</h3>
+                </div>
             </div>
         </div>
+
         <div class="col-md-3">
             <div class="card text-center border-0 shadow-sm">
                 <div class="card-body">
@@ -27,6 +28,7 @@
                 </div>
             </div>
         </div>
+
         <div class="col-md-3">
             <div class="card text-center border-0 shadow-sm">
                 <div class="card-body">
@@ -35,6 +37,7 @@
                 </div>
             </div>
         </div>
+
         <div class="col-md-3">
             <div class="card text-center border-0 shadow-sm">
                 <div class="card-body">
@@ -45,39 +48,13 @@
         </div>
     </div>
 
-    <!-- MINI CALENDAR & BARANGAY OFFICIALS SIDE BY SIDE -->
-    <div class="row g-4">
-        <!-- MINI CALENDAR LEFT -->
+    <!-- MINI CALENDAR ONLY -->
+    <div class="row g-4 justify-content-center">
         <div class="col-lg-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
+                    <h5 class="fw-bold text-secondary mb-3 text-center">Upcoming Events</h5>
                     <div id="miniCalendar" style="max-width: 100%;"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- BARANGAY OFFICIALS RIGHT -->
-        <div class="col-lg-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <h5 class="fw-bold text-secondary mb-3 text-center">Barangay Officials</h5>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between">
-                            <span>SK Chairperson</span><strong>Juan Dela Cruz</strong>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between">
-                            <span>SK Kagawad</span><strong>Maria Santos</strong>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between">
-                            <span>Barangay Captain</span><strong>Roberto Reyes</strong>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between">
-                            <span>Secretary</span><strong>Angela Bautista</strong>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between">
-                            <span>Treasurer</span><strong>Mark dela Peña</strong>
-                        </li>
-                    </ul>
                 </div>
             </div>
         </div>
@@ -119,8 +96,21 @@
                 height: 350,
                 contentHeight: 300,
                 aspectRatio: 1.3,
-                headerToolbar: { left: 'prev,next', center: 'title', right: '' },
+                nowIndicator: true,
+                headerToolbar: {
+                    left: 'prev,next',
+                    center: 'title',
+                    right: ''
+                },
                 events: events,
+                eventDidMount: function (info) {
+                    new bootstrap.Tooltip(info.el, {
+                        title: info.event.title + " - " + info.event.extendedProps.description,
+                        placement: 'top',
+                        trigger: 'hover',
+                        container: 'body'
+                    });
+                },
                 eventClick: function (info) {
                     var event = info.event;
                     document.getElementById('eventTitle').innerText = event.title;

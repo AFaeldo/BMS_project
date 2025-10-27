@@ -6,7 +6,6 @@
 }
 
 <div class="container-fluid py-3">
-
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="fw-bold text-primary mb-0">
@@ -34,6 +33,7 @@
                     </tr>
                 </thead>
                 <tbody class="text-center">
+                    <!-- Example Data -->
                     <tr>
                         <td>Y001</td>
                         <td>Juan</td>
@@ -74,11 +74,10 @@
     </div>
 </div>
 
-
+<!-- Add Youth Modal -->
 <div class="modal fade" id="addYouthModal" tabindex="-1" aria-labelledby="addYouthModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content shadow-lg border-0 rounded-3">
-
             <!-- Header -->
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="addYouthModalLabel">
@@ -89,49 +88,58 @@
 
             <!-- Body -->
             <div class="modal-body">
-               <form asp-action="Add" method="post" novalidate>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label asp-for="FirstName" class="form-label fw-semibold"></label>
-                                <input asp-for="FirstName" class="form-control" placeholder="Enter first name" />
-                                <span asp-validation-for="FirstName" class="text-danger small"></span>
-                            </div>
-                            <div class="col-md-6">
-                                <label asp-for="LastName" class="form-label fw-semibold"></label>
-                                <input asp-for="LastName" class="form-control" placeholder="Enter last name" />
-                                <span asp-validation-for="LastName" class="text-danger small"></span>
-                            </div>
-                            <div class="col-md-6">
-                                <label asp-for="Gender" class="form-label fw-semibold"></label>
-                                <select asp-for="Gender" class="form-select">
-                                    <option value="">-- Select Gender --</option>
-                                    <option>Male</option>
-                                    <option>Female</option>
-                                    <option>Other</option>
-                                </select>
-                                <span asp-validation-for="Gender" class="text-danger small"></span>
-                            </div>
-                            <div class="col-md-6">
-                                <label asp-for="Sitio" class="form-label fw-semibold"></label>
-                                <input asp-for="Sitio" class="form-control" placeholder="Enter sitio" />
-                                <span asp-validation-for="Sitio" class="text-danger small"></span>
-                            </div>
-                            <div class="col-md-6">
-                                <label asp-for="Birthday" class="form-label fw-semibold"></label>
-                                <input asp-for="Birthday" type="date" class="form-control" />
-                                <span asp-validation-for="Birthday" class="text-danger small"></span>
-                            </div>
+               <div class="card-body p-4">
+                    <form asp-action="Add" method="post" novalidate>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="FirstName" class="form-label fw-semibold"></label>
+                            <input asp-for="FirstName" class="form-control" placeholder="Enter first name" />
+                            <span asp-validation-for="FirstName" class="text-danger small"></span>
                         </div>
-                        <div class="mt-4 d-flex justify-content-end gap-2">
-                            <a asp-action="Index" class="btn btn-outline-secondary px-4">
-                                <i class="bi bi-x-circle me-1"></i> Cancel
-                            </a>
-                            <button type="submit" class="btn btn-success px-4">
-                                <i class="bi bi-check-circle me-1"></i> Save
-                            </button>
+
+                        <div class="col-md-6">
+                            <label asp-for="LastName" class="form-label fw-semibold"></label>
+                            <input asp-for="LastName" class="form-control" placeholder="Enter last name" />
+                            <span asp-validation-for="LastName" class="text-danger small"></span>
                         </div>
-                    </form>
+
+                        <div class="col-md-6">
+                            <label asp-for="Gender" class="form-label fw-semibold"></label>
+                            <select asp-for="Gender" class="form-select">
+                                <option value="">-- Select Gender --</option>
+                                <option>Male</option>
+                                <option>Female</option>
+                                <option>Other</option>
+                            </select>
+                            <span asp-validation-for="Gender" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Sitio" class="form-label fw-semibold"></label>
+                            <input asp-for="Sitio" class="form-control" placeholder="Enter sitio" />
+                            <span asp-validation-for="Sitio" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Birthday" class="form-label fw-semibold"></label>
+                            <input asp-for="Birthday" type="date" class="form-control" />
+                            <span asp-validation-for="Birthday" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle me-1"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn btn-success px-4">
+                            <i class="bi bi-check-circle me-1"></i> Save
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
