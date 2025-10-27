@@ -1,4 +1,6 @@
-﻿@{
+﻿@model BMS_project.Models.YouthMember
+
+@{
     Layout = "~/Views/Shared/_BarangayLayout.cshtml";
     ViewData["Title"] = "Youth Profiling";
 }
@@ -87,53 +89,48 @@
 
             <!-- Body -->
             <div class="modal-body">
-                <form>
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">First Name</label>
-                            <input type="text" class="form-control" placeholder="Enter first name" />
+               <form asp-action="Add" method="post" novalidate>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="FirstName" class="form-label fw-semibold"></label>
+                                <input asp-for="FirstName" class="form-control" placeholder="Enter first name" />
+                                <span asp-validation-for="FirstName" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="LastName" class="form-label fw-semibold"></label>
+                                <input asp-for="LastName" class="form-control" placeholder="Enter last name" />
+                                <span asp-validation-for="LastName" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Gender" class="form-label fw-semibold"></label>
+                                <select asp-for="Gender" class="form-select">
+                                    <option value="">-- Select Gender --</option>
+                                    <option>Male</option>
+                                    <option>Female</option>
+                                    <option>Other</option>
+                                </select>
+                                <span asp-validation-for="Gender" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Sitio" class="form-label fw-semibold"></label>
+                                <input asp-for="Sitio" class="form-control" placeholder="Enter sitio" />
+                                <span asp-validation-for="Sitio" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Birthday" class="form-label fw-semibold"></label>
+                                <input asp-for="Birthday" type="date" class="form-control" />
+                                <span asp-validation-for="Birthday" class="text-danger small"></span>
+                            </div>
                         </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">Last Name</label>
-                            <input type="text" class="form-control" placeholder="Enter last name" />
+                        <div class="mt-4 d-flex justify-content-end gap-2">
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                                <i class="bi bi-x-circle me-1"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success px-4">
+                                <i class="bi bi-check-circle me-1"></i> Save
+                            </button>
                         </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">Age</label>
-                            <input type="number" class="form-control" placeholder="Enter age" />
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Gender</label>
-                            <select class="form-select">
-                                <option value="">Select Gender</option>
-                                <option>Male</option>
-                                <option>Female</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Birthday</label>
-                            <input type="date" class="form-control" />
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Sitio</label>
-                            <input type="text" class="form-control" placeholder="Enter sitio" />
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-           
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle"></i> Cancel
-                </button>
-                <button type="button" class="btn btn-primary">
-                    <i class="bi bi-save"></i> Save
-                </button>
+                    </form>
             </div>
         </div>
     </div>
