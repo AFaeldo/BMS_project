@@ -4,11 +4,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BMS_project.Models
 {
-    [Table("youth_member")] // 👈 maps to your existing table
+    [Table("youth_member")]
     public class YouthMember
     {
         [Key]
-        [Column("Member_ID")] // 👈 maps to the PK column
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Column("Member_ID")]
         public int Member_ID { get; set; }
 
         [Required, StringLength(50)]
@@ -27,7 +28,7 @@ namespace BMS_project.Models
         public string Gender { get; set; }
 
         [Required, StringLength(100)]
-        [Column("sitio")]
+        [Column("Sitio")]
         public string Sitio { get; set; }
 
         [Required, DataType(DataType.Date)]

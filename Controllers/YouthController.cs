@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using BMS_project.Data;
 using BMS_project.Models;
+using BMS_project.ViewModels;
 using System;
 using System.Linq;
 
@@ -15,21 +16,28 @@ namespace BMS_project.Controllers
             _context = context;
         }
 
-        // ✅ Show the YouthProfiles page
+        // ? Show the YouthProfiles page
         [HttpGet]
         public IActionResult YouthProfiles()
         {
             var youthList = _context.YouthMembers.ToList();
-            return View("~/Views/BarangaySk/YouthProfiles.cshtml", youthList);
+            var model = new YouthProfileViewModel
+            {
+                YouthList = youthList
+            };
+            return View("~/Views/BarangaySk/YouthProfiles.cshtml", model);
         }
 
-        // ✅ Add a new youth member (POST)
+        // ? Add a new youth member (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Add(YouthMember member)
+        public IActionResult Add(YouthProfileViewModel vm)
         {
+            if (vm == null) vm = new YouthProfileViewModel();
+
             if (ModelState.IsValid)
             {
+                var member = vm.NewMember;
                 // Calculate age
                 member.Age = DateTime.Now.Year - member.Birthday.Year;
                 if (member.Birthday.Date > DateTime.Now.AddYears(-member.Age))
@@ -43,8 +51,8 @@ namespace BMS_project.Controllers
             }
 
             TempData["ErrorMessage"] = "Please fill in all required fields.";
-            var youthList = _context.YouthMembers.ToList();
-            return View("~/Views/BarangaySk/YouthProfiles.cshtml", youthList);
+            vm.YouthList = _context.YouthMembers.ToList();
+            return View("~/Views/BarangaySk/YouthProfiles.cshtml", vm);
         }
     }
 }

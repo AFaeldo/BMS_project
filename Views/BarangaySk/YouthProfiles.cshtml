@@ -1,5 +1,4 @@
-﻿BMS_project\Views\BarangaySk\YouthProfiles.cshtml
-@model IEnumerable<BMS_project.Models.YouthMember>
+@model BMS_project.ViewModels.YouthProfileViewModel
 
 @{
     Layout = "~/Views/Shared/_BarangayLayout.cshtml";
@@ -34,12 +33,12 @@
                     </tr>
                 </thead>
                 <tbody class="text-center">
-                    @if (Model != null && Model.Any())
+                    @if (Model?.YouthList?.Any() == true)
                     {
-                        foreach (var y in Model)
+                        foreach (var y in Model.YouthList)
                         {
                             <tr>
-                                <td>@("Y" + y.Member_ID.ToString("D3"))</td>
+                                <td>@y.Member_ID</td>
                                 <td>@y.FirstName</td>
                                 <td>@y.LastName</td>
                                 <td>@y.Age</td>
@@ -60,7 +59,7 @@
                     else
                     {
                         <tr>
-                            <td colspan="8" class="text-center text-muted">No youth members found.</td>
+                            <td colspan="8">No youth members found.</td>
                         </tr>
                     }
                 </tbody>
@@ -85,49 +84,52 @@
             <div class="modal-body">
                <div class="card-body p-4">
                     <form asp-controller="Youth" asp-action="Add" method="post" novalidate>
-                        @Html.AntiForgeryToken()
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">First Name</label>
-                                <input name="FirstName" class="form-control" placeholder="Enter first name" />
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Last Name</label>
-                                <input name="LastName" class="form-control" placeholder="Enter last name" />
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Gender</label>
-                                <select name="Gender" class="form-select">
-                                    <option value="">-- Select Gender --</option>
-                                    <option>Male</option>
-                                    <option>Female</option>
-                                    <option>Other</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Sitio</label>
-                                <input name="Sitio" class="form-control" placeholder="Enter sitio" />
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Birthday</label>
-                                <input name="Birthday" type="date" class="form-control" />
-                            </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="NewMember.FirstName" class="form-label fw-semibold"></label>
+                            <input asp-for="NewMember.FirstName" class="form-control" placeholder="Enter first name" />
+                            <span asp-validation-for="NewMember.FirstName" class="text-danger small"></span>
                         </div>
 
-                        <div class="mt-4 d-flex justify-content-end gap-2">
-                            <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
-                                <i class="bi bi-x-circle me-1"></i> Cancel
-                            </button>
-                            <button type="submit" class="btn btn-success px-4">
-                                <i class="bi bi-check-circle me-1"></i> Save
-                            </button>
+                        <div class="col-md-6">
+                            <label asp-for="NewMember.LastName" class="form-label fw-semibold"></label>
+                            <input asp-for="NewMember.LastName" class="form-control" placeholder="Enter last name" />
+                            <span asp-validation-for="NewMember.LastName" class="text-danger small"></span>
                         </div>
-                    </form>
-                </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="NewMember.Gender" class="form-label fw-semibold"></label>
+                            <select asp-for="NewMember.Gender" class="form-select">
+                                <option value="">-- Select Gender --</option>
+                                <option>Male</option>
+                                <option>Female</option>
+                                <option>Other</option>
+                            </select>
+                            <span asp-validation-for="NewMember.Gender" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="NewMember.Sitio" class="form-label fw-semibold"></label>
+                            <input asp-for="NewMember.Sitio" class="form-control" placeholder="Enter sitio" />
+                            <span asp-validation-for="NewMember.Sitio" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="NewMember.Birthday" class="form-label fw-semibold"></label>
+                            <input asp-for="NewMember.Birthday" type="date" class="form-control" />
+                            <span asp-validation-for="NewMember.Birthday" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle me-1"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn btn-success px-4">
+                            <i class="bi bi-check-circle me-1"></i> Save
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
