@@ -13,7 +13,7 @@ header, .navbar, .navbar-dark {
 
 /* HERO BANNER */
 .hero-banner {
-    background: url('/images/banner.png') no-repeat center center;
+    background: url('/images/banner1.jpg') no-repeat center center;
     background-size: cover;
     height: 400px;
     border-radius: 12px;
