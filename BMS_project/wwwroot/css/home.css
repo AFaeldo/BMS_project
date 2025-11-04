@@ -1,116 +1,142 @@
-﻿/* GLOBAL STYLES */
-body {
-    background-color: #1f2a47; /* dark blue base */
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    padding: 0;
+﻿body {
+    background-color: @f5f7fa;
 }
 
-header, .navbar, .navbar-dark {
+@media screen and (max-width: 768px) {
+    section {
+        flex-direction: column;
+        text-align: center;
+    }
+
+        section div {
+            max-width: 100%;
+        }
+
+        section img {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        section div p {
+            max-width: 100%;
+        }
+}
+
+/* Hero section styling */
+
+.hero {
+    background: linear-gradient(180deg, rgba(13,13,60,0.92) 0%, rgba(13,13,60,0.85) 60%), url('/images/backg.png') no-repeat center center / cover;
     position: relative;
-    z-index: 1000;
-}
-
-/* HERO BANNER */
-.hero-banner {
-    background: url('/images/banner1.jpg') no-repeat center center;
-    background-size: cover;
-    height: 400px;
-    border-radius: 12px;
-    margin: 60px 30px 30px 30px;
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    color: #fff;
-    position: relative;
-}
-
-/* Hero text styles */
-.hero-title {
-    font-size: 2.2rem;
-    font-weight: 700;
-    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
-}
-
-.hero-subtitle {
-    font-size: 1.1rem;
-    opacity: 0.9;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
-}
-
-/* FEATURE CARDS */
-.service-card {
-    width: 250px;
-    padding: 25px 20px;
-    border-radius: 15px;
-    transition: transform 0.3s, box-shadow 0.3s;
-    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
-    text-align: center;
-}
-
-    .service-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.4);
-    }
-
-    /* Card color themes */
-    .service-card.blue {
-        background-color: #007bff;
-    }
-
-    .service-card.green {
-        background-color: #28a745;
-    }
-
-    .service-card.orange {
-        background-color: #f39c12;
-    }
-
-/* Facebook News Section - Compact */
-.news-section {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    padding: 30px 15px;
-    margin: 40px auto;
-    max-width: 700px;
-}
-
-.facebook-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.fb-page {
-    border-radius: 10px;
-    overflow: hidden;
-    width: 300px !important; /* smaller width */
-    height: 400px !important; /* smaller height */
-    background-color: #fff;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    color: #e9ecf5;
+    height: 100vh;
 }
 
 
-/* RESPONSIVE DESIGN */
-@media (max-width: 768px) {
-    .hero-banner {
-        height: 280px;
-        margin: 80px 15px 20px 15px;
-        padding: 20px;
+.hero-content {
+    position: relative; /* ensures button is above overlay */
+    z-index: 2;
+}
+
+
+.hero-content {
+    padding-top: 200px; /* move text down */
+    padding-bottom: 50px; /* add space below */
+}
+
+.hero img {
+    width: 500px;
+    height: 300px;
+}
+
+
+section {
+    font-family: 'Segoe UI', sans-serif;
+}
+
+    section h2 {
+        font-size: 1.5em;
+        font-weight: bold;
     }
 
-    .hero-title {
-        font-size: 1.8rem;
+    section div p {
+        font-size: 0.95em;
+        color: #333;
     }
 
-    .service-card {
-        width: 90%;
-        margin-bottom: 20px;
+.blue-text {
+    color: #334D94;
+}
+
+.text-white {
+    color: white;
+}
+
+.report-summary {
+    background-color: #ffffff;
+}
+
+    .report-summary h2 {
+        color: #334D94;
     }
 
-    .news-section {
-        padding: 20px 10px;
+    .report-summary p {
+        font-size: 1rem;
     }
+
+.footer a:hover {
+    color: #ffc107 !important;
+    text-decoration: underline;
+}
+
+.text-dark {
+    background-color: #0D0D3C;
+    font: #ffffff;
+}
+
+.navbar-custom {
+    background-color: #0D0D3C !important;
+}
+
+    .navbar-custom .nav-link,
+    .navbar-custom .navbar-brand {
+        color: #fff !important;
+        letter-spacing: 0.04em;
+        transition: color 0.3s ease;
+        margin-left: 10px;
+    }
+
+        .navbar-custom .nav-link:hover {
+            color: #f7931e !important;
+            text-decoration: underline;
+        }
+
+/* Transparent logo */
+.logo-img {
+    width: 50px;
+    height: auto;
+    object-fit: contain;
+    background-color: transparent;
+}
+
+
+
+.btn-orange {
+    background-color: #f76c2f;
+    border: none;
+    padding: 6px 16px;
+    font-weight: 600;
+    border-radius: 8px;
+}
+
+    .btn-orange:hover {
+        background-color: #e25b1a;
+    }
+
+.navbar-light .navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.hero .hero-content h1,
+.hero .hero-content p strong {
+    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.6);
 }

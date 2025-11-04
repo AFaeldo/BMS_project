@@ -3,59 +3,59 @@
     ViewData["Title"] = "Home";
 }
 
-<!-- HERO SECTION -->
-<div class="hero-banner text-white">
-    <div>
-        <h1 class="hero-title mb-3">EMPOWERING OUR COMMUNITY</h1>
-        <p class="hero-subtitle mb-4">Streamlined Barangay Services at Your Fingertips</p>
-        <a href="@Url.Action("GetStarted", "Home")" class="btn btn-success btn-lg shadow-lg">
-            Get Started
-        </a>
-    </div>
-</div>
+<!-- Hero Section -->
+<section class="hero d-flex align-items-center text-white">
+    <div class="container text-center text-md-start">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h1 class="display-5 fw-bold mb-3">Welcome to Barangay Management System</h1>
+                <p class="lead mb-4">Streamlining barangay services for efficiency and transparency.</p>
+                <a href="@Url.Action("Login", "Account")" class="btn btn-orange btn-lg px-4 py-2">LOGIN</a>
+            </div>
 
-<!-- SERVICES / FEATURE CARDS -->
-<div class="services-section d-flex justify-content-center gap-4 flex-wrap">
-    <a href="@Url.Action("Services", "Home")" class="service-card blue text-decoration-none text-white">
-        <i class="bi bi-file-earmark-text fs-1 mb-3"></i>
-        <h4>SERVICES</h4>
-        <p>Request permits, certificates, and more</p>
-    </a>
-
-    <a href="@Url.Action("Events", "Home")" class="service-card green text-decoration-none text-white">
-        <i class="bi bi-calendar-event fs-1 mb-3"></i>
-        <h4>EVENTS</h4>
-        <p>Stay informed on community activities</p>
-    </a>
-
-    <a href="@Url.Action("Directory", "Home")" class="service-card orange text-decoration-none text-white">
-        <i class="bi bi-people fs-1 mb-3"></i>
-        <h4>DIRECTORY</h4>
-        <p>Find contact information for barangay officials</p>
-    </a>
-</div>
-
-<!-- NEWS SECTION -->
-<section class="news-section text-white text-center my-5">
-    <h3 class="mb-4">LATEST NEWS & ANNOUNCEMENTS</h3>
-    <div class="facebook-container d-flex justify-content-center">
-        <div class="fb-page"
-             data-href="https://www.facebook.com/SPCalapanCity"
-             data-tabs="timeline"
-             data-width="300"
-             data-height="400"
-             data-small-header="true"
-             data-adapt-container-width="false"
-             data-hide-cover="false"
-             data-show-facepile="true">
-            <blockquote cite="https://www.facebook.com/SPCalapanCity" class="fb-xfbml-parse-ignore">
-                <a href="https://www.facebook.com/SPCalapanCity">Sangguniang Panlungsod ng Calapan</a>
-            </blockquote>
         </div>
     </div>
 </section>
 
-<!-- Facebook SDK -->
-<script async defer crossorigin="anonymous"
-        src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v19.0">
-</script>
+<!-- About Section -->
+<section class="py-5 bg-light text-dark">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">About the System</h2>
+            <p class="text-muted">A digital platform designed to assist barangay officials and residents with efficient management and services.</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100 text-center p-4">
+                    <div class="icon mb-3 text-orange">
+                        <i class="bi bi-person-check fs-1"></i>
+                    </div>
+                    <h5 class="fw-semibold mb-3">Resident Records</h5>
+                    <p class="text-muted">Easily manage resident profiles, information, and documentation within the barangay.</p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100 text-center p-4">
+                    <div class="icon mb-3 text-orange">
+                        <i class="bi bi-file-earmark-text fs-1"></i>
+                    </div>
+                    <h5 class="fw-semibold mb-3">Document Requests</h5>
+                    <p class="text-muted">Streamline the process of requesting certificates, clearances, and barangay documents online.</p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100 text-center p-4">
+                    <div class="icon mb-3 text-orange">
+                        <i class="bi bi-people fs-1"></i>
+                    </div>
+                    <h5 class="fw-semibold mb-3">Community Services</h5>
+                    <p class="text-muted">Enhancing engagement between barangay officials and residents through accessible services.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+

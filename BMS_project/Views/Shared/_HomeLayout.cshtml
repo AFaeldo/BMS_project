@@ -2,47 +2,94 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>@ViewData["Title"] - Barangay Connect</title>
+    <title>@ViewData["Title"] - Barangay Management System</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    
-    <!-- Bootstrap CSS -->
+
+    <!-- Bootstrap & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <!-- Custom CSS -->
-    <link href="~/css/home.css" rel="stylesheet" />
+    <link href="~/css/home.css" rel="stylesheet" asp-append-version="true" />
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
-    <div class="container">
-        <a class="navbar-brand d-flex align-items-center" href="@Url.Action("Index", "Home")">
-            <img src="~/images/iconKabataan.png" alt="Kabataan Logo" width="40" height="40" class="me-2">
-            KABATAAN++
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link active" href="@Url.Action("Index", "Home")">Home</a></li>
-                <li class="nav-item"><a class="nav-link" href="@Url.Action("About", "Home")">About</a></li>
-                <li class="nav-item"><a class="nav-link" href="@Url.Action("Login", "Account")">Login</a></li>
-            </ul>
+    <nav class="navbar navbar-expand-md navbar-light navbar-custom shadow-sm">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="~/images/iconKabataan.png" alt="Logo" class="logo-img me-2">
+                <div class="brand-text">
+                    <span class="d-block text-white fw-bold">BARANGAY</span>
+                    <span class="d-block text-white small">MANAGEMENT SYSTEM</span>
+                </div>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link fw-semibold text-white" href="@Url.Action("Index", "Home")">HOME</a></li>
+                    <li class="nav-item"><a class="nav-link fw-semibold text-white" href="@Url.Action("About", "Home")">ABOUT US</a></li>
+                    <li class="nav-item ms-md-3 mt-2 mt-md-0">
+                        <a class="btn btn-orange text-white" href="@Url.Action("Login", "Account")">LOGIN</a>
+                    </li>
+                </ul>
+            </div>
         </div>
-    </div>
-</nav>
+    </nav>
 
-<main class="container main-content">
-    @RenderBody()
-</main>
+    <!-- Main Content -->
+    <main class="main-content">
+        @RenderBody()
+    </main>
 
-<footer class="text-center py-4 bg-dark text-light">
-    <div class="container">
-        <small>&copy; 2025 Barangay Connect. All rights reserved.</small>
-    </div>
-</footer>
+    <!-- Footer -->
+    <footer class="footer text-white pt-5 pb-4" style="background-color: #0D0D3C;">
+        <div class="container text-md-left">
+            <div class="row text-md-left">
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+                <div class="col-md-4 col-lg-4 col-xl-4 mx-auto mt-3">
+                    <h5 class="text-uppercase mb-4 font-weight-bold">Barangay System</h5>
+                    <p>Empowering communities with efficient and transparent digital services for better governance and connection.</p>
+                </div>
+
+                <div class="col-md-3 col-lg-2 col-xl-2 mx-auto mt-3">
+                    <h5 class="text-uppercase mb-4 font-weight-bold">Quick Links</h5>
+                    <p><a href="index.php" class="text-white" style="text-decoration: none;">Home</a></p>
+                    <p><a href="about.php" class="text-white" style="text-decoration: none;">About Us</a></p>
+                    <p><a href="contactUs.php" class="text-white" style="text-decoration: none;">Contact</a></p>
+                    <p><a class="nav-link fw-semibold text-white" href="check-status.php">Account status</a></p>
+                </div>
+
+                <div class="col-md-4 col-lg-3 col-xl-3 mx-auto mt-3">
+                    <h5 class="text-uppercase mb-4 font-weight-bold">Contact</h5>
+                    <p><i class="fas fa-home me-2"></i> Barangay 748, Taal, San Andres Bukid, Manila, Metro Manila</p>
+                    <p><i class="fas fa-envelope me-2"></i> barangay748@gmail.com</p>
+                    <p><i class="fas fa-phone me-2"></i> +63 912 345 6789</p>
+                </div>
+
+            </div>
+
+            <hr class="mb-4">
+
+            <div class="row align-items-center">
+                <div class="col-md-7 col-lg-8">
+                    <p>© 2025 Barangay 748 Management System. All Rights Reserved.</p>
+                </div>
+
+                <div class="col-md-5 col-lg-4">
+                    <div class="text-center text-md-end">
+                        <a href="https://www.facebook.com/share/g/174TrZpWnW/" class="text-white me-2"><i class="fab fa-facebook-f"></i></a>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
