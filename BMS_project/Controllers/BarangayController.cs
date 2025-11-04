@@ -1,10 +1,20 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using BMS_project.Data;
+using System.Linq;
 
 namespace BMS_project.Controllers
 {
+    [Authorize(Roles = "BarangaySk")]
     public class BarangaySkController : Controller
     {
+        private readonly ApplicationDbContext _context;
+
+        public BarangaySkController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
         public IActionResult Dashboard()
         {
             ViewData["Title"] = "Dashboard";
@@ -17,10 +27,12 @@ namespace BMS_project.Controllers
             return View();
         }
 
+        // Load youth members and pass to the view so the table can render data
         public IActionResult YouthProfiles()
         {
             ViewData["Title"] = "Youth Profiling";
-            return View();
+            var youthList = _context.YouthMembers.ToList();
+            return View("~/Views/BarangaySk/YouthProfiles.cshtml", youthList);
         }
 
         public IActionResult Projects()
