@@ -1,3 +1,6 @@
+/* ------------------------------
+   GLOBAL STYLES
+------------------------------ */
 html {
     font-size: 14px;
     position: relative;
@@ -12,92 +15,235 @@ html {
 
 body {
     margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background-color: #f8f9fa;
-    color: #212529;
-    display: flex; 
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    background: linear-gradient(180deg, rgba(13,13,60,0.92) 0%, rgba(13,13,60,0.85) 60%), url('/images/backg.png') no-repeat center center / cover;
+    display: flex;
+    position: relative;
+    color: #e9ecf5;
+    height: 100vh;
+    letter-spacing: 0.2px;
 }
 
-/* SIDEBAR */
+/* ------------------------------
+   SIDEBAR
+------------------------------ */
 .sidebar {
     width: 250px;
     height: 100vh;
-    background-color: #1E293B;
+    background: linear-gradient(180deg, #0D0D3C 0%, #1E293B 100%);
     color: #fff;
     position: fixed;
     top: 0;
     left: 0;
     transition: all 0.3s ease;
     z-index: 1050;
+    box-shadow: 3px 0 10px rgba(0, 0, 0, 0.3);
 }
 
     .sidebar .nav-link {
-        color: #d1d5db;
+        color: #cbd5e1;
         padding: 10px 15px;
-        border-radius: 6px;
+        border-radius: 8px;
         margin-bottom: 6px;
         display: flex;
         align-items: center;
-        transition: 0.3s;
+        font-size: 15px;
+        transition: all 0.3s ease;
     }
 
         .sidebar .nav-link:hover,
         .sidebar .nav-link.active {
             background-color: #2563eb;
             color: #fff;
+            box-shadow: 0 0 10px rgba(37, 99, 235, 0.5);
         }
 
-/* MAIN CONTENT */
+        .sidebar .nav-link i {
+            font-size: 1.1rem;
+            margin-right: 8px;
+        }
+
+.sidebar-footer a {
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+    .sidebar-footer a:hover {
+        color: #ff4d4d !important;
+        transform: translateX(3px);
+    }
+
+/* ------------------------------
+   MAIN CONTENT
+------------------------------ */
 .main-content {
-    margin-left: 190px;
-    padding: 50px;
+    margin-left: 250px;
+    padding: 70px 40px 40px 40px;
     width: 100%;
     min-height: 100vh;
     transition: margin-left 0.3s ease;
 }
-/* Collapse sidebar */
+
+/* Sidebar Collapse */
 .sidebar.collapsed {
     left: -250px;
 }
 
-/* Expand main content when sidebar is collapsed */
 .main-content.expanded {
     margin-left: 0;
-    width: 100%;
 }
 
-/* Expand topbar when sidebar is collapsed */
-.topbar.expanded {
-    left: 0;
-    width: 100%;
-}
-
-/* TOPBAR */
+/* ------------------------------
+   TOPBAR
+------------------------------ */
 .topbar {
     position: fixed;
     top: 0;
     left: 250px;
     right: 0;
-    height: 50px;
-    background-color: #fff;
-    border-bottom: 1px solid #dee2e6;
+    height: 55px;
+    background-color: #0D0D3C;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
     padding: 0 1rem;
     transition: left 0.3s ease;
     z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 }
 
     .topbar.expanded {
         left: 0;
     }
 
-    .topbar h5 {
-        margin: 0;
-        font-size: 1.1rem;
+    .topbar .btn i,
+    .topbar .dropdown-toggle,
+    .topbar .dropdown-toggle i {
+        color: white !important;
     }
 
+        .topbar .dropdown-toggle::after {
+            border-top-color: #fff !important;
+        }
 
-/* PAGE BODY */
-.page-body {
-    margin-top: 0 px;
+/* ------------------------------
+   DASHBOARD CARDS
+------------------------------ */
+.card {
+    border: none;
+    border-radius: 14px;
+    background-color: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+    }
+
+    .card h5 {
+        font-weight: 600;
+        color: #0D0D3C;
+    }
+
+    .card p {
+        color: #555;
+    }
+
+    /* Summary number highlight */
+    .card .display-6 {
+        font-weight: 700;
+        color: #2563EB;
+    }
+
+/* ------------------------------
+   TABLES (Recent SK Activities)
+------------------------------ */
+.table-container {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+    .table th {
+        background-color: #f1f3f8;
+        color: #0D0D3C;
+        font-weight: 600;
+    }
+
+    .table td {
+        vertical-align: middle;
+        color: #333;
+    }
+
+/* Status badges */
+.badge-success {
+    background-color: #16A34A !important;
+}
+
+.badge-warning {
+    background-color: #FACC15 !important;
+    color: #111 !important;
+}
+
+.badge-info {
+    background-color: #38BDF8 !important;
+}
+
+/* ------------------------------
+   DROPDOWN MENU
+------------------------------ */
+.dropdown-menu {
+    background-color: #1E293B;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+    .dropdown-menu .dropdown-item {
+        color: #f8f9fa;
+        padding: 10px 15px;
+        border-radius: 6px;
+    }
+
+        .dropdown-menu .dropdown-item:hover {
+            background-color: #2563eb;
+            color: #fff;
+        }
+
+/* ------------------------------
+   PAGE BODY
+------------------------------ */
+.page-body {
+    margin-top: 1rem;
+    color: white;
+}
+
+/* ------------------------------
+   RESPONSIVE
+------------------------------ */
+@media (max-width: 992px) {
+    .sidebar {
+        left: -250px;
+    }
+
+        .sidebar.collapsed {
+            left: 0;
+        }
+
+    .main-content {
+        margin-left: 0;
+        padding: 70px 20px;
+    }
+
+    .topbar {
+        left: 0;
+    }
+}
