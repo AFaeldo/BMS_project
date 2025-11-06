@@ -185,6 +185,10 @@ body {
 .form-label {
     color: #000 !important;
 }
+h6.text-uppercase {
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+}
 
 /* Status badges */
 .badge-success {

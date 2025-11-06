@@ -7,92 +7,98 @@
 
     <!-- HEADER -->
     <div class="mb-4 text-center">
-        <h2 class="fw-bold text-uppercase">System Settings</h2>
+        <h2 class="fw-bold text-uppercase mb-1">System Settings</h2>
         <hr />
     </div>
-    <!-- USER MANAGEMENT -->
-    <section class="mb-4">
-        <div class="d-flex align-items-center justify-content-between mb-2">
-            <h5 class="fw-bold text-white mb-0">User Management</h5>
-        </div>
 
-        <div class="card border-0 shadow-sm rounded-3 mb-3">
-            <div class="card-body">
-                <div class="d-flex flex-wrap justify-content-center gap-2">
-                    <button class="btn btn-success btn-sm">
-                        <i class="bi bi-person-check-fill me-1"></i> Assign Roles
-                    </button>
-                    <button class="btn btn-outline-primary btn-sm">
-                        <i class="bi bi-shield-lock me-1"></i> Manage Permissions
-                    </button>
-                    <a href="@Url.Action("Index", "Users")" class="btn btn-outline-light btn-sm">
-                        <i class="bi bi-people-fill me-1"></i> Manage Users
-                    </a>
+    <!-- USER MANAGEMENT + SYSTEM CONTROL SIDE BY SIDE -->
+    <section class="mb-4">
+        <div class="row g-3">
+            <!-- USER MANAGEMENT -->
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm rounded-3 h-100">
+                    <div class="card-header bg-transparent d-flex align-items-center justify-content-between">
+                        <h6 class="fw-bold text-dark text-uppercase mb-0">User Management</h6>
+                    </div>
+                    <div class="card-body d-flex align-items-center justify-content-center">
+                        <div class="d-flex flex-wrap gap-2 justify-content-center w-100">
+                            <button class="btn btn-success btn-sm">
+                                <i class="bi bi-person-check-fill me-1"></i> Assign Roles
+                            </button>
+
+                            <button class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-shield-lock me-1"></i> Manage Permissions
+                            </button>
+
+                            
+                            <a href="@Url.Action("ManageUsers", "Manage Users")" class="btn btn-outline-light btn-sm">
+                                <i class="bi bi-people-fill me-1"></i> Manage Users
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SYSTEM CONTROL -->
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm rounded-3 h-100">
+                    <div class="card-header bg-transparent d-flex align-items-center justify-content-between">
+                        <h6 class="fw-bold text-dark text-uppercase mb-0">System Control</h6>
+                    </div>
+                    <div class="card-body d-flex align-items-center justify-content-center">
+                        <div class="d-flex flex-wrap gap-2 justify-content-center w-100">
+                            <a href="@Url.Action("Index", "SystemLogs")" class="btn btn-outline-light btn-sm">
+                                <i class="bi bi-journal-text me-1"></i> View Logs
+                            </a>
+
+                            <a href="@Url.Action("BackupMaintenance", "SuperAdmin")" class="btn btn-warning btn-sm">
+                                <i class="bi bi-cloud-arrow-up-fill me-1"></i> Backup Now
+                            </a>
+
+                            <button class="btn btn-secondary btn-sm">
+                                <i class="bi bi-gear-fill me-1"></i> Run Maintenance
+                            </button>
+
+                            <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#resetModalCompact">
+                                <i class="bi bi-arrow-clockwise me-1"></i> Reset Accounts
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <hr class="text-white" />
-    </section>
-
-    <!-- SYSTEM CONTROL -->
-    <section class="mb-4">
-        <div class="d-flex align-items-center justify-content-between mb-2">
-            <h5 class="fw-bold text-white mb-0">System Control</h5>
-        </div>
-
-        <div class="card border-0 shadow-sm rounded-3 mb-3">
-            <div class="card-body text-center">
-                <div class="d-flex flex-wrap justify-content-center gap-2">
-                    <a href="@Url.Action("Index", "SystemLogs")" class="btn btn-outline-light btn-sm">
-                        <i class="bi bi-journal-text me-1"></i> View Logs
-                    </a>
-                    <a href="@Url.Action("BackupMaintenance", "SuperAdmin")" class="btn btn-warning btn-sm">
-                        <i class="bi bi-cloud-arrow-up-fill me-1"></i> Backup Now
-                    </a>
-                    <button class="btn btn-secondary btn-sm">
-                        <i class="bi bi-gear-fill me-1"></i> Run Maintenance
-                    </button>
-                    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#resetModalCompact">
-                        <i class="bi bi-arrow-clockwise me-1"></i> Reset Accounts
-                    </button>
-                </div>
-            </div>
-        </div>
-        <hr class="text-white" />
     </section>
 
     <!-- BARANGAY BASIC INFORMATION -->
     <section class="mb-4">
         <div class="d-flex align-items-center justify-content-between mb-2">
-            <h5 class="fw-bold text-white mb-0">Barangay Basic Information</h5>
+            <h6 class="fw-bold text-white text-uppercase mb-0">Barangay Profile Settings</h6>
         </div>
 
         <div class="card border-0 shadow-sm rounded-3 mb-3">
             <div class="card-body">
-                <form asp-action="SaveBarangayInfo" method="post">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label text-white fw-semibold">Barangay Name</label>
-                            <input type="text" class="form-control" name="BarangayName" placeholder="" required />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label text-white fw-semibold">Zone / District</label>
-                            <input type="text" class="form-control" name="Zone" placeholder="" />
-                        </div>
+                <form asp-action="SaveBarangayInfo" method="post" class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-white fw-semibold">Barangay Name</label>
+                        <input type="text" class="form-control" name="BarangayName" required />
                     </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label text-white fw-semibold">Date Created</label>
-                            <input type="date" class="form-control" name="DateCreated" required />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label text-white fw-semibold">Date Implemented</label>
-                            <input type="date" class="form-control" name="DateImplemented" required />
-                        </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-white fw-semibold">Zone / District</label>
+                        <input type="text" class="form-control" name="Zone" />
                     </div>
 
-                    <div class="text-end">
+                    <div class="col-md-6">
+                        <label class="form-label text-white fw-semibold">Date Created</label>
+                        <input type="date" class="form-control" name="DateCreated" required />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label text-white fw-semibold">Date Implemented</label>
+                        <input type="date" class="form-control" name="DateImplemented" required />
+                    </div>
+
+                    <div class="col-12 text-end">
                         <button type="submit" class="btn btn-success btn-sm">
                             <i class="bi bi-save me-1"></i> Save Information
                         </button>
@@ -100,29 +106,38 @@
                 </form>
             </div>
         </div>
+
         <hr class="text-white" />
     </section>
 
     <!-- SYSTEM SUMMARY -->
     <section>
         <div class="d-flex align-items-center justify-content-between mb-2">
-            <h5 class="fw-bold text-white mb-0">System Summary</h5>
+            <h6 class="fw-bold text-white text-uppercase mb-0">System Summary</h6>
         </div>
 
         <div class="card border-0 shadow-sm rounded-3">
             <div class="card-body">
-                <div class="d-flex flex-wrap justify-content-around text-center text-white">
-                    <div>
-                        <h6 class="mb-0 text-dark">Users</h6>
-                        <h4 class="fw-bold">-</h4>
+                <div class="row text-center text-white g-3">
+                    <div class="col-sm-4">
+                        <div class="p-2">
+                            <h6 class="mb-0 text-dark">Users</h6>
+                            <h4 class="fw-bold">-</h4>
+                        </div>
                     </div>
-                    <div>
-                        <h6 class="mb-0 text-dark">Last Backup</h6>
-                        <h4 class="fw-bold">-</h4>
+
+                    <div class="col-sm-4">
+                        <div class="p-2">
+                            <h6 class="mb-0 text-dark">Last Backup</h6>
+                            <h4 class="fw-bold">-</h4>
+                        </div>
                     </div>
-                    <div>
-                        <h6 class="mb-0 text-dark">Uptime</h6>
-                        <h4 class="fw-bold">-</h4>
+
+                    <div class="col-sm-4">
+                        <div class="p-2">
+                            <h6 class="mb-0 text-dark">Uptime</h6>
+                            <h4 class="fw-bold">-</h4>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -131,20 +146,53 @@
 
 </div>
 
-<!-- RESET MODAL -->
+<!-- RESET MODAL (compact + confirmation) -->
 <div class="modal fade" id="resetModalCompact" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-sm modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
                 <h6 class="modal-title mb-0">Reset All Accounts</h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body small">
-                <p class="mb-2 text-center">This action will reset all accounts.</p>
+                <p class="mb-2 text-center">This action will reset all accounts. This cannot be undone.</p>
+
+               
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" value="" id="confirmResetCheck">
+                    <label class="form-check-label small" for="confirmResetCheck">
+                        Yes, I understand and want to reset all accounts
+                    </label>
+                </div>
+
                 <div class="d-grid">
-                    <button class="btn btn-danger btn-sm">Confirm Reset</button>
+                    <button id="confirmResetBtn" class="btn btn-danger btn-sm" disabled>Confirm Reset</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var check = document.getElementById('confirmResetCheck');
+            var btn = document.getElementById('confirmResetBtn');
+            if (check && btn) {
+                check.addEventListener('change', function () {
+                    btn.disabled = !this.checked;
+                });
+
+              
+                btn.addEventListener('click', function () {
+
+                    var modalEl = document.getElementById('resetModalCompact');
+                    var bsModal = bootstrap.Modal.getInstance(modalEl);
+                    if (bsModal) bsModal.hide();
+
+                    alert('Reset action triggered (replace with a real POST to your server).');
+                });
+            }
+        })();
+    </script>
+}

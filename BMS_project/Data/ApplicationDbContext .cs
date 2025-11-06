@@ -11,6 +11,8 @@ namespace BMS_project.Data
         public DbSet<Login> Login { get; set; }
         public DbSet<Role> Role { get; set; }
         public DbSet<YouthMember> YouthMembers { get; set; }
+        public DbSet<BarangayProfile> BarangayProfiles { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
