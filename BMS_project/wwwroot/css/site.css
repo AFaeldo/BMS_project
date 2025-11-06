@@ -182,6 +182,9 @@ body {
         vertical-align: middle;
         color: #333;
     }
+.form-label {
+    color: #000 !important;
+}
 
 /* Status badges */
 .badge-success {

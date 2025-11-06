@@ -34,5 +34,16 @@ namespace YourProjectName.Controllers
             ViewData["Title"] = "Settings";
             return View();
         }
+        public IActionResult Profile()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult SaveProfile(string Barangay, string PostalAddress, string Zone, string District, string City)
+        {
+            TempData["SuccessMessage"] = "Profile saved successfully!";
+            return RedirectToAction("Profile");
+        }
     }
 }

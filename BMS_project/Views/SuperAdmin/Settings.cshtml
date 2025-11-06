@@ -5,178 +5,146 @@
 
 <div class="container-fluid">
 
-    <!-- PAGE HEADER -->
-    <div class="mb-4">
-        <h2 class="fw-bold">System Settings & Access Control</h2>
-        </div>
-
-    <!-- USER MANAGEMENT DASHBOARD -->
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-primary text-white">
-            <strong>User Management Dashboard</strong>
-        </div>
-        <div class="card-body">
-            <ul class="list-unstyled mb-3">
-                <li class="mb-2"><strong>SK Federation President:</strong> Master access to all barangay-level SK operations.</li>
-                <li class="mb-2"><strong>SK Chairpersons:</strong> Responsible for minutes, profiling, and budget entries.</li>
-                <li class="mb-2"><strong>Secretaries:</strong> Maintain records and upload official documentation.</li>
-                <li><strong>Treasurers:</strong> Oversee budget reports and fund transparency.</li>
-            </ul>
-
-            <div class="text-center">
-                <button class="btn btn-success btn-sm mx-1" data-bs-toggle="modal" data-bs-target="#assignRolesModal">
-                    <i class="bi bi-person-check-fill me-1"></i> Assign Roles
-                </button>
-                <button class="btn btn-warning btn-sm mx-1" data-bs-toggle="modal" data-bs-target="#activityLogsModal">
-                    <i class="bi bi-clock-history me-1"></i> View Activity Logs
-                </button>
-            </div>
-        </div>
+    <!-- HEADER -->
+    <div class="mb-4 text-center">
+        <h2 class="fw-bold text-uppercase">System Settings</h2>
+        <hr />
     </div>
-
-    <!-- SECURITY & ACCESS CONTROL -->
-    <div class="card shadow-sm border-0 mb-5">
-        <div class="card-header bg-dark text-white">
-            <strong>Security & Access Control</strong>
+    <!-- USER MANAGEMENT -->
+    <section class="mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+            <h5 class="fw-bold text-white mb-0">User Management</h5>
         </div>
-        <div class="card-body text-center">
-            <div class="d-flex flex-wrap justify-content-center gap-2">
-                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#manageUsersModal">
-                    <i class="bi bi-people-fill me-1"></i> Manage Users
-                </button>
-                <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#auditModal">
-                    <i class="bi bi-shield-lock-fill me-1"></i> Run Security Audit
-                </button>
-                <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#backupModal">
-                    <i class="bi bi-cloud-arrow-up-fill me-1"></i> Data Backup
-                </button>
-                <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#resetModal">
-                    <i class="bi bi-arrow-clockwise me-1"></i> Reset Accounts
-                </button>
-            </div>
-        </div>
-    </div>
 
-    <!-- ===== MODALS ===== -->
-
-    <!-- Manage Users Modal -->
-    <div class="modal fade" id="manageUsersModal" tabindex="-1" aria-labelledby="manageUsersModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="manageUsersModalLabel">Manage User Accounts</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="text-muted">Add, review, or deactivate user accounts per barangay SK council.</p>
-                    <ul class="list-unstyled">
-                        <li><span class="fw-semibold">Barangay 1:</span> Active</li>
-                        <li><span class="fw-semibold">Barangay 2:</span> Active</li>
-                        <li><span class="fw-semibold">Barangay 3:</span> Pending</li>
-                    </ul>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+        <div class="card border-0 shadow-sm rounded-3 mb-3">
+            <div class="card-body">
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <button class="btn btn-success btn-sm">
+                        <i class="bi bi-person-check-fill me-1"></i> Assign Roles
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-shield-lock me-1"></i> Manage Permissions
+                    </button>
+                    <a href="@Url.Action("Index", "Users")" class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-people-fill me-1"></i> Manage Users
+                    </a>
                 </div>
             </div>
         </div>
-    </div>
+        <hr class="text-white" />
+    </section>
 
-    <!-- Assign Roles Modal -->
-    <div class="modal fade" id="assignRolesModal" tabindex="-1" aria-labelledby="assignRolesModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title" id="assignRolesModalLabel">Assign Roles</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="text-muted">Assign user roles such as Chairperson, Secretary, or Treasurer to respective SK officials.</p>
-                    <button class="btn btn-outline-success btn-sm">Add New Role</button>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+    <!-- SYSTEM CONTROL -->
+    <section class="mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+            <h5 class="fw-bold text-white mb-0">System Control</h5>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-3 mb-3">
+            <div class="card-body text-center">
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <a href="@Url.Action("Index", "SystemLogs")" class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-journal-text me-1"></i> View Logs
+                    </a>
+                    <a href="@Url.Action("BackupMaintenance", "SuperAdmin")" class="btn btn-warning btn-sm">
+                        <i class="bi bi-cloud-arrow-up-fill me-1"></i> Backup Now
+                    </a>
+                    <button class="btn btn-secondary btn-sm">
+                        <i class="bi bi-gear-fill me-1"></i> Run Maintenance
+                    </button>
+                    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#resetModalCompact">
+                        <i class="bi bi-arrow-clockwise me-1"></i> Reset Accounts
+                    </button>
                 </div>
             </div>
         </div>
-    </div>
+        <hr class="text-white" />
+    </section>
 
-    <!-- Activity Logs Modal -->
-    <div class="modal fade" id="activityLogsModal" tabindex="-1" aria-labelledby="activityLogsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-warning text-white">
-                    <h5 class="modal-title" id="activityLogsModalLabel">Recent Activity Logs</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <table class="table table-sm table-striped">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Date & Time</th>
-                                <th>User</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr><td>Oct 21, 2025</td><td>SK Chair - Ibaba</td><td>Uploaded Meeting Minutes</td></tr>
-                            <tr><td>Oct 20, 2025</td><td>SK Chair - Guinobatan</td><td>Submitted Budget Proposal</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+    <!-- BARANGAY BASIC INFORMATION -->
+    <section class="mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+            <h5 class="fw-bold text-white mb-0">Barangay Basic Information</h5>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-3 mb-3">
+            <div class="card-body">
+                <form asp-action="SaveBarangayInfo" method="post">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-white fw-semibold">Barangay Name</label>
+                            <input type="text" class="form-control" name="BarangayName" placeholder="" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-white fw-semibold">Zone / District</label>
+                            <input type="text" class="form-control" name="Zone" placeholder="" />
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-white fw-semibold">Date Created</label>
+                            <input type="date" class="form-control" name="DateCreated" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-white fw-semibold">Date Implemented</label>
+                            <input type="date" class="form-control" name="DateImplemented" required />
+                        </div>
+                    </div>
+
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-success btn-sm">
+                            <i class="bi bi-save me-1"></i> Save Information
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <hr class="text-white" />
+    </section>
+
+    <!-- SYSTEM SUMMARY -->
+    <section>
+        <div class="d-flex align-items-center justify-content-between mb-2">
+            <h5 class="fw-bold text-white mb-0">System Summary</h5>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body">
+                <div class="d-flex flex-wrap justify-content-around text-center text-white">
+                    <div>
+                        <h6 class="mb-0 text-dark">Users</h6>
+                        <h4 class="fw-bold">-</h4>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 text-dark">Last Backup</h6>
+                        <h4 class="fw-bold">-</h4>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 text-dark">Uptime</h6>
+                        <h4 class="fw-bold">-</h4>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- Data Backup Modal -->
-    <div class="modal fade" id="backupModal" tabindex="-1" aria-labelledby="backupModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="backupModalLabel">Backup SK Data</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <p>Initiate a full system backup to securely store all SK records and reports.</p>
-                    <button class="btn btn-primary btn-sm">Run Backup Now</button>
-                </div>
+</div>
+
+<!-- RESET MODAL -->
+<div class="modal fade" id="resetModalCompact" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h6 class="modal-title mb-0">Reset All Accounts</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-        </div>
-    </div>
-
-    <!-- Security Audit Modal -->
-    <div class="modal fade" id="auditModal" tabindex="-1" aria-labelledby="auditModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-secondary text-white">
-                    <h5 class="modal-title" id="auditModalLabel">Security Audit</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <p>Check login patterns, permission changes, and system integrity.</p>
-                    <button class="btn btn-secondary btn-sm">Start Audit</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Reset Accounts Modal -->
-    <div class="modal fade" id="resetModal" tabindex="-1" aria-labelledby="resetModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title" id="resetModalLabel">Reset All Accounts</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <p class="mb-3">This action will reset all SK council accounts. This cannot be undone.</p>
+            <div class="modal-body small">
+                <p class="mb-2 text-center">This action will reset all accounts.</p>
+                <div class="d-grid">
                     <button class="btn btn-danger btn-sm">Confirm Reset</button>
                 </div>
             </div>
         </div>
     </div>
-
 </div>

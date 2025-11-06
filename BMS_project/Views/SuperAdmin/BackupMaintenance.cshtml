@@ -4,25 +4,92 @@
 }
 
 <div class="container-fluid">
-    <div class="card shadow-sm">
-        <div class="card-header bg-success text-white">
+    <!-- PAGE HEADER -->
+    <div class="mb-4">
+        <h2 class="fw-bold">Backup & Maintenance</h2>
+    </div>
+
+    <!-- SYSTEM BACKUP SECTION -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-success text-white d-flex align-items-center">
+            <i class="bi bi-cloud-arrow-up-fill me-2 fs-5"></i>
             <strong>System Backup</strong>
         </div>
         <div class="card-body">
-            <p>Ensure data integrity through regular backups of user data and records.</p>
-            <button class="btn btn-success mb-2">Create Backup Now</button>
-            <button class="btn btn-outline-secondary mb-2">View Backup History</button>
+            <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-success">
+                    <i class="bi bi-cloud-plus-fill me-1"></i> Create Backup Now
+                </button>
+                <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#backupHistoryModal">
+                    <i class="bi bi-clock-history me-1"></i> View Backup History
+                </button>
+            </div>
+
+            <hr>
+
+            <div class="mt-3 small text-muted">
+                <strong>Last Backup:</strong> <span id="lastBackup"></span><br>
+                <strong>Backup Location:</strong> <span id="backupLocation"></span>
+            </div>
         </div>
     </div>
 
-    <div class="card shadow-sm mt-4">
-        <div class="card-header bg-info text-white">
+    <!-- SYSTEM MAINTENANCE SECTION -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-info text-white d-flex align-items-center">
+            <i class="bi bi-gear-wide-connected me-2 fs-5"></i>
             <strong>System Maintenance</strong>
         </div>
         <div class="card-body">
-            <p>Monitor server performance, clear logs, and check system health.</p>
-            <button class="btn btn-primary">Run Maintenance Check</button>
-            <button class="btn btn-outline-danger">Clear Old Logs</button>
+            <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-primary">
+                    <i class="bi bi-tools me-1"></i> Run Maintenance Check
+                </button>
+                <button class="btn btn-outline-danger">
+                    <i class="bi bi-trash3-fill me-1"></i> Clear Old Logs
+                </button>
+            </div>
+
+            <hr>
+
+            <div class="mt-3 small text-muted">
+                <strong>Last Maintenance:</strong> <span id="lastMaintenance"></span><br>
+                <strong>System Health:</strong> <span id="systemHealth"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BACKUP HISTORY MODAL -->
+    <div class="modal fade" id="backupHistoryModal" tabindex="-1" aria-labelledby="backupHistoryLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-secondary text-white">
+                    <h5 class="modal-title" id="backupHistoryLabel">
+                        <i class="bi bi-clock-history me-1"></i> Backup History
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-sm table-striped align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">Date</th>
+                                <th scope="col">Time</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Size</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="backupTableBody">
+                            <!-- Backup data rows will be dynamically inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
