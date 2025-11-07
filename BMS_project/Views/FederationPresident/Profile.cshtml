@@ -1,0 +1,72 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutFederation.cshtml";
+    ViewData["Title"] = "Profile";
+}
+
+<div class="container mt-4">
+    <div class="card p-4 shadow-sm bg-white text-dark border-0">
+        <div class="text-center mb-4">
+            <div class="position-relative d-inline-block">
+                <img id="logoPreview" src="~/images/Calapan_City_Logo.png"
+                     alt="Barangay Logo" width="120"
+                     class="mb-3 rounded-circle border border-2 shadow-sm" />
+
+                <!-- Upload Trigger -->
+                <label for="LogoFile" class="position-absolute bottom-0 end-0 bg-success text-white rounded-circle p-2"
+                       style="cursor:pointer; width: 35px; height: 35px;">
+                    <i class="bi bi-pencil-fill"></i>
+                </label>
+            </div>
+            <h4 class="fw-bold mt-3">@ViewData["Title"]</h4>
+        </div>
+
+        <form asp-action="SaveProfile" method="post" enctype="multipart/form-data">
+            <input type="file" id="LogoFile" name="LogoFile" class="d-none" accept="image/*" onchange="previewLogo(event)" />
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="Barangay" class="form-label fw-semibold">Barangay</label>
+                    <input type="text" id="Barangay" name="Barangay" class="form-control" placeholder="Enter Barangay name" />
+                </div>
+                <div class="col-md-6">
+                    <label for="PostalAddress" class="form-label fw-semibold">Postal Address</label>
+                    <input type="text" id="PostalAddress" name="PostalAddress" class="form-control" placeholder="Enter Postal Address" />
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="Zone" class="form-label fw-semibold">Zone</label>
+                    <input type="text" id="Zone" name="Zone" class="form-control" placeholder="Enter Zone" />
+                </div>
+                <div class="col-md-6">
+                    <label for="District" class="form-label fw-semibold">District</label>
+                    <input type="text" id="District" name="District" class="form-control" placeholder="Enter District" />
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="City" class="form-label fw-semibold">City</label>
+                <input type="text" id="City" name="City" class="form-control" placeholder="Enter City" />
+            </div>
+
+            <div class="text-center">
+                <button type="submit" class="btn btn-success w-50 fw-semibold">
+                    <i class="bi bi-save me-1"></i> Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Live preview before upload
+    function previewLogo(event) {
+        const input = event.target;
+        const reader = new FileReader();
+        reader.onload = function () {
+            document.getElementById("logoPreview").src = reader.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+</script>

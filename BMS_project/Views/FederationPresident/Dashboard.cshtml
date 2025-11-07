@@ -3,76 +3,167 @@
     ViewData["Title"] = "Administrative Dashboard";
 }
 
-<div class="container-fluid">
+    <div class="container-fluid">
 
+        <!-- PAGE HEADER -->
+        <div class="mb-4">
+            <h2 class="fw-bold">Administrative Dashboard</h2>
+        </div>
 
-    <!-- PAGE HEADER -->
-    <div class="mb-4">
-        <h2 class="fw-bold">Administrative Dashboard</h2>
-    </div>
+        <!-- Summary Cards -->
+        <div class="row g-3 mb-4">
+            <!-- Total Barangays -->
+            <div class="col-md-3">
+                <div class="card shadow-sm border-0 rounded-3 text-center py-3">
+                    <div class="card-body">
+                        <i class="fa-solid fa-city fs-2 text-primary mb-2"></i>
+                        <h6 class="text-muted mb-1">Total Barangay</h6>
+                        <h3 class="fw-bold mb-0">@((ViewBag.TotalBarangays ?? 0))</h3>
+                    </div>
+                </div>
+            </div>
 
-   <!-- Summary Cards -->
-<div class="row g-3 mb-4">
-    <!-- Total Barangays -->
-    <div class="col-md-3">
-        <div class="card shadow-sm border-0 rounded-3 text-center py-3">
-            <div class="card-body">
-                <i class="fa-solid fa-city fs-2 text-primary mb-2"></i>
-                <h6 class="text-muted mb-1">Total Barangay</h6>
-                <h3 class="fw-bold mb-0">0</h3>
+            <!-- Compliant Barangays -->
+            <div class="col-md-3">
+                <div class="card shadow-sm border-0 rounded-3 text-center py-3">
+                    <div class="card-body">
+                        <i class="fa-solid fa-circle-check fs-2 text-success mb-2"></i>
+                        <h6 class="text-muted mb-1">Compliant Barangay</h6>
+                        <h3 class="fw-bold mb-0">@((ViewBag.CompliantBarangays ?? 0))</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Submissions -->
+            <div class="col-md-3">
+                <div class="card shadow-sm border-0 rounded-3 text-center py-3">
+                    <div class="card-body">
+                        <i class="fa-solid fa-hourglass-half fs-2 text-warning mb-2"></i>
+                        <h6 class="text-muted mb-1">Pending Submissions</h6>
+                        <h3 class="fw-bold mb-0">@((ViewBag.PendingSubmissions ?? 0))</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Projects -->
+            <div class="col-md-3">
+                <div class="card shadow-sm border-0 rounded-3 text-center py-3">
+                    <div class="card-body">
+                        <i class="fa-solid fa-diagram-project fs-2 text-info mb-2"></i>
+                        <h6 class="text-muted mb-1">Total Projects</h6>
+                        <h3 class="fw-bold mb-0">@((ViewBag.TotalProjects ?? 0))</h3>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Compliant Barangays -->
-    <div class="col-md-3">
-        <div class="card shadow-sm border-0 rounded-3 text-center py-3">
-            <div class="card-body">
-                <i class="fa-solid fa-circle-check fs-2 text-success mb-2"></i>
-                <h6 class="text-muted mb-1">Compliant Barangays</h6>
-                    <h3 class="fw-bold mb-0">0</h3>
+        <!-- Budget Overview Section -->
+        <div class="row g-3 mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm border-0 rounded-3">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <strong>Budget Overview</strong>
+                        <a class="btn btn-sm btn-outline-primary" href="@Url.Action("Index", "FederationBudget")">Full Budget List</a>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Total Allotment -->
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 border-0">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-muted mb-1">Total Allotment</h6>
+                                        <h3 class="fw-bold mb-0">₱@String.Format("{0:N2}", (ViewBag.TotalAllotment ?? 0m))</h3>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Total Disbursed -->
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 border-0">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-muted mb-1">Total Disbursed</h6>
+                                        <h3 class="fw-bold mb-0">₱@String.Format("{0:N2}", (ViewBag.TotalDisbursed ?? 0m))</h3>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Total Balance -->
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 border-0">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-muted mb-1">Total Balance</h6>
+                                        <h3 class="fw-bold mb-0">₱@String.Format("{0:N2}", (ViewBag.TotalBalance ?? 0m))</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Small table: Top 5 lowest-balance barangays -->
+                        <div class="mt-3">
+                            <h6 class="mb-2">Barangays — Lowest Balances</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Barangay</th>
+                                            <th class="text-end">Allotment</th>
+                                            <th class="text-end">Disbursed</th>
+                                            <th class="text-end">Balance</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (ViewBag.LowBalanceBarangays != null)
+                                        {
+                                            foreach (var b in ViewBag.LowBalanceBarangays)
+                                            {
+                                                var allot = (decimal?)(b.Allotment ?? 0m) ?? 0m;
+                                                var disb = (decimal?)(b.Disbursed ?? 0m) ?? 0m;
+                                                var bal = allot - disb;
+                                                var badgeClass = bal <= 0 ? "bg-danger" : (bal < (allot * 0.2m) ? "bg-warning text-dark" : "bg-success");
+                                                <tr>
+                                                    <td>@(b.BarangayName ?? "—")</td>
+                                                    <td class="text-end">₱@String.Format("{0:N2}", allot)</td>
+                                                    <td class="text-end">₱@String.Format("{0:N2}", disb)</td>
+                                                    <td class="text-end">₱@String.Format("{0:N2}", bal)</td>
+                                                    <td class="text-end">
+                                                        <a class="btn btn-sm btn-outline-primary" href="@Url.Action("Details", "FederationBudget", new { id = b.BudgetID })">Details</a>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td colspan="5" class="text-center text-muted">No budget data available.</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div> <!-- card-body -->
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Pending Submissions -->
-    <div class="col-md-3">
-        <div class="card shadow-sm border-0 rounded-3 text-center py-3">
+        <!-- Activity Table -->
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-header bg-white fw-bold">Barangay Activity Tracker</div>
             <div class="card-body">
-                <i class="fa-solid fa-hourglass-half fs-2 text-warning mb-2"></i>
-                <h6 class="text-muted mb-1">Pending Submissions</h6>
-                    <h3 class="fw-bold mb-0">0</h3>
-            </div>
-        </div>
-    </div>
-
-    <!-- Total Projects -->
-    <div class="col-md-3">
-        <div class="card shadow-sm border-0 rounded-3 text-center py-3">
-            <div class="card-body">
-                <i class="fa-solid fa-diagram-project fs-2 text-info mb-2"></i>
-                <h6 class="text-muted mb-1">Total Projects</h6>
-                    <h3 class="fw-bold mb-0">0</h3>
-            </div>
-        </div>
-    </div>
-</div>
-
-    <!-- Activity Table -->
-    <div class="card shadow-sm border-0 rounded-3">
-        <div class="card-header bg-white fw-bold">Barangay Activity Tracker</div>
-        <div class="card-body">
-            <table class="table table-hover align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>Barangay</th>
-                        <th>Submission Type</th>
-                        <th>Status</th>
-                        <th>Last Updated</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                @* <tbody>
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Barangay</th>
+                            <th>Submission Type</th>
+                            <th>Status</th>
+                            <th>Last Updated</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    @* <tbody>
                     <tr>
                         <td>Barangay Ibaba</td>
                         <td>Budget Proposal</td>
@@ -95,8 +186,8 @@
                         <td><button class="btn btn-sm btn-outline-danger">Follow Up</button></td>
                     </tr>
                 </tbody> *@
-            </table>
+                </table>
+            </div>
         </div>
-    </div>
 
-</div>
+    </div>

@@ -1,0 +1,319 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutFederation.cshtml";
+    ViewData["Title"] = "User Management";
+}
+
+<div class="container-fluid">
+
+    <!-- PAGE HEADER -->
+    <div class="mb-4">
+        <h2 class="fw-bold">User Management</h2>
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="row">
+        <div class="col-12 text-end mb-3">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#userModal">
+                <i class="bi bi-person-plus me-1"></i> Add User
+            </button>
+
+            <button id="btnImportCsv" class="btn btn-outline-secondary"
+                    data-bs-toggle="modal" data-bs-target="#importModal">
+                <i class="bi bi-upload"></i> Import CSV
+            </button>
+        </div>
+    </div>
+
+    <!-- FILTERS -->
+    <form id="frmFilters" class="row g-2 mb-4" onsubmit="return false;">
+        <div class="col-md-3">
+            <input id="txtSearch" class="form-control" placeholder="Search by name or email">
+        </div>
+
+        <div class="col-md-3">
+            <select id="ddlBarangay" class="form-select">
+                <option value="">All Barangays</option>
+                <option value="1">Barangay 1</option>
+                <option value="2">Barangay 2</option>
+                <option value="3">Barangay 3</option>
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <select id="ddlRole" class="form-select">
+                <option value="">All Roles</option>
+                <option value="chair">SK Chairperson</option>
+                <option value="secretary">SK Secretary</option>
+                <option value="treasurer">SK Treasurer</option>
+            </select>
+        </div>
+
+        <div class="col-md-3 d-flex gap-2">
+            <button id="btnFilter" class="btn btn-secondary w-50">Filter</button>
+            <button id="btnClear" class="btn btn-light w-50">Clear</button>
+        </div>
+    </form>
+
+    <!-- TABLE -->
+    <div class="table-responsive">
+        <table id="tblUsers" class="table table-bordered table-hover align-middle text-center">
+            <thead class="table-light">
+                <tr>
+                    <th>UID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Contact</th>
+                    <th>Barangay</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th style="width:130px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- SAMPLE DATA -->
+                <tr data-userid="101">
+                    <td>101</td>
+                    <td>Juan Dela Cruz</td>
+                    <td>juan@example.com</td>
+                    <td>09171234567</td>
+                    <td>Barangay 1</td>
+                    <td>SK Chairperson</td>
+                    <td><span class="badge bg-success">Active</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary btn-edit"
+                                data-bs-toggle="modal" data-bs-target="#userModal">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+
+                        <button class="btn btn-sm btn-outline-warning btn-resetpwd"
+                                data-bs-toggle="modal" data-bs-target="#resetPwdModal">
+                            <i class="bi bi-key"></i>
+                        </button>
+
+                        <button class="btn btn-sm btn-outline-danger btn-deactivate"
+                                data-name="Juan Dela Cruz"
+                                data-bs-toggle="modal" data-bs-target="#confirmModal">
+                            <i class="bi bi-person-x"></i>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- PAGINATION -->
+    <nav class="mt-2">
+        <ul class="pagination">
+            <li class="page-item disabled"><a class="page-link">«</a></li>
+            <li class="page-item active"><a class="page-link" data-page="1">1</a></li>
+            <li class="page-item"><a class="page-link" data-page="2">2</a></li>
+            <li class="page-item"><a class="page-link" data-page="3">3</a></li>
+            <li class="page-item"><a class="page-link" data-page="2">»</a></li>
+        </ul>
+    </nav>
+</div>
+
+
+<!-- ADD/EDIT USER MODAL -->
+<div class="modal fade" id="userModal" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg">
+        <form id="frmUser" class="modal-content" onsubmit="return false;">
+
+            <div class="modal-header">
+                <h5 id="userModalLabel" class="modal-title">Add User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <input id="UserId" type="hidden" value="0">
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label class="form-label">First Name</label>
+                        <input id="FirstName" class="form-control">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Last Name</label>
+                        <input id="LastName" class="form-control">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Email</label>
+                        <input id="Email" type="email" class="form-control">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Contact</label>
+                        <input id="ContactNo" class="form-control">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Barangay</label>
+                        <select id="BarangayId" class="form-select"></select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Role</label>
+                        <select id="RoleId" class="form-select"></select>
+                    </div>
+
+                    <div id="passwordRow" class="col-12">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Password</label>
+                                <input id="Password" type="password" class="form-control">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Confirm Password</label>
+                                <input id="ConfirmPassword" type="password" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label">Notes</label>
+                        <textarea id="Notes" class="form-control" rows="2"></textarea>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input id="IsActive" type="checkbox" class="form-check-input" checked>
+                            <label class="form-check-label" for="IsActive">Active</label>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-light" type="button" data-bs-dismiss="modal">Cancel</button>
+                <button id="btnSaveUser" class="btn btn-primary" type="button">Save User</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+
+<!-- RESET PASSWORD MODAL -->
+<div class="modal fade" id="resetPwdModal" data-bs-backdrop="static">
+    <div class="modal-dialog">
+        <form id="frmResetPwd" class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Reset Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <p>Set a new temporary password for <strong id="resetUserName"></strong></p>
+
+                <div class="mb-3">
+                    <label class="form-label">Temporary Password</label>
+                    <input id="TempPassword" type="password" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Confirm Password</label>
+                    <input id="ConfirmTempPassword" type="password" class="form-control">
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button id="btnResetPwd" class="btn btn-warning" type="button">Reset</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+
+<!-- CONFIRM ACTION MODAL -->
+<div class="modal fade" id="confirmModal" data-bs-backdrop="static">
+    <div class="modal-dialog">
+        <form class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <p id="confirmMessage" class="fw-semibold"></p>
+
+                <label class="form-label">Remarks (optional)</label>
+                <input id="ConfirmRemarks" class="form-control">
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-light" type="button" data-bs-dismiss="modal">Cancel</button>
+                <button id="btnConfirm" class="btn btn-danger" type="button">Yes, proceed</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+
+<!-- IMPORT CSV MODAL -->
+<div class="modal fade" id="importModal" data-bs-backdrop="static">
+    <div class="modal-dialog">
+        <form class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Import Users (CSV)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <p>
+                    Upload a CSV file with columns:<br>
+                    <strong>FirstName, LastName, Email, ContactNo, BarangayId, RoleId, IsActive</strong>
+                </p>
+
+                <input id="csvFile" type="file" class="form-control" accept=".csv">
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button id="btnImport" class="btn btn-primary" type="button">Start Import</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+
+<!-- SCRIPTS -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Handle edit button
+    $(document).on("click", ".btn-edit", function () {
+        $("#userModalLabel").text("Edit User");
+    });
+
+    // Handle reset password button
+    $(document).on("click", ".btn-resetpwd", function () {
+        let name = $(this).closest("tr").find("td:nth-child(2)").text();
+        $("#resetUserName").text(name);
+    });
+
+    // Handle deactivate button
+    $(document).on("click", ".btn-deactivate", function () {
+        let user = $(this).data("name");
+        $("#confirmMessage").text("Are you sure you want to deactivate " + user + "?");
+    });
+</script>
+
+<style>
+    .modal-content {
+        color: #000 !important;
+        background: #fff !important;
+    }
+</style>

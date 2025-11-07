@@ -1,0 +1,62 @@
+﻿@{
+    Layout = "~/Views/Shared/_BarangayLayout.cshtml";
+    ViewData["Title"] = "Notifications";
+}
+
+<div class="container-fluid">
+
+    <h2 class="fw-bold mb-4">Notifications</h2>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <ul class="list-group list-group-flush">
+
+                <!-- NEW NOTIFICATIONS -->
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Barangay Ibaba submitted a new Budget Proposal.
+                    <span class="badge bg-primary">New</span>
+                </li>
+
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Barangay Sta. Maria uploaded their Annual Report.
+                    <span class="badge bg-primary">New</span>
+                </li>
+
+                <!-- PENDING NOTIFICATIONS -->
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Reminder: Meeting Minutes due from Barangay San Vicente.
+                    <span class="badge bg-warning text-dark">Pending</span>
+                </li>
+
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Action Required: Quarterly Report missing from Barangay Malinis.
+                    <span class="badge bg-warning text-dark">Pending</span>
+                </li>
+
+                <!-- APPROVED / COMPLETED NOTIFICATIONS -->
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Project “Youth Clean-Up Drive” was approved.
+                    <span class="badge bg-success">Approved</span>
+                </li>
+
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Barangay San Roque completed their compliance requirements.
+                    <span class="badge bg-success">Completed</span>
+                </li>
+
+                <!-- REJECTED / DECLINED NOTIFICATIONS -->
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Budget request from Barangay Mabini was declined.
+                    <span class="badge bg-danger">Declined</span>
+                </li>
+
+                <!-- INFORMATIONAL NOTIFICATIONS -->
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Training on Community Disaster Preparedness scheduled on Oct. 25.
+                    <span class="badge bg-info text-dark">Info</span>
+                </li>
+
+            </ul>
+        </div>
+    </div>
+</div>

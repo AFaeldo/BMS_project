@@ -52,5 +52,21 @@ namespace BMS_project.Controllers
             ViewData["Title"] = "Reports";
             return View();
         }
+        public IActionResult Notifications()
+        {
+            ViewData["Title"] = "Notifications";
+            return View();
+        }
+        public IActionResult Profile()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult SaveProfile(string Barangay, string PostalAddress, string Zone, string District, string City)
+        {
+            TempData["SuccessMessage"] = "Profile saved successfully!";
+            return RedirectToAction("Profile");
+        }
     }
 }

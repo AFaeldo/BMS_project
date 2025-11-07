@@ -2,6 +2,7 @@
 using MySql.Data.MySqlClient;
 using BMS_project.Models;
 using System.Collections.Generic;
+using System;
 
 namespace BMS_project.Controllers
 {
@@ -107,6 +108,72 @@ namespace BMS_project.Controllers
             }
 
             return RedirectToAction("ProjectApprovals");
+        }
+
+        public IActionResult Budget()
+        {
+            ViewData["Title"] = "Barangay Budgets";
+
+            var barangayBudgets = new List<dynamic>();
+
+            try
+            {
+                using (var conn = new MySqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string query = @"
+                SELECT 
+                    b.Barangay_Name,
+                    IFNULL(bb.Allotment, 0) AS Allotment,
+                    IFNULL(bb.Disbursed, 0) AS Disbursed
+                FROM barangay b
+                LEFT JOIN barangay_budget bb ON b.Barangay_ID = bb.Barangay_ID
+                ORDER BY b.Barangay_Name ASC;
+            ";
+
+                    using (var cmd = new MySqlCommand(query, conn))
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            barangayBudgets.Add(new
+                            {
+                                BarangayName = reader["Barangay_Name"].ToString(),
+                                Allotment = Convert.ToDecimal(reader["Allotment"]),
+                                Disbursed = Convert.ToDecimal(reader["Disbursed"]),
+                                Details = new List<dynamic>()
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "Error loading barangay budgets: " + ex.Message;
+            }
+
+            ViewBag.BarangayBudgets = barangayBudgets;
+
+            return View("Budget"); // ✅ Correct View
+        }
+
+        public IActionResult Profile()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult SaveProfile(string Barangay, string PostalAddress, string Zone, string District, string City)
+        {
+            TempData["SuccessMessage"] = "Profile saved successfully!";
+            return RedirectToAction("Profile");
+        }
+
+        public IActionResult UserManagement()
+        {
+            ViewData["Title"] = "User Management";
+            return View();
         }
     }
 }

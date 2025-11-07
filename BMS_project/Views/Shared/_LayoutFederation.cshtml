@@ -35,9 +35,21 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a asp-controller="SuperAdmin" asp-action="ManageUsers"
+                       class="nav-link @(ViewData["Title"]?.ToString() == "User Management" ? "active" : "")">
+                        <i class="bi bi-people me-2"></i> Users
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a asp-controller="FederationPresident" asp-action="ProjectApprovals"
                        class="nav-link @(ViewData["Title"]?.ToString() == "Project Approvals" ? "active" : "")">
                         <i class="bi bi-check2-square me-2"></i> Project Approvals
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a asp-controller="FederationPresident" asp-action="Budget"
+                       class="nav-link @(ViewData["Title"]?.ToString() == "Barangay Budgets" ? "active" : "")">
+                        <i class="bi bi-cash-coin me-2"></i> Barangay Budgets
                     </a>
                 </li>
                 <li class="nav-item">
@@ -111,9 +123,11 @@
                href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                <i class="bi bi-person-circle fs-4 me-1"></i> Federation President
             </a>
-            <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="#">Profile</a></li>
-            </ul>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a asp-controller="FederationPresident" asp-action="Profile" class="dropdown-item text-white">Profile</a>
+                        </li>
+                    </ul>
         </div>
     </div>
 </header>
