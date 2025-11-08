@@ -106,4 +106,32 @@ public class AccountController : Controller
     {
         return Content("Access Denied — You don’t have permission to view this page.");
     }
+
+
+    // FORGOT PASSWORD 
+
+    [HttpGet]
+    public IActionResult ForgotPassword() => View();
+
+    [HttpPost]
+    public async Task<IActionResult> ForgotPassword(string username)
+    {
+        if (string.IsNullOrEmpty(username))
+        {
+            ViewBag.Message = "Please enter your username.";
+            return View();
+        }
+
+        var user = await _context.Login.FirstOrDefaultAsync(u => u.Username == username);
+
+        if (user == null)
+        {
+            ViewBag.Message = "No account found with this username.";
+            return View();
+        }
+
+        ViewBag.Message = "Username found. Please contact your administrator to reset your password.";
+        return View();
+    }
+
 }
