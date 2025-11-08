@@ -1,20 +1,26 @@
 ﻿@{
-   Layout = "~/Views/Shared/_BarangayLayout.cshtml";
+    Layout = "~/Views/Shared/_BarangayLayout.cshtml";
     ViewData["Title"] = "Reports";
 }
 
 <div class="container-fluid">
+    <!-- PAGE HEADER -->
+    <div class="mb-4">
+        <h2 class="fw-bold">Automated Report Generation</h2>
+    </div>
 
-        <!-- PAGE HEADER -->
-        <div class="mb-4">
-            <h2 class="fw-bold">Automated Report Generation</h2>
-        </div>
+    <div class="text-end mb-3">
+        <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#generateReportModal">
+            <i class="bi bi-file-earmark-text"></i> Generate Report
+        </button>
+    </div>
 
+    <div class="card shadow-sm border-0">
         <div class="card-body">
-            <button class="btn btn-primary mb-3"><i class="bi bi-file-earmark-text"></i> Generate Report</button>
 
+            <!-- TABLE -->
             <table class="table table-hover align-middle">
-                <thead>
+                <thead class="table-light">
                     <tr>
                         <th>Report Title</th>
                         <th>Type</th>
@@ -27,10 +33,67 @@
                         <td>Q3 Youth Activity Summary</td>
                         <td>Quarterly</td>
                         <td>Oct 20, 2025</td>
-                        <td><button class="btn btn-outline-primary btn-sm"><i class="bi bi-download"></i></button></td>
+                        <td>
+                            <button class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-download"></i>
+                            </button>
+                        </td>
                     </tr>
                 </tbody>
             </table>
+        </div>
+    </div>
+</div>
+
+<!-- GENERATE REPORT MODAL -->
+<div class="modal fade" id="generateReportModal" tabindex="-1" aria-labelledby="generateReportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0 rounded-4">
+            <div class="modal-header bg-primary text-white rounded-top-4">
+                <h5 class="modal-title fw-bold" id="generateReportModalLabel">
+                    <i class="bi bi-file-earmark-text me-2"></i> Generate New Report
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Report Title</label>
+                        <input type="text" class="form-control" placeholder="Enter report title">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Report Type</label>
+                        <select class="form-select">
+                            <option selected disabled>Select report type</option>
+                            <option>Monthly</option>
+                            <option>Quarterly</option>
+                            <option>Annual</option>
+                        </select>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Start Date</label>
+                            <input type="date" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">End Date</label>
+                            <input type="date" class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-0 d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check-circle"></i> Generate
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

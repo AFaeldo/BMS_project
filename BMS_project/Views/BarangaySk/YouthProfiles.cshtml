@@ -7,11 +7,13 @@
 
 <div class="container-fluid">
 
-        <!-- PAGE HEADER -->
-        <div class="mb-4">
-            <h2 class="fw-bold">Registered Youth Members</h2>
-       </div>
-        <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#addYouthModal">
+    <!-- PAGE HEADER -->
+    <div class="mb-4">
+        <h2 class="fw-bold">Registered Youth Members</h2>
+    </div>
+
+    <div class="col-12 text-end mb-3">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addYouthModal">
             <i class="bi bi-person-plus"></i> Add Youth
         </button>
     </div>
@@ -46,10 +48,21 @@
                                 <td>@y.Sitio</td>
                                 <td>@y.Birthday.ToString("yyyy-MM-dd")</td>
                                 <td>
-                                    <button class="btn btn-sm btn-warning me-1">
+                                    <button class="btn btn-sm btn-warning me-1 btn-edit"
+                                            data-id="@y.Member_ID"
+                                            data-firstname="@y.FirstName"
+                                            data-lastname="@y.LastName"
+                                            data-gender="@y.Gender"
+                                            data-sitio="@y.Sitio"
+                                            data-birthday="@y.Birthday.ToString("yyyy-MM-dd")"
+                                            data-bs-toggle="modal" data-bs-target="#editYouthModal">
                                         <i class="bi bi-pencil-square"></i> Edit
                                     </button>
-                                    <button class="btn btn-sm btn-danger">
+
+                                    <button class="btn btn-sm btn-danger btn-delete"
+                                            data-id="@y.Member_ID"
+                                            data-name="@y.FirstName @y.LastName"
+                                            data-bs-toggle="modal" data-bs-target="#deleteYouthModal">
                                         <i class="bi bi-trash"></i> Delete
                                     </button>
                                 </td>
@@ -72,65 +85,164 @@
 <div class="modal fade" id="addYouthModal" tabindex="-1" aria-labelledby="addYouthModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content shadow-lg border-0 rounded-3">
-            <!-- Header -->
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="addYouthModalLabel">
                     <i class="bi bi-person-plus"></i> Add Youth Member
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-
-            <!-- Body -->
             <div class="modal-body">
-               <div class="card-body p-4">
-                    <form asp-controller="Youth" asp-action="Add" method="post" novalidate>
-                        @Html.AntiForgeryToken()
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">First Name</label>
-                                <input name="FirstName" class="form-control" placeholder="Enter first name" />
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Last Name</label>
-                                <input name="LastName" class="form-control" placeholder="Enter last name" />
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Gender</label>
-                                <select name="Gender" class="form-select">
-                                    <option value="">-- Select Gender --</option>
-                                    <option>Male</option>
-                                    <option>Female</option>
-                                    <option>Other</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Sitio</label>
-                                <input name="Sitio" class="form-control" placeholder="Enter sitio" />
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Birthday</label>
-                                <input name="Birthday" type="date" class="form-control" />
-                            </div>
+                <form asp-controller="Youth" asp-action="Add" method="post" novalidate>
+                    @Html.AntiForgeryToken()
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">First Name</label>
+                            <input name="FirstName" class="form-control" placeholder="Enter first name" />
                         </div>
-
-                        <div class="mt-4 d-flex justify-content-end gap-2">
-                            <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
-                                <i class="bi bi-x-circle me-1"></i> Cancel
-                            </button>
-                            <button type="submit" class="btn btn-success px-4">
-                                <i class="bi bi-check-circle me-1"></i> Save
-                            </button>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Last Name</label>
+                            <input name="LastName" class="form-control" placeholder="Enter last name" />
                         </div>
-                    </form>
-                </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Gender</label>
+                            <select name="Gender" class="form-select">
+                                <option value="">-- Select Gender --</option>
+                                <option>Male</option>
+                                <option>Female</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Sitio</label>
+                            <input name="Sitio" class="form-control" placeholder="Enter sitio" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Birthday</label>
+                            <input name="Birthday" type="date" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="mt-4 d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle me-1"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn btn-success px-4">
+                            <i class="bi bi-check-circle me-1"></i> Save
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editYouthModal" tabindex="-1" aria-labelledby="editYouthModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0 rounded-3">
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title" id="editYouthModalLabel">
+                    <i class="bi bi-pencil-square"></i> Edit Youth Member
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form asp-controller="Youth" asp-action="Edit" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="editMember_ID" name="Member_ID" />
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">First Name</label>
+                            <input id="editFirstName" name="FirstName" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Last Name</label>
+                            <input id="editLastName" name="LastName" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Gender</label>
+                            <select id="editGender" name="Gender" class="form-select">
+                                <option value="">-- Select Gender --</option>
+                                <option>Male</option>
+                                <option>Female</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Sitio</label>
+                            <input id="editSitio" name="Sitio" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Birthday</label>
+                            <input id="editBirthday" name="Birthday" type="date" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="mt-4 d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-warning text-white px-4">
+                            <i class="bi bi-save me-1"></i> Update
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteYouthModal" tabindex="-1" aria-labelledby="deleteYouthModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow border-0 rounded-3">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle"></i> Confirm Delete
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <form asp-controller="Youth" asp-action="Delete" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="deleteMember_ID" name="Member_ID" />
+                    <p id="deleteMessage" class="mb-3 text-black"></p>
+                    <div class="d-flex justify-content-center gap-2">
+                        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-danger px-4">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        // Fill Edit Modal
+        document.querySelectorAll('.btn-edit').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('editMember_ID').value = btn.dataset.id;
+                document.getElementById('editFirstName').value = btn.dataset.firstname;
+                document.getElementById('editLastName').value = btn.dataset.lastname;
+                document.getElementById('editGender').value = btn.dataset.gender;
+                document.getElementById('editSitio').value = btn.dataset.sitio;
+                document.getElementById('editBirthday').value = btn.dataset.birthday;
+            });
+        });
+
+        // Fill Delete Modal
+        document.querySelectorAll('.btn-delete').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('deleteMember_ID').value = btn.dataset.id;
+                document.getElementById('deleteMessage').innerHTML =
+                    `Are you sure you want to delete <strong>${btn.dataset.name}</strong>?`;
+            });
+        });
+    </script>
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

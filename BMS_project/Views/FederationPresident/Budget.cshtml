@@ -14,15 +14,15 @@
     <div class="row">
         <div class="col-12 text-end mb-3">
 
-            <!-- CSV Button (Opens Modal) -->
-            <button class="btn btn-outline-success btn-sm me-2"
+            <!-- CSV Button -->
+            <button class="btn btn-success btn-sm me-2 "
                     data-bs-toggle="modal" data-bs-target="#exportModal"
                     data-export-type="csv">
                 <i class="fa-solid fa-file-excel"></i> Export to CSV
             </button>
 
-            <!-- PDF Button (Opens Modal) -->
-            <button class="btn btn-outline-danger btn-sm"
+            <!-- PDF Button -->
+            <button class="btn btn-danger btn-sm "
                     data-bs-toggle="modal" data-bs-target="#exportModal"
                     data-export-type="pdf">
                 <i class="fa-solid fa-file-pdf"></i> Export to PDF
@@ -157,27 +157,49 @@
         });
     </script>
 
-    <!-- Export Modal Script -->
+    <!--  Export Modal Script  -->
     <script>
         const exportModal = document.getElementById('exportModal');
         const exportTitle = document.getElementById('exportTitle');
         const exportMessage = document.getElementById('exportMessage');
         const exportBtn = document.getElementById('exportConfirmBtn');
 
-        exportModal.addEventListener('show.bs.modal', function (event) {
-            const trigger = event.relatedTarget;
-            const type = trigger.getAttribute('data-export-type');
+        // Configuration for each export type
+        const exportOptions = {
+            csv: {
+                title: "Export to CSV",
+                message: "Download CSV file containing all barangay budget data?",
+                href: "/FederationPresident/ExportCSV"
+            },
+            pdf: {
+                title: "Export to PDF",
+                message: "Download PDF file containing all barangay budget data?",
+                href: "/FederationPresident/ExportPDF"
+            }
+        };
 
-            if (type === "csv") {
-                exportTitle.textContent = "Export to CSV";
-                exportMessage.textContent = "Download CSV file containing all barangay budget data?";
-                exportBtn.href = "/FederationPresident/ExportCSV"; // your controller action
+
+        exportModal.addEventListener('show.bs.modal', (event) => {
+            const trigger = event.relatedTarget;
+            if (!trigger) return;
+
+            const type = trigger.getAttribute('data-export-type');
+            const option = exportOptions[type];
+
+            if (option) {
+                exportTitle.textContent = option.title;
+                exportMessage.textContent = option.message;
+                exportBtn.href = option.href;
             } else {
-                exportTitle.textContent = "Export to PDF";
-                exportMessage.textContent = "Download PDF file containing all barangay budget data?";
-                exportBtn.href = "/FederationPresident/ExportPDF"; // your controller action
+                
+                exportTitle.textContent = "Export";
+                exportMessage.textContent = "Choose a valid export option.";
+                exportBtn.removeAttribute('href');
             }
         });
+
+   
     </script>
+
 
 }

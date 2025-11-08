@@ -6,17 +6,25 @@
 <div class="container-fluid">
     <!-- PAGE HEADER -->
     <div class="mb-4">
-        <h2 class="fw-bold">Budget Auditing & Request</h2>
+        <h2 class="fw-bold"> Budget Auditing & Requests</h2>
     </div>
+
+    <div class="text-end mb-3">
+        <button class="btn btn-warning text-dark shadow-sm" data-bs-toggle="modal" data-bs-target="#budgetModal">
+            <i class="bi bi-upload"></i> Submit New Budget Request
+        </button>
+    </div>
+
+    <!-- BUDGET TABLE -->
+    <div class="card shadow-sm border-0">
         <div class="card-body">
-            <button class="btn btn-warning text-dark mb-3"><i class="bi bi-upload"></i> Submit Budget Request</button>
-            <table class="table table-bordered">
+            <table class="table table-bordered align-middle">
                 <thead class="table-light">
                     <tr>
                         <th>Request Title</th>
                         <th>Status</th>
-                        <th>Amount</th>
-                        <th>Date</th>
+                        <th>Allotted Amount</th>
+                        <th>Date Submitted</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -26,8 +34,46 @@
                         <td>₱15,000</td>
                         <td>Sept 28, 2025</td>
                     </tr>
+                    <tr>
+                        <td>Sports Equipment Purchase</td>
+                        <td><span class="badge bg-warning text-dark">Pending</span></td>
+                        <td>₱25,000</td>
+                        <td>Oct 3, 2025</td>
+                    </tr>
                 </tbody>
             </table>
+        </div>
+    </div>
+</div>
+
+<!-- BUDGET REQUEST MODAL -->
+<div class="modal fade" id="budgetModal" tabindex="-1" aria-labelledby="budgetModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-black" id="budgetModalLabel">Submit New Budget Request</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="requestTitle" class="form-label">Request Title</label>
+                        <input type="text" class="form-control" id="requestTitle" placeholder="Enter request title">
+                    </div>
+                    <div class="mb-3">
+                        <label for="requestAmount" class="form-label">Allotted Amount</label>
+                        <input type="number" class="form-control" id="requestAmount" placeholder="Enter amount in PHP">
+                    </div>
+                    <div class="mb-3">
+                        <label for="requestDetails" class="form-label">Details</label>
+                        <textarea class="form-control" id="requestDetails" rows="3" placeholder="Provide additional details"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning text-dark">Submit Request</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

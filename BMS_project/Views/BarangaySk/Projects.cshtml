@@ -4,21 +4,24 @@
 }
 
 <div class="container-fluid">
+
     <!-- PAGE HEADER -->
     <div class="mb-4">
         <h2 class="fw-bold">Project Management</h2>
+    </div>
 
+    <div class="col-12 text-end mb-3">
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProjectModal">
             <i class="bi bi-plus-circle"></i> Add Project
         </button>
     </div>
 
     <!-- Project List -->
-    <div class="card shadow-sm">
+    <div class="card shadow-sm border-0">
         <div class="card-body">
-            <h5 class="card-title mb-3">Project List</h5>
-            <table class="table table-hover align-middle">
-                <thead class="table-light">
+            <h5 class="card-title mb-3 fw-semibold">Project List</h5>
+            <table class="table table-hover align-middle text-center">
+                <thead class="table-primary">
                     <tr>
                         <th>Project ID</th>
                         <th>Project Title</th>
@@ -38,8 +41,22 @@
                         <td>2025-01-15</td>
                         <td><span class="badge bg-info text-dark">Ongoing</span></td>
                         <td>
-                            <button class="btn btn-sm btn-secondary">Edit</button>
-                            <button class="btn btn-sm btn-danger">Delete</button>
+                            <button class="btn btn-sm btn-warning text-white btn-edit"
+                                    data-id="1"
+                                    data-title="Community Clean-Up Drive"
+                                    data-desc="Barangay clean-up and waste segregation."
+                                    data-start="2025-01-10"
+                                    data-end="2025-01-15"
+                                    data-status="Ongoing"
+                                    data-bs-toggle="modal" data-bs-target="#editProjectModal">
+                                <i class="bi bi-pencil-square"></i> Edit
+                            </button>
+                            <button class="btn btn-sm btn-danger btn-delete"
+                                    data-id="1"
+                                    data-title="Community Clean-Up Drive"
+                                    data-bs-toggle="modal" data-bs-target="#deleteProjectModal">
+                                <i class="bi bi-trash"></i> Delete
+                            </button>
                         </td>
                     </tr>
                     <tr>
@@ -50,20 +67,22 @@
                         <td>2025-03-05</td>
                         <td><span class="badge bg-success">Completed</span></td>
                         <td>
-                            <button class="btn btn-sm btn-secondary">Edit</button>
-                            <button class="btn btn-sm btn-danger">Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>Tree Planting Campaign</td>
-                        <td>Environmental tree planting activity.</td>
-                        <td>2025-04-10</td>
-                        <td>2025-04-12</td>
-                        <td><span class="badge bg-secondary">Planned</span></td>
-                        <td>
-                            <button class="btn btn-sm btn-secondary">Edit</button>
-                            <button class="btn btn-sm btn-danger">Delete</button>
+                            <button class="btn btn-sm btn-warning text-white btn-edit"
+                                    data-id="2"
+                                    data-title="Youth Leadership Training"
+                                    data-desc="Training seminar for young leaders."
+                                    data-start="2025-03-01"
+                                    data-end="2025-03-05"
+                                    data-status="Completed"
+                                    data-bs-toggle="modal" data-bs-target="#editProjectModal">
+                                <i class="bi bi-pencil-square"></i> Edit
+                            </button>
+                            <button class="btn btn-sm btn-danger btn-delete"
+                                    data-id="2"
+                                    data-title="Youth Leadership Training"
+                                    data-bs-toggle="modal" data-bs-target="#deleteProjectModal">
+                                <i class="bi bi-trash"></i> Delete
+                            </button>
                         </td>
                     </tr>
                 </tbody>
@@ -72,11 +91,12 @@
     </div>
 </div>
 
+<!-- ADD PROJECT MODAL -->
 <div class="modal fade" id="addProjectModal" tabindex="-1" aria-labelledby="addProjectModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header bg-primary text-white rounded-top-4">
-                <h5 class="modal-title fw-bold" id="addProjectModalLabel">
+                <h5 class="modal-title fw-bold">
                     <i class="bi bi-plus-circle me-2"></i> Add New Project
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -88,7 +108,7 @@
                         <input type="text" class="form-control" placeholder="Enter project title">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Project Description</label>
+                        <label class="form-label fw-semibold">Description</label>
                         <textarea class="form-control" rows="2" placeholder="Enter description"></textarea>
                     </div>
                     <div class="row">
@@ -102,7 +122,7 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Project Status</label>
+                        <label class="form-label fw-semibold">Status</label>
                         <select class="form-select">
                             <option selected disabled>Select status</option>
                             <option>Planned</option>
@@ -119,3 +139,99 @@
         </div>
     </div>
 </div>
+
+<!-- EDIT PROJECT MODAL -->
+<div class="modal fade" id="editProjectModal" tabindex="-1" aria-labelledby="editProjectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-warning text-white rounded-top-4">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-pencil-square me-2"></i> Edit Project
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form>
+                <div class="modal-body">
+                    <input type="hidden" id="editProjectID">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Project Title</label>
+                        <input type="text" id="editProjectTitle" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Description</label>
+                        <textarea id="editProjectDesc" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Start Date</label>
+                            <input type="date" id="editStartDate" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">End Date</label>
+                            <input type="date" id="editEndDate" class="form-control">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Status</label>
+                        <select id="editStatus" class="form-select">
+                            <option>Planned</option>
+                            <option>Ongoing</option>
+                            <option>Completed</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning text-white px-4">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- DELETE PROJECT MODAL -->
+<div class="modal fade" id="deleteProjectModal" tabindex="-1" aria-labelledby="deleteProjectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header bg-danger text-white rounded-top-4">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-exclamation-triangle me-2"></i> Confirm Delete
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <input type="hidden" id="deleteProjectID">
+                <p id="deleteMessage" class="mb-4 text-black"></p>
+                <div class="d-flex justify-content-center gap-2">
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger px-4">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Populate Edit Modal
+        document.querySelectorAll('.btn-edit').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('editProjectID').value = btn.dataset.id;
+                document.getElementById('editProjectTitle').value = btn.dataset.title;
+                document.getElementById('editProjectDesc').value = btn.dataset.desc;
+                document.getElementById('editStartDate').value = btn.dataset.start;
+                document.getElementById('editEndDate').value = btn.dataset.end;
+                document.getElementById('editStatus').value = btn.dataset.status;
+            });
+        });
+
+        // Populate Delete Modal
+        document.querySelectorAll('.btn-delete').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('deleteProjectID').value = btn.dataset.id;
+                document.getElementById('deleteMessage').innerHTML =
+                    `Are you sure you want to delete <strong>${btn.dataset.title}</strong>?`;
+            });
+        });
+    </script>
+}
