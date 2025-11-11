@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BMS_project.Controllers
+namespace BMS_project.Controllers.SuperAdminController
 {
     [Authorize(Roles = "SuperAdmin")]
     public class SuperAdminController : Controller

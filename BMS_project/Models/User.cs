@@ -1,21 +1,36 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using BaranggayManagementSystem.Models;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-[Table("login")]                // table name in MySQL
-public class Login
+namespace BMS_project.Models
 {
-    [Key]
-    [Column("id")]
-    public int Id { get; set; }
+    [Table("Users")]
+    public class User
+    {
+        [Key]
+        [Column("User_ID")]
+        public int User_ID { get; set; }
 
-    [Column("username")]
-    public string Username { get; set; }
+        [Column("First_Name")]
+        public string First_Name { get; set; }
 
-    [Column("password")]
-    public string Password { get; set; }
+        [Column("Last_Name")]
+        public string Last_Name { get; set; }
 
-    [Column("Role_ID")]         // matches real FK column
-    public int Role_ID { get; set; }
+        [Column("Email")]
+        public string Email { get; set; }
 
-    public Role Role { get; set; } // navigation property
+        [Column("Barangay_ID")]
+        public int? Barangay_ID { get; set; }         // FK
+
+        // FK navigation
+        public Barangay Barangay { get; set; }
+
+        [Column("Role_ID")]
+        public int? Role_ID { get; set; }             // FK (for convenience)
+
+        public Role Role { get; set; }
+
+        public Login Login { get; set; }              // optional 1:1 nav prop
+    }
 }

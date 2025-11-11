@@ -1,12 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace BaranggayManagementSystem.Models
+namespace BMS_project.Models
 {
-    public class Barangay : Controller
+    public class Barangay
     {
-        public IActionResult Index()
-        {
-            return View();
-        }
+        public int Barangay_ID { get; set; }//PK
+        public string Barangay_Name { get; set; }
     }
 }

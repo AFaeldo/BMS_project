@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using BMS_project.Data;
+using BMS_project.Models;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
-using BMS_project.Data;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
 
 public class AccountController : Controller
@@ -24,15 +26,59 @@ public class AccountController : Controller
     [HttpPost]
     public async Task<IActionResult> Login(string username, string password)
     {
-        // Find the user in the database (table: kabataan.login)
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+        {
+            ViewBag.Error = "Please enter username and password.";
+            return View();
+        }
+
+        username = username.Trim();
+        password = password.Trim();
+
+        // Case-insensitive lookup (translate to lower for EF)
+        var lowerUsername = username.ToLower();
         var user = await _context.Login
             .Include(l => l.Role)
-            .FirstOrDefaultAsync(u => u.Username == username && u.Password == password);
+            .FirstOrDefaultAsync(u => u.Username.ToLower() == lowerUsername);
 
         if (user == null)
         {
             ViewBag.Error = "Invalid username or password.";
             return View();
+        }
+
+        var passwordHasher = new PasswordHasher<Login>();
+        PasswordVerificationResult verification = PasswordVerificationResult.Failed;
+
+        var storedPassword = (user.Password ?? string.Empty).Trim();
+
+        if (!string.IsNullOrEmpty(storedPassword))
+        {
+            verification = passwordHasher.VerifyHashedPassword(user, storedPassword, password);
+        }
+
+        if (verification == PasswordVerificationResult.Failed)
+        {
+            if (storedPassword != password)
+            {
+                ViewBag.Error = "Invalid username or password.";
+                return View();
+            }
+
+            user.Password = passwordHasher.HashPassword(user, password);
+            _context.Update(user);
+            await _context.SaveChangesAsync();
+        }
+        else
+        {
+            // Verification succeeded (either Success or SuccessRehashNeeded)
+            if (verification == PasswordVerificationResult.SuccessRehashNeeded)
+            {
+                // Re-hash with current algorithm & save to DB
+                user.Password = passwordHasher.HashPassword(user, password);
+                _context.Update(user);
+                await _context.SaveChangesAsync();
+            }
         }
 
         // Map database role text to application role keys used by [Authorize(Roles = "...")]
@@ -60,38 +106,30 @@ public class AccountController : Controller
         }
         else
         {
-            // Fallback: remove whitespace and non-alphanumeric characters so "Some Role" -> "SomeRole"
-            roleKey = Regex.Replace(rawRole, @"\W+", "");
+            roleKey = System.Text.RegularExpressions.Regex.Replace(rawRole, @"\W+", "");
         }
 
-        // Create claims
+        // Create claims & sign-in
         var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.Role, roleKey) // normalized role key
-        };
+    {
+        new Claim(ClaimTypes.Name, user.Username),
+        new Claim(ClaimTypes.Role, roleKey)
+    };
 
-        // Create identity and principal
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         var principal = new ClaimsPrincipal(identity);
 
-        // Sign in
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal,
-            new AuthenticationProperties
-            {
-                IsPersistent = true
-            });
+            new AuthenticationProperties { IsPersistent = true });
 
-        // Redirect based on normalized roleKey
-        if (roleKey == "SuperAdmin")
-            return RedirectToAction("Dashboard", "SuperAdmin");
-        else if (roleKey == "FederationPresident")
-            return RedirectToAction("Dashboard", "FederationPresident");
-        else if (roleKey == "BarangaySk")
-            return RedirectToAction("Dashboard", "BarangaySk");
-
-        // Default fallback
-        return RedirectToAction("Index", "Home");
+        // Redirect based on role
+        return roleKey switch
+        {
+            "SuperAdmin" => RedirectToAction("Dashboard", "SuperAdmin"),
+            "FederationPresident" => RedirectToAction("Dashboard", "FederationPresident"),
+            "BarangaySk" => RedirectToAction("Dashboard", "BarangaySk"),
+            _ => RedirectToAction("Index", "Home"),
+        };
     }
 
     [HttpGet]

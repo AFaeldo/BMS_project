@@ -2,15 +2,16 @@
     Layout = "~/Views/Shared/_LayoutSuperAdmin.cshtml";
     ViewData["Title"] = "Manage Users";
 }
+
 <div class="container-fluid">
 
     <!-- PAGE HEADER -->
     <div class="mb-4">
-        <h2 class="fw-bold">Manage User</h2>
+        <h2 class="fw-bold">Manage Users</h2>
     </div>
 
     <div class="col-12 text-end mb-3">
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalUserSuper">
+        <button id="btnAddUserSuper" class="btn btn-primary">
             <i class="bi bi-person-plus me-1"></i> Add / Edit User
         </button>
     </div>
@@ -45,15 +46,13 @@
     </div>
 </div>
 
-
 <!-- MODAL: ADD / EDIT USER -->
 <div class="modal fade" id="modalUserSuper" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <form id="formUserSuper" class="modal-content" onsubmit="return false;">
-
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">Add / Edit User</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <div class="modal-body">
@@ -98,7 +97,7 @@
                     <div class="col-md-6">
                         <label class="form-label">Password</label>
                         <input id="Super_Password" class="form-control" type="password" minlength="8">
-                        <div class="form-text">Leave blank to keep current password.</div>
+                        <div class="form-text">Leave blank to keep current password (when editing).</div>
                     </div>
 
                     <div class="col-md-6">
@@ -118,105 +117,200 @@
     </div>
 </div>
 
+<!-- Toast (simple) -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+    <div id="appToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto">Notification</strong>
+            <small class="text-muted"></small>
+            <button type="button" class="btn-close ms-2 mb-1" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body" id="toastMsg"></div>
+    </div>
+</div>
 
-<!-- JS -->
+<!-- JS libs -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+<!-- Page script -->
 <script>
-    (function ($) {
-        'use strict';
+(function ($) {
+    'use strict';
 
-        const api = {
-            list: '/api/users',
-            get: id => `/api/users/${id}`,
-            create: '/api/users',
-            update: id => `/api/users/${id}`,
-            delete: id => `/api/users/${id}`
-        };
+    const api = {
+        list: '/api/users',
+        get: id => `/api/users/${id}`,
+        create: '/api/users',
+        update: id => `/api/users/${id}`,
+        delete: id => `/api/users/${id}`,
+        barangays: '/api/users/barangays',
+        roles: '/api/users/roles'
+    };
 
-        function showToast(msg) {
-            $("#toastMsg").text(msg);
-            new bootstrap.Toast(document.getElementById("appToast")).show();
-        }
+    // Bootstrap modal instance
+    const modalEl = document.getElementById('modalUserSuper');
+    const userModal = new bootstrap.Modal(modalEl);
 
-        function refreshTable() {
-            $.get(api.list)
-                .done(data => renderRows(data))
-                .fail(() => showToast("Failed to load users."));
-        }
+    function showToast(msg) {
+        $("#toastMsg").text(msg);
+        const toast = new bootstrap.Toast(document.getElementById("appToast"));
+        toast.show();
+    }
 
-        function renderRows(data) {
-            const tbody = $("#tblManageUsers tbody").empty();
-            data.forEach(u => {
-                tbody.append(`
-                    <tr data-userid="${u.id}">
-                        <td>${u.username}</td>
-                        <td>${u.lastName}</td>
-                        <td>${u.firstName}</td>
-                        <td>${u.barangayName}</td>
-                        <td>${u.role}</td>
-                        <td>${u.email}</td>
-                        <td class="text-center">
-                            <span class="badge ${u.isActive ? "bg-success" : "bg-secondary"}">
-                                ${u.isActive ? "Active" : "Inactive"}
-                            </span>
-                        </td>
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-primary btn-edit me-1">Edit</button>
-                            <button class="btn btn-sm btn-danger btn-delete">Delete</button>
-                        </td>
-                    </tr>
-                `);
-            });
-        }
+    function refreshTable() {
+        $.get(api.list)
+            .done(data => renderRows(data))
+            .fail(() => showToast("Failed to load users."));
+    }
 
-        $(function () {
+    function renderRows(data) {
+        const tbody = $("#tblManageUsers tbody").empty();
+        data.forEach(u => {
+            tbody.append(`
+                <tr data-userid="${u.id}">
+                    <td>${escapeHtml(u.username)}</td>
+                    <td>${escapeHtml(u.lastName || '')}</td>
+                    <td>${escapeHtml(u.firstName || '')}</td>
+                    <td>${escapeHtml(u.barangayName || '')}</td>
+                    <td>${escapeHtml(u.role || '')}</td>
+                    <td>${escapeHtml(u.email || '')}</td>
+                    <td class="text-center">
+                        <span class="badge ${u.isActive ? "bg-success" : "bg-secondary"}">
+                            ${u.isActive ? "Active" : "Inactive"}
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-primary btn-edit me-1">Edit</button>
+                        <button class="btn btn-sm btn-danger btn-delete">Delete</button>
+                    </td>
+                </tr>
+            `);
+        });
+    }
 
-            refreshTable();
+    // simple HTML escape for safety
+    function escapeHtml(str) {
+        return String(str)
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#39;');
+    }
 
-            $("#btnAddUserSuper").on("click", () => {
-                $("#formUserSuper")[0].reset();
-                $("#Super_UserId").val(0);
-            });
+    //populate barangays and roles
+    function loadDropdowns() {
+        //barangays
+        $.get(api.barangays).done(list => {
+            const sel = $("#Super_Barangay").empty().append('<option value="">-- Select Barangay --</option>');
+            list.forEach(b => sel.append(`<option value="${b.id}">${escapeHtml(b.text)}</option>`));
+        }).fail(() => showToast("Failed to load barangays."));
 
-            $("#tblManageUsers").on("click", ".btn-edit", function () {
-                const id = $(this).closest("tr").data("userid");
+        //roles
+        $.get(api.roles).done(list => {
+            const sel = $("#Super_Role").empty().append('<option value="">-- Select Role --</option>');
+            list.forEach(r => sel.append(`<option value="${r.id}">${escapeHtml(r.text)}</option>`));
+        }).fail(() => showToast("Failed to load roles."));
+    }
 
-                $.get(api.get(id)).done(u => {
-                    $("#Super_UserId").val(u.id);
-                    $("#Super_LastName").val(u.lastName);
-                    $("#Super_FirstName").val(u.firstName);
-                    $("#Super_Email").val(u.email);
-                    $("#Super_Barangay").val(u.barangayId);
-                    $("#Super_Role").val(u.role);
-                    $("#Super_Username").val(u.username);
-                    $("#Super_Password").val("");
-                    $("#Super_ConfirmPassword").val("");
+    $(function () {
+        loadDropdowns();
+        refreshTable();
 
-                    new bootstrap.Modal($("#modalUserSuper")).show();
-                });
-            });
-
-            $("#btnSaveSuper").on("click", function () {
-                const pwd = $("#Super_Password").val();
-                const cpwd = $("#Super_ConfirmPassword").val();
-
-                if (pwd || cpwd) {
-                    if (pwd.length < 8) return showToast("Password must be at least 8 characters.");
-                    if (pwd !== cpwd) return showToast("Passwords do not match.");
-                }
-
-                showToast("Save endpoint not implemented. Connect to your API.");
-            });
-
-            $("#tblManageUsers").on("click", ".btn-delete", function () {
-                const id = $(this).closest("tr").data("userid");
-                if (!confirm("Delete this user?")) return;
-                showToast("Delete endpoint not implemented.");
-            });
-
+        //Add button opens blank modal
+        $("#btnAddUserSuper").on("click", () => {
+            $("#formUserSuper")[0].reset();
+            $("#Super_UserId").val(0);
+            loadDropdowns();
+            userModal.show();
         });
 
-    })(jQuery);
+        //Edit row
+        $("#tblManageUsers").on("click", ".btn-edit", function () {
+            const id = $(this).closest("tr").data("userid");
+
+            $.get(api.get(id)).done(u => {
+                $("#Super_UserId").val(u.id || 0);
+                $("#Super_LastName").val(u.lastName || '');
+                $("#Super_FirstName").val(u.firstName || '');
+                $("#Super_Email").val(u.email || '');
+                $("#Super_Barangay").val(u.barangayId || '');
+                $("#Super_Role").val(u.roleId || '');
+                $("#Super_Username").val(u.username || '');
+                $("#Super_Password").val('');
+                $("#Super_ConfirmPassword").val('');
+
+                // ensure dropdowns are loaded and then show modal
+                loadDropdowns();
+                // small timeout to let options render then set selected value
+                setTimeout(() => {
+                    $("#Super_Barangay").val(u.barangayId || '');
+                    $("#Super_Role").val(u.roleId || '');
+                    userModal.show();
+                }, 80);
+            }).fail(() => showToast("Failed to load user data."));
+        });
+
+        // Save (create or update)
+        $("#btnSaveSuper").on("click", function () {
+            const id = Number($("#Super_UserId").val() || 0);
+            const payload = {
+                Username: $("#Super_Username").val().trim(),
+                Password: $("#Super_Password").val(),
+                FirstName: $("#Super_FirstName").val().trim(),
+                LastName: $("#Super_LastName").val().trim(),
+                Email: $("#Super_Email").val().trim(),
+                BarangayId: Number($("#Super_Barangay").val() || 0) || null,
+                RoleId: Number($("#Super_Role").val() || 0) || null
+            };
+
+            // client validation
+            if (!payload.Username) return showToast("Enter username.");
+            if (!id && !payload.Password) return showToast("Password required for new user.");
+            if (payload.Password && payload.Password.length < 8) return showToast("Password must be at least 8 characters.");
+            if ($("#Super_Password").val() !== $("#Super_ConfirmPassword").val()) return showToast("Passwords do not match.");
+
+            if (!id) {
+                // create
+                $.ajax({
+                    url: api.create,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(payload)
+                }).done(() => {
+                    showToast("User created.");
+                    refreshTable();
+                    userModal.hide();
+                }).fail(xhr => showToast(xhr.responseText || "Create failed."));
+            } else {
+                // update
+                $.ajax({
+                    url: api.update(id),
+                    method: 'PUT',
+                    contentType: 'application/json',
+                    data: JSON.stringify(payload)
+                }).done(() => {
+                    showToast("User updated.");
+                    refreshTable();
+                    userModal.hide();
+                }).fail(xhr => showToast(xhr.responseText || "Update failed."));
+            }
+        });
+
+        // Delete
+        $("#tblManageUsers").on("click", ".btn-delete", function () {
+            const id = $(this).closest("tr").data("userid");
+            if (!confirm("Delete this user?")) return;
+            $.ajax({
+                url: api.delete(id),
+                method: 'DELETE'
+            }).done(() => {
+                showToast("Deleted.");
+                refreshTable();
+            }).fail(xhr => showToast(xhr.responseText || "Delete failed."));
+        });
+    });
+
+})(jQuery);
 </script>
