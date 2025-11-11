@@ -45,6 +45,26 @@ namespace BMS_project.Controllers.SuperAdminController
             return Ok(data);
         }
 
+        [HttpGet("generate-username")]
+        public async Task<IActionResult> GenerateUsername()
+        {
+            var suffixes = await _context.Login
+                .Where(l => l.Username != null && l.Username.StartsWith("SK"))
+                .Select(l => l.Username.Substring(2))
+                .ToListAsync();
+
+            var maxSuffix = suffixes
+                .Where(s => !string.IsNullOrEmpty(s) && s.All(char.IsDigit))
+                .Select(s => int.Parse(s))
+                .DefaultIfEmpty(0)
+                .Max();
+
+            var next = maxSuffix + 1;
+            var newUsername = $"SK{next:D4}";
+
+            return Ok(new { username = newUsername });
+        }
+
         // GET: api/users/5
         [HttpGet("{id:int}")]
         public async Task<IActionResult> Get(int id)
@@ -187,8 +207,6 @@ namespace BMS_project.Controllers.SuperAdminController
             var login = await _context.Login.FirstOrDefaultAsync(l => l.Id == id);
             if (login == null) return NotFound();
 
-            // If cascade is set (login -> user), you may want to delete user instead.
-            // Here we'll remove login and (optionally) user if present:
             User user = null;
             if (login.User_ID == null || login.User_ID is DBNull)
                 user = null;

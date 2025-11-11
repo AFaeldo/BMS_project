@@ -223,8 +223,21 @@
             $("#formUserSuper")[0].reset();
             $("#Super_UserId").val(0);
             loadDropdowns();
-            userModal.show();
+
+            // Get next username from API
+            $.get('/api/users/generate-username')
+                .done(res => {
+                    $("#Super_Username").val(res.username || '');
+                    // Optional: lock field if you don't want it editable
+                    $("#Super_Username").prop('readonly', true);
+                    userModal.show();
+                })
+                .fail(() => {
+                    showToast("Failed to generate username. You can type one manually.");
+                    userModal.show();
+                });
         });
+
 
         //Edit row
         $("#tblManageUsers").on("click", ".btn-edit", function () {
@@ -271,6 +284,8 @@
             if (payload.Password && payload.Password.length < 8) return showToast("Password must be at least 8 characters.");
             if ($("#Super_Password").val() !== $("#Super_ConfirmPassword").val()) return showToast("Passwords do not match.");
 
+            console.log("User create/update payload:", { id, payload });
+
             if (!id) {
                 // create
                 $.ajax({
@@ -278,11 +293,15 @@
                     method: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(payload)
-                }).done(() => {
+                }).done((res) => {
+                    console.log("Create response:", res);
                     showToast("User created.");
                     refreshTable();
                     userModal.hide();
-                }).fail(xhr => showToast(xhr.responseText || "Create failed."));
+                }).fail(xhr => {
+                    console.error("Create failed:", xhr);
+                    showToast(xhr.responseText || "Create failed.");
+                });
             } else {
                 // update
                 $.ajax({
@@ -290,11 +309,15 @@
                     method: 'PUT',
                     contentType: 'application/json',
                     data: JSON.stringify(payload)
-                }).done(() => {
+                }).done((res) => {
+                    console.log("Update response:", res);
                     showToast("User updated.");
                     refreshTable();
                     userModal.hide();
-                }).fail(xhr => showToast(xhr.responseText || "Update failed."));
+                }).fail(xhr => {
+                    console.error("Update failed:", xhr);
+                    showToast(xhr.responseText || "Update failed.");
+                });
             }
         });
 
