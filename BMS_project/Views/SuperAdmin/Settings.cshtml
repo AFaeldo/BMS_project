@@ -68,46 +68,7 @@
         </div>
     </section>
 
-    <!-- BARANGAY BASIC INFORMATION -->
-    <section class="mb-4">
-        <div class="card-header bg-transparent d-flex align-items-center justify-content-between">
-            <h6 class="fw-bold text-dark text-uppercase mb-0">Barangay Profile Settings</h6>
-        </div>
-
-        <div class="card border-0 shadow-sm rounded-3 mb-3">
-            <div class="card-body">
-                <form asp-action="SaveBarangayInfo" method="post" class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label text-white fw-semibold">Barangay Name</label>
-                        <input type="text" class="form-control" name="BarangayName" required />
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label text-white fw-semibold">Zone / District</label>
-                        <input type="text" class="form-control" name="Zone" />
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label text-white fw-semibold">Date Created</label>
-                        <input type="date" class="form-control" name="DateCreated" required />
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label text-white fw-semibold">Date Implemented</label>
-                        <input type="date" class="form-control" name="DateImplemented" required />
-                    </div>
-
-                    <div class="col-12 text-end">
-                        <button type="submit" class="btn btn-success btn-sm">
-                            <i class="bi bi-save me-1"></i> Save Information
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <hr class="text-white" />
-    </section>
+   
 
     <!-- SYSTEM SUMMARY -->
     <section>

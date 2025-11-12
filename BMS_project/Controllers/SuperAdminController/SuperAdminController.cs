@@ -34,6 +34,11 @@ namespace BMS_project.Controllers.SuperAdminController
             ViewData["Title"] = "Settings";
             return View();
         }
+        public IActionResult Barangay()
+        {
+            ViewData["Title"] = "Manage Barangay";
+            return View();
+        }
         public IActionResult Profile()
         {
             return View();

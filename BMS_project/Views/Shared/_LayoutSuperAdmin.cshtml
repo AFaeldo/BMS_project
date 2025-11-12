@@ -41,6 +41,13 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a asp-controller="SuperAdmin" asp-action="Barangay"
+                       class="nav-link @(ViewData["Title"]?.ToString() == "Manage Barangay" ? "active" : "")">
+                        <i class="bi bi-house-door me-2"></i> Barangay
+                    </a>
+                </li>
+
+                <li class="nav-item">
                     <a asp-controller="SuperAdmin" asp-action="SystemLogs"
                        class="nav-link @(ViewData["Title"]?.ToString() == "System Logs" ? "active" : "")">
                         <i class="bi bi-journal-text me-2"></i> System Logs
