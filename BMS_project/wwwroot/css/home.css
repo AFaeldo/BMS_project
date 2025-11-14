@@ -2,52 +2,28 @@
     background-color: #f5f7fa;
 }
 
-@media screen and (max-width: 768px) {
-    section {
-        flex-direction: column;
-        text-align: center;
-    }
-
-        section div {
-            max-width: 100%;
-        }
-
-        section img {
-            width: 100%;
-            margin-bottom: 20px;
-        }
-
-        section div p {
-            max-width: 100%;
-        }
-}
-
-/* Hero section styling */
-
 .hero {
     background: linear-gradient(180deg, rgba(13,13,60,0.92) 0%, rgba(13,13,60,0.85) 60%), url('/images/backg.png') no-repeat center center / cover;
     position: relative;
     color: #e9ecf5;
     height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
 }
 
-
 .hero-content {
-    position: relative; /* ensures button is above overlay */
+    position: relative;
     z-index: 2;
 }
 
-
-.hero-content {
-    padding-top: 200px; /* move text down */
-    padding-bottom: 50px; /* add space below */
+.hero-title {
+    font-size: 6rem;
+    font-weight: 800;
+    text-align: center;
+    line-height: 1.1;
+    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.6);
 }
-
-.hero img {
-    width: 500px;
-    height: 300px;
-}
-
 
 section {
     font-family: 'Segoe UI', sans-serif;
@@ -110,15 +86,12 @@ section {
             text-decoration: underline;
         }
 
-/* Transparent logo */
 .logo-img {
     width: 50px;
     height: auto;
     object-fit: contain;
     background-color: transparent;
 }
-
-
 
 .btn-orange {
     background-color: #f76c2f;
@@ -136,7 +109,26 @@ section {
     border-color: rgba(255, 255, 255, 0.5);
 }
 
-.hero .hero-content h1,
-.hero .hero-content p strong {
-    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.6);
+@media screen and (max-width: 768px) {
+    section {
+        flex-direction: column;
+        text-align: center;
+    }
+
+        section div {
+            max-width: 100%;
+        }
+
+        section img {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        section div p {
+            max-width: 100%;
+        }
+
+    .hero-title {
+        font-size: 3rem;
+    }
 }

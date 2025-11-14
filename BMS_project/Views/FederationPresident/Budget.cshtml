@@ -11,18 +11,18 @@
     </div>
 
     <!-- ACTION BUTTONS -->
-    <div class="row">
-        <div class="col-12 text-end mb-3">
+    <div class="row mb-3">
+        <div class="col-12 text-end">
 
             <!-- CSV Button -->
-            <button class="btn btn-success btn-sm me-2 "
+            <button class="btn btn-success btn-sm me-2"
                     data-bs-toggle="modal" data-bs-target="#exportModal"
                     data-export-type="csv">
                 <i class="fa-solid fa-file-excel"></i> Export to CSV
             </button>
 
             <!-- PDF Button -->
-            <button class="btn btn-danger btn-sm "
+            <button class="btn btn-danger btn-sm"
                     data-bs-toggle="modal" data-bs-target="#exportModal"
                     data-export-type="pdf">
                 <i class="fa-solid fa-file-pdf"></i> Export to PDF
@@ -30,10 +30,13 @@
 
         </div>
     </div>
-</div>
 
-<div class="card shadow-sm border-0 rounded-3">
-    <div class="card-header bg-white fw-bold">All Barangay Budgets</div>
+
+<!-- MAIN CARD -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-success">
+            <h5 class="mb-0 fw-bold text-white">Barangay Budgets </h5>
+        </div>
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-hover align-middle">
@@ -47,71 +50,20 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @if (ViewBag.BarangayBudgets != null)
-                    {
-                        foreach (var b in ViewBag.BarangayBudgets)
-                        {
-                            decimal allot = b.Allotment;
-                            decimal disb = b.Disbursed;
-                            decimal bal = allot - disb;
-                            string badgeClass = bal <= 0 ? "bg-danger"
-                            : (bal < (allot * 0.2m) ? "bg-warning text-dark" : "bg-success");
 
-                            <tr class="budget-row">
-                                <td>@b.BarangayName</td>
-                                <td class="text-end">₱@String.Format("{0:N2}", allot)</td>
-                                <td class="text-end">₱@String.Format("{0:N2}", disb)</td>
-                                <td class="text-end">
-                                    <span class="badge @badgeClass px-2 py-1">
-                                        ₱@String.Format("{0:N2}", bal)
-                                    </span>
-                                </td>
-                                <td class="text-end">
-                                    <button class="btn btn-sm btn-outline-primary toggle-details">
-                                        <i class="fa-solid fa-caret-down"></i> Details
-                                    </button>
-                                </td>
-                            </tr>
+                    <!-- EMPTY STATE ONLY -->
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            No budget data found.
+                        </td>
+                    </tr>
 
-                            <!-- Details Row -->
-                            <tr class="detail-row bg-light" style="display:none;">
-                                <td colspan="5">
-                                    <table class="table table-sm mb-0">
-                                        <thead>
-                                            <tr class="table-secondary">
-                                                <th>Expense / Item</th>
-                                                <th class="text-end">Amount</th>
-                                                <th>Date</th>
-                                                <th>Remarks</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach (var item in b.Details)
-                                            {
-                                                <tr>
-                                                    <td>@item.ItemName</td>
-                                                    <td class="text-end">₱@String.Format("{0:N2}", item.Amount)</td>
-                                                    <td>@item.DateSpent.ToString("MMM dd, yyyy")</td>
-                                                    <td>@item.Remarks</td>
-                                                </tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                                </td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="5" class="text-center text-muted">No budget data found.</td>
-                        </tr>
-                    }
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+
 <!-- EXPORT MODAL -->
 <div class="modal fade" id="exportModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -135,36 +87,15 @@
     </div>
 </div>
 
-
 @section Scripts {
 
-    <!-- Toggle Detail Rows -->
-    <script>
-        document.querySelectorAll('.toggle-details').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const row = btn.closest('tr');
-                const next = row.nextElementSibling;
-                const icon = btn.querySelector('i');
-
-                if (next.style.display === 'none') {
-                    next.style.display = '';
-                    icon.classList.replace('fa-caret-down', 'fa-caret-up');
-                } else {
-                    next.style.display = 'none';
-                    icon.classList.replace('fa-caret-up', 'fa-caret-down');
-                }
-            });
-        });
-    </script>
-
-    <!--  Export Modal Script  -->
+    <!-- EXPORT MODAL SCRIPT -->
     <script>
         const exportModal = document.getElementById('exportModal');
         const exportTitle = document.getElementById('exportTitle');
         const exportMessage = document.getElementById('exportMessage');
         const exportBtn = document.getElementById('exportConfirmBtn');
 
-        // Configuration for each export type
         const exportOptions = {
             csv: {
                 title: "Export to CSV",
@@ -178,7 +109,6 @@
             }
         };
 
-
         exportModal.addEventListener('show.bs.modal', (event) => {
             const trigger = event.relatedTarget;
             if (!trigger) return;
@@ -191,15 +121,11 @@
                 exportMessage.textContent = option.message;
                 exportBtn.href = option.href;
             } else {
-                
                 exportTitle.textContent = "Export";
                 exportMessage.textContent = "Choose a valid export option.";
                 exportBtn.removeAttribute('href');
             }
         });
-
-   
     </script>
-
 
 }

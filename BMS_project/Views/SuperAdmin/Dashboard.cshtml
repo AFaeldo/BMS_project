@@ -57,27 +57,37 @@
         </div>
     </div>
 
-   <!-- Activity & Logs -->
+    <!-- Recent Activities and System Logs -->
     <div class="row g-3">
         <div class="col-lg-8">
             <div class="card shadow-sm border-0 rounded-3 h-100">
-                <div class="card-header fw-bold">Recent SK Activities</div>
-                <div class="card-body">
-                  
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="fw-bold">Recent SK Activities</div>
+                    <button id="clearActivities" class="btn btn-sm btn-danger">Clear</button>
                 </div>
-            </div>
-        </div>
-
-        <!-- Right Panel: System Logs or Calendar -->
-        <div class="col-lg-4">
-            <div class="card shadow-sm border-0 rounded-3 h-100">
-                <div class="card-header fw-bold ">System Logs</div>
-                <div class="card-body overflow-auto" style="max-height: 400px;">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item"><i class="fa-solid fa-user-plus text-primary me-2"></i> New SK account created</li>
-                        <li class="list-group-item"><i class="fa-solid fa-file-upload text-success me-2"></i> File uploaded by Barangay II</li>
-                        <li class="list-group-item"><i class="fa-solid fa-lock text-danger me-2"></i> Unauthorized access attempt blocked</li>
+                <div class="card-body">
+                    <ul id="activityList" class="list-group list-group-flush">
+                       
                     </ul>
                 </div>
             </div>
         </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 rounded-3 h-100">
+                <div class="card-header fw-bold">System Logs</div>
+                <div class="card-body overflow-auto" style="max-height: 400px;">
+                    <ul class="list-group list-group-flush">
+                       
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Clear Recent SK Activities
+        document.getElementById('clearActivities').addEventListener('click', function() {
+            document.getElementById('activityList').innerHTML = '';
+        });
+    </script>

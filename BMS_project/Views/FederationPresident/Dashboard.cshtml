@@ -53,75 +53,45 @@
         </div>
     </div>
 
-    <!-- Two-Column Layout: Budget (Left) | Tracker (Right) -->
+
     <div class="row g-3 mb-4">
 
-        <!-- 🟩 Barangay Budget Overview (Left) -->
+
+        <!-- Barangay Budget Overview (Left) -->
         <div class="col-lg-6">
             <div class="card shadow-sm border-0 rounded-3 h-100">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <strong>Barangay Budget Overview</strong>
-                    <a class="btn btn-sm btn-outline-primary" href="@Url.Action("Index", "FederationBudget")">Full List</a>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center mb-3">
-                        <div class="col-md-4">
-                            <h6 class="text-muted mb-1">Allotment</h6>
-                            <h4 class="fw-bold">₱@String.Format("{0:N2}", (ViewBag.TotalAllotment ?? 0m))</h4>
-                        </div>
-                        <div class="col-md-4">
-                            <h6 class="text-muted mb-1">Disbursed</h6>
-                            <h4 class="fw-bold">₱@String.Format("{0:N2}", (ViewBag.TotalDisbursed ?? 0m))</h4>
-                        </div>
-                        <div class="col-md-4">
-                            <h6 class="text-muted mb-1">Balance</h6>
-                            <h4 class="fw-bold">₱@String.Format("{0:N2}", (ViewBag.TotalBalance ?? 0m))</h4>
-                        </div>
-                    </div>
 
-                    <h6 class="mb-2">Barangay — Lowest Balances</h6>
-                    <div class="table-responsive">
-                        <table class="table table-sm table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Barangay</th>
-                                    <th class="text-end">Allotment</th>
-                                    <th class="text-end">Disbursed</th>
-                                    <th class="text-end">Balance</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (ViewBag.LowBalanceBarangays != null)
-                                {
-                                    foreach (var b in ViewBag.LowBalanceBarangays)
-                                    {
-                                        var allot = (decimal?)(b.Allotment ?? 0m) ?? 0m;
-                                        var disb = (decimal?)(b.Disbursed ?? 0m) ?? 0m;
-                                        var bal = allot - disb;
-                                        <tr>
-                                            <td>@(b.BarangayName ?? "—")</td>
-                                            <td class="text-end">₱@String.Format("{0:N2}", allot)</td>
-                                            <td class="text-end">₱@String.Format("{0:N2}", disb)</td>
-                                            <td class="text-end">₱@String.Format("{0:N2}", bal)</td>
-                                            <td class="text-end">
-                                                <a class="btn btn-sm btn-outline-primary" href="@Url.Action("Details", "FederationBudget", new { id = b.BudgetID })">Details</a>
-                                            </td>
-                                        </tr>
-                                    }
-                                }
-                                else
-                                {
-                                    <tr>
-                                        <td colspan="5" class="text-center text-muted">No budget data available.</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <div class="fw-bold">Barangay Budget Overview</div>
+                    <a class="btn btn-sm btn-outline-primary"
+                       href="@Url.Action("Index", "FederationBudget")"
+                       aria-label="View full budget list">
+                        Full List
+                    </a>
+                </div>
+
+                <div class="p-3">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="text-muted small">Allotment</div>
+                            <div class="fw-bold">₱@String.Format("{0:N2}", (ViewBag.TotalAllotment ?? 0m))</div>
+                        </div>
+
+                        <div class="col-4">
+                            <div class="text-muted small">Disbursed</div>
+                            <div class="fw-bold">₱@String.Format("{0:N2}", (ViewBag.TotalDisbursed ?? 0m))</div>
+                        </div>
+
+                        <div class="col-4">
+                            <div class="text-muted small">Balance</div>
+                            <div class="fw-bold">₱@String.Format("{0:N2}", (ViewBag.TotalBalance ?? 0m))</div>
+                        </div>
                     </div>
                 </div>
+
             </div>
         </div>
+
 
         <!-- 🟦 Barangay Activity Tracker (Right) -->
         <div class="col-lg-6">
@@ -143,27 +113,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @* <tr>
-                                    <td>Barangay Ibaba</td>
-                                    <td>Budget Proposal</td>
-                                    <td><span class="badge bg-success">Approved</span></td>
-                                    <td>Oct 25, 2025</td>
-                                    <td><button class="btn btn-sm btn-outline-primary">View</button></td>
-                                </tr>
-                                <tr>
-                                    <td>Barangay Lalud</td>
-                                    <td>Minutes of Meeting</td>
-                                    <td><span class="badge bg-warning text-dark">Pending</span></td>
-                                    <td>Oct 23, 2025</td>
-                                    <td><button class="btn btn-sm btn-outline-secondary">Remind</button></td>
-                                </tr>
-                                <tr>
-                                    <td>Barangay Guinobatan</td>
-                                    <td>Project Report</td>
-                                    <td><span class="badge bg-danger">Overdue</span></td>
-                                    <td>Oct 20, 2025</td>
-                                    <td><button class="btn btn-sm btn-outline-danger">Follow Up</button></td>
-                                </tr> *@
+                              
                             </tbody>
                         </table>
                     </div>

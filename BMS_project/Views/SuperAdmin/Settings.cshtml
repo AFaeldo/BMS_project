@@ -1,4 +1,6 @@
-﻿@{
+﻿
+
+@{
     Layout = "~/Views/Shared/_LayoutSuperAdmin.cshtml";
     ViewData["Title"] = "Settings";
 }
@@ -10,7 +12,6 @@
         <h2 class="fw-bold">System Settings</h2>
     </div>
 
-
     <section class="mb-4">
         <div class="row g-3">
             <!-- USER MANAGEMENT -->
@@ -21,17 +22,19 @@
                     </div>
                     <div class="card-body d-flex align-items-center justify-content-center">
                         <div class="d-flex flex-wrap gap-2 justify-content-center w-100">
-                            <button class="btn btn-success btn-sm">
-                                <i class="bi bi-person-check-fill me-1"></i> Assign Roles
+                            <button type="button" class="btn btn-success btn-sm" title="Assign roles to users">
+                                <i class="bi bi-person-check-fill me-1" aria-hidden="true"></i>
+                                Assign Roles
                             </button>
 
-                            <button class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-shield-lock me-1"></i> Manage Permissions
+                            <button type="button" class="btn btn-outline-primary btn-sm" title="Manage permissions">
+                                <i class="bi bi-shield-lock me-1" aria-hidden="true"></i>
+                                Manage Permissions
                             </button>
 
-                            
-                            <a href="@Url.Action("ManageUsers", "Manage Users")" class="btn btn-outline-light btn-sm">
-                                <i class="bi bi-people-fill me-1"></i> Manage Users
+                            @* Use tag-helpers: palitan ang controller/action ayon sa project *@
+                            <a asp-controller="ManageUsers" asp-action="Index" class="btn btn-outline-secondary btn-sm" role="button" title="Manage users">
+                                <i class="bi bi-people-fill me-1" aria-hidden="true"></i> Manage Users
                             </a>
                         </div>
                     </div>
@@ -46,20 +49,21 @@
                     </div>
                     <div class="card-body d-flex align-items-center justify-content-center">
                         <div class="d-flex flex-wrap gap-2 justify-content-center w-100">
-                            <a href="@Url.Action("Index", "SystemLogs")" class="btn btn-outline-light btn-sm">
-                                <i class="bi bi-journal-text me-1"></i> View Logs
+                            <a asp-controller="SystemLogs" asp-action="Index" class="btn btn-outline-secondary btn-sm" role="button" title="View system logs">
+                                <i class="bi bi-journal-text me-1" aria-hidden="true"></i> View Logs
                             </a>
 
-                            <a href="@Url.Action("BackupMaintenance", "SuperAdmin")" class="btn btn-warning btn-sm">
-                                <i class="bi bi-cloud-arrow-up-fill me-1"></i> Backup Now
+                            <a asp-controller="SuperAdmin" asp-action="BackupMaintenance" class="btn btn-warning btn-sm" role="button" title="Run backup now">
+                                <i class="bi bi-cloud-arrow-up-fill me-1" aria-hidden="true"></i> Backup Now
                             </a>
 
-                            <button class="btn btn-secondary btn-sm">
-                                <i class="bi bi-gear-fill me-1"></i> Run Maintenance
+                            <button type="button" class="btn btn-secondary btn-sm" title="Run maintenance tasks">
+                                <i class="bi bi-gear-fill me-1" aria-hidden="true"></i> Run Maintenance
                             </button>
 
-                            <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#resetModalCompact">
-                                <i class="bi bi-arrow-clockwise me-1"></i> Reset Accounts
+                          
+                            <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#resetModalCompact" aria-controls="resetModalCompact" title="Reset all accounts">
+                                <i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i> Reset Accounts
                             </button>
                         </div>
                     </div>
@@ -67,69 +71,83 @@
             </div>
         </div>
     </section>
-
-   
 
     <!-- SYSTEM SUMMARY -->
-    <section>
-        <div class="card-header bg-transparent d-flex align-items-center justify-content-between">
-            <h6 class="fw-bold text-dark text-uppercase mb-0">System Summary</h6>
-        </div>
-
+    <!-- SYSTEM SUMMARY -->
+    <section class="mt-4">
         <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-transparent d-flex align-items-center justify-content-between">
+                <h6 class="fw-bold text-dark text-uppercase mb-0">System Summary</h6>
+            </div>
+
             <div class="card-body">
-                <div class="row text-center text-white g-3">
-                    <div class="col-sm-4">
-                        <div class="p-2">
-                            <h6 class="mb-0 text-dark">Users</h6>
-                            <h4 class="fw-bold">-</h4>
+                <div class="row text-center gy-3">
+                    <div class="col-12 col-sm-4">
+                        <div class="p-3">
+                            <h6 class="mb-1 text-muted">Users</h6>
+                            <h3 class="fw-bold mb-0">@((Model?.UsersCount != null) ? Model.UsersCount.ToString() : "-")</h3>
                         </div>
                     </div>
 
-                    <div class="col-sm-4">
-                        <div class="p-2">
-                            <h6 class="mb-0 text-dark">Last Backup</h6>
-                            <h4 class="fw-bold">-</h4>
+                    <div class="col-12 col-sm-4">
+                        <div class="p-3">
+                            <h6 class="mb-1 text-muted">Last Backup</h6>
+                            <h3 class="fw-bold mb-0">
+                                @{
+                                    var lastBackupText = "-";
+                                    if (Model?.LastBackup != null)
+                                    {
+                                        // safe format; change to whatever format/locale you prefer
+                                        lastBackupText = Model.LastBackup.Value.ToString("yyyy-MM-dd HH:mm");
+                                    }
+                                }
+                                @lastBackupText
+                            </h3>
                         </div>
                     </div>
 
-                    <div class="col-sm-4">
-                        <div class="p-2">
-                            <h6 class="mb-0 text-dark">Uptime</h6>
-                            <h4 class="fw-bold">-</h4>
+                    <div class="col-12 col-sm-4">
+                        <div class="p-3">
+                            <h6 class="mb-1 text-muted">Uptime</h6>
+                            <h3 class="fw-bold mb-0">@(!string.IsNullOrWhiteSpace(Model?.Uptime) ? Model.Uptime : "-")</h3>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+
 
 </div>
 
 <!-- RESET MODAL -->
-<div class="modal fade" id="resetModalCompact" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="resetModalCompact" tabindex="-1" aria-labelledby="resetModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-sm modal-dialog-centered">
-        <div class="modal-content">
+        <form asp-controller="SuperAdmin" asp-action="ResetAllAccounts" method="post" class="modal-content">
+            @Html.AntiForgeryToken()
             <div class="modal-header bg-danger text-white">
-                <h6 class="modal-title mb-0">Reset All Accounts</h6>
+                <h6 class="modal-title mb-0" id="resetModalLabel">Reset All Accounts</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+
             <div class="modal-body small">
                 <p class="mb-2 text-center">This action will reset all accounts. This cannot be undone.</p>
 
-               
                 <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" value="" id="confirmResetCheck">
+                    <input class="form-check-input" type="checkbox" value="true" id="confirmResetCheck">
                     <label class="form-check-label small" for="confirmResetCheck">
                         Yes, I understand and want to reset all accounts
                     </label>
                 </div>
 
                 <div class="d-grid">
-                    <button id="confirmResetBtn" class="btn btn-danger btn-sm" disabled>Confirm Reset</button>
+                    <button id="confirmResetBtn" type="submit" class="btn btn-danger btn-sm" disabled>
+                        <span id="confirmResetBtnText">Confirm Reset</span>
+                        <span id="confirmResetSpinner" class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
+                    </button>
                 </div>
             </div>
-        </div>
+        </form>
     </div>
 </div>
 
@@ -138,19 +156,18 @@
         (function () {
             var check = document.getElementById('confirmResetCheck');
             var btn = document.getElementById('confirmResetBtn');
+            var spinner = document.getElementById('confirmResetSpinner');
+
             if (check && btn) {
                 check.addEventListener('change', function () {
                     btn.disabled = !this.checked;
                 });
 
-              
-                btn.addEventListener('click', function () {
-
-                    var modalEl = document.getElementById('resetModalCompact');
-                    var bsModal = bootstrap.Modal.getInstance(modalEl);
-                    if (bsModal) bsModal.hide();
-
-                    alert('Reset action triggered (replace with a real POST to your server).');
+                
+                btn && btn.form && btn.form.addEventListener('submit', function (evt) {
+                    
+                    btn.disabled = true;
+                    spinner.classList.remove('d-none');
                 });
             }
         })();

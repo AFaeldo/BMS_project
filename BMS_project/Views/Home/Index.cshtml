@@ -5,14 +5,10 @@
 
 <!-- Hero Section -->
 <section class="hero d-flex align-items-center text-white">
-    <div class="container text-center text-md-start">
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <h1 class="display-5 fw-bold mb-3">Welcome to Barangay Management System</h1>
-                <p class="lead mb-4">Streamlining barangay services for efficiency and transparency.</p>
-                <a href="@Url.Action("Login", "Account")" class="btn btn-orange btn-lg px-4 py-2 text-white">LOGIN</a>
-            </div>
-
+    <div class="container text-center">
+        <div class="hero-content">
+            <h1 class="hero-title">Welcome to Barangay Management System</h1>
+            @* <a href="@Url.Action("Login", "Account")" class="btn btn-orange btn-lg px-4 py-2">LOGIN</a> *@
         </div>
     </div>
 </section>
@@ -20,14 +16,17 @@
 <!-- About Section -->
 <section class="py-5 bg-light text-dark">
     <div class="container">
+
         <div class="text-center mb-5">
             <h2 class="fw-bold">About the System</h2>
             <p class="text-muted">
-                <strong>KABATAAN+</strong> is a digital management system designed to assist Sangguniang Kabataan (SK) officials across the 62 barangays of Calapan City in organizing, monitoring, and managing youth-related projects, budgets, and profiles efficiently.
+                <strong>KABATAAN+</strong> is a digital management platform designed to help SK officials across the 62 barangays of Calapan City efficiently organize and monitor youth-related projects, budgets, and profiles.
             </p>
         </div>
 
         <div class="row g-4">
+
+            <!-- Youth Profiling -->
             <div class="col-md-4">
                 <div class="card border-0 shadow-sm h-100 text-center p-4">
                     <div class="icon mb-3 text-orange">
@@ -35,11 +34,13 @@
                     </div>
                     <h5 class="fw-semibold mb-3">Youth Profiling</h5>
                     <p class="text-muted">
-                        Maintain an updated and organized database of youth constituents per barangay. Automatically categorize profiles by age, gender, and education status to support better program planning and monitoring.
+                        Maintain an organized database of youth constituents per barangay,
+                        with automatic categorization by age, gender, and education status.
                     </p>
                 </div>
             </div>
 
+            <!-- Project & Budget Management -->
             <div class="col-md-4">
                 <div class="card border-0 shadow-sm h-100 text-center p-4">
                     <div class="icon mb-3 text-orange">
@@ -47,11 +48,13 @@
                     </div>
                     <h5 class="fw-semibold mb-3">Project & Budget Management</h5>
                     <p class="text-muted">
-                        Enable SK Chairpersons to submit project proposals and budget plans online. Monitor progress, review funding updates, and access archived records for improved transparency and accountability.
+                        Allow SK Chairpersons to submit proposals and budget plans online,
+                        monitor progress, and review archived records for transparency.
                     </p>
                 </div>
             </div>
 
+            <!-- Monitoring & Reports -->
             <div class="col-md-4">
                 <div class="card border-0 shadow-sm h-100 text-center p-4">
                     <div class="icon mb-3 text-orange">
@@ -59,11 +62,13 @@
                     </div>
                     <h5 class="fw-semibold mb-3">Monitoring & Reports</h5>
                     <p class="text-muted">
-                        Generate automated reports and compliance summaries to help SK Federation and LGU officials track performance, submissions, and project outcomes across all barangays in real-time.
+                        Generate automated reports and compliance summaries to track
+                        project outcomes and barangay performance in real-time.
                     </p>
                 </div>
             </div>
+
         </div>
+
     </div>
 </section>
-

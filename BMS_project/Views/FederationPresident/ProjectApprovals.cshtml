@@ -9,7 +9,7 @@
 
     <!-- PAGE HEADER -->
     <div class="mb-4">
-        <h2 class="fw-bold">Project Approval </h2>
+        <h2 class="fw-bold">Project Approval</h2>
     </div>
 
     <!-- Filter/Search -->
@@ -31,8 +31,8 @@
 
     <!-- Table -->
     <div class="card shadow-sm mb-4">
-        <div class="card-header bg-primary text-white fw-semibold">
-          Barangay Project Submissions
+        <div class="card-header bg-primary">
+            <h5 class="mb-0 fw-bold text-white">Barangay Project Submissions</h5>
         </div>
 
         <div class="card-body">
@@ -46,72 +46,16 @@
                         <th class="text-center">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                    @if (Model != null && Model.Any())
-                    {
-                        foreach (var item in Model)
-                        {
-                            <tr>
-                                <td>@item.Project_Title</td>
-                                <td>@item.Barangay_Name</td>
-                                <td>@item.Date_Submitted?.ToString("MMM dd, yyyy")</td>
-                                <td>
-                                    @switch (item.Project_Status)
-                                    {
-                                        case "Pending":
-                                            <span class="badge bg-warning text-dark">Pending</span>;
-                                            break;
-                                        case "Approved":
-                                            <span class="badge bg-success">Approved</span>;
-                                            break;
-                                        case "Rejected":
-                                            <span class="badge bg-danger">Rejected</span>;
-                                            break;
-                                        default:
-                                            <span class="badge bg-info text-dark">@item.Project_Status</span>;
-                                            break;
-                                    }
-                                </td>
-                                <td class="text-center">
-                                    @if (item.Project_Status == "Pending")
-                                    {
-                                        <button type="button" class="btn btn-success btn-sm me-1"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#remarksModal"
-                                                data-id="@item.Project_ID"
-                                                data-title="@item.Project_Title"
-                                                data-status="Approved">
-                                            <i class="bi bi-check-circle"></i> Approve
-                                        </button>
 
-                                        <button type="button" class="btn btn-danger btn-sm"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#remarksModal"
-                                                data-id="@item.Project_ID"
-                                                data-title="@item.Project_Title"
-                                                data-status="Rejected">
-                                            <i class="bi bi-x-circle"></i> Reject
-                                        </button>
-                                    }
-                                    else
-                                    {
-                                        <button type="button" class="btn btn-secondary btn-sm" disabled>
-                                            <i class="bi bi-check2-all"></i> @item.Project_Status
-                                        </button>
-                                    }
-                                </td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="5" class="text-center text-muted py-4">
-                                <i class="bi bi-exclamation-circle"></i> No project records found.
-                            </td>
-                        </tr>
-                    }
+                <tbody>
+                    <!-- EMPTY STATE ONLY -->
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            <i class="bi bi-exclamation-circle"></i> No project records found.
+                        </td>
+                    </tr>
                 </tbody>
+
             </table>
         </div>
     </div>
@@ -122,6 +66,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form method="post" asp-controller="FederationPresident" asp-action="UpdateStatus">
+
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title" id="remarksModalLabel">
                         <i class="bi bi-chat-text"></i> Project Review
@@ -152,6 +97,7 @@
                         <i class="bi bi-x-circle"></i> Cancel
                     </button>
                 </div>
+
             </form>
         </div>
     </div>
@@ -159,13 +105,16 @@
 
 <!-- Search & Filter Script -->
 <script>
-    // Filter and search functionality
+    // Search + filter script will still work once data is populated
     document.getElementById("applyFilter").addEventListener("click", function () {
         const searchValue = document.getElementById("searchInput").value.toLowerCase();
         const filterValue = document.getElementById("statusFilter").value;
         const rows = document.querySelectorAll("#projectTable tbody tr");
 
         rows.forEach(row => {
+            // Ignore empty-state row
+            if (row.children.length === 1) return;
+
             const title = row.cells[0].textContent.toLowerCase();
             const status = row.cells[3].textContent.trim();
             const matchesSearch = title.includes(searchValue);
@@ -174,13 +123,13 @@
         });
     });
 
-    // Modal dynamic data
+    // Modal dynamic population
     const remarksModal = document.getElementById('remarksModal');
     remarksModal.addEventListener('show.bs.modal', event => {
         const button = event.relatedTarget;
-        document.getElementById('projectId').value = button.getAttribute('data-id');
-        document.getElementById('projectTitle').value = button.getAttribute('data-title');
-        document.getElementById('status').value = button.getAttribute('data-status');
+        document.getElementById('projectId').value = button?.getAttribute('data-id') ?? "";
+        document.getElementById('projectTitle').value = button?.getAttribute('data-title') ?? "";
+        document.getElementById('status').value = button?.getAttribute('data-status') ?? "";
         document.getElementById('remarks').value = "";
     });
 </script>
