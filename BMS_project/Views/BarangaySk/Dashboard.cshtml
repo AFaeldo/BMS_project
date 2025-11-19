@@ -45,94 +45,30 @@
         </div>
     </div>
 
-    <!-- RECENT ACTIVITY & CALENDAR -->
-    <div class="row g-4">
-        <!-- Recent Activity -->
-        <div class="col-lg-6">
-            <div class="card border-0 shadow-sm h-100">
+    <!-- Recent Activities -->
+    <div class="row g-3">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 rounded-3 h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="fw-bold">Recent Activities</div>
+                    <button id="clearActivities" class="btn btn-sm btn-danger">Clear</button>
+                </div>
                 <div class="card-body">
-                    <h5 class="fw-bold text-secondary mb-3">Recent Activity</h5>
-                    <ul class="list-group list-group-flush">
-                        @* <li class="list-group-item">New youth registered: Juan Dela Cruz</li>
-                        <li class="list-group-item">Approved project: Community Clean-up</li>
-                        <li class="list-group-item">Pending report submitted by SK Treasurer</li>
-                        <li class="list-group-item">Audit flag raised for sports equipment purchase</li>
-                        <li class="list-group-item">Upcoming event added: Barangay Sports Tournament</li> *@
+                    <ul id="activityList" class="list-group list-group-flush">
+                        <!-- Activity items appear here -->
                     </ul>
                 </div>
-            </div>
-        </div>
-
-        <!-- Calendar -->
-        <div class="col-lg-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <h5 class="fw-bold text-secondary mb-3 text-center">Upcoming Events</h5>
-                    <div id="fullCalendar"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- EVENT MODAL -->
-<div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="eventModalLabel">Add/Edit Event</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <input type="date" id="modalEventDate" class="form-control mb-2">
-                <input type="text" id="modalEventTitle" class="form-control mb-2" placeholder="Event Title">
-                <button id="saveEventBtn" class="btn btn-primary w-100">Save Event</button>
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
-
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            let calendarEl = document.getElementById('fullCalendar');
-            let calendarEvents = [
-                { title: 'Youth Leadership Seminar', start: '2025-10-30' },
-                { title: 'Barangay Clean-Up Drive', start: '2025-11-10' },
-                { title: 'Sports Tournament', start: '2025-11-25' }
-            ];
-
-            let calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                height: 400,
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: ''
-                },
-                events: calendarEvents,
-                dateClick: function(info) {
-
-                    document.getElementById('modalEventDate').value = info.dateStr;
-                    document.getElementById('modalEventTitle').value = '';
-                    let modal = new bootstrap.Modal(document.getElementById('eventModal'));
-                    modal.show();
-
-                    document.getElementById('saveEventBtn').onclick = function() {
-                        const title = document.getElementById('modalEventTitle').value;
-                        const date = document.getElementById('modalEventDate').value;
-                        if(title && date) {
-                            calendar.addEvent({ title: title, start: date });
-                            modal.hide();
-                        }
-                    };
-                }
-            });
-
-            calendar.render();
+        // Clear Recent SK Activities
+        document.getElementById('clearActivities').addEventListener('click', function () {
+            const list = document.getElementById('activityList');
+            list.innerHTML = '';
         });
     </script>
 }

@@ -6,103 +6,113 @@
 }
 
 <div class="container-fluid">
-        <!-- PAGE HEADER -->
-        <div class="mb-4">
-            <h2 class="fw-bold">Document & Records Management</h2>
-        </div>
 
-        <div class="card-body">
+    <!-- PAGE HEADER -->
+    <div class="mb-4">
+        <h2 class="fw-bold">Document & Records Management</h2>
+    </div>
 
-            <!-- UPLOAD FORM -->
-            <form asp-action="UploadFile" asp-controller="BarangaySk" enctype="multipart/form-data" method="post" class="border rounded p-3 mb-4 bg-light">
-                <div class="row g-3 align-items-end">
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Select Document</label>
-                        <input type="file" name="File" class="form-control" required />
-                    </div>
+    <div class="card-body">
 
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">Category</label>
-                        <select name="File_Category" class="form-select" required>
-                            <option value="">-- Select Category --</option>
-                            <option>Meeting Minutes</option>
-                            <option>Project Report</option>
-                            <option>Budget Document</option>
-                            <option>Other</option>
-                        </select>
-                    </div>
+        <!-- UPLOAD FORM -->
+        <form asp-action="UploadFile"
+              asp-controller="BarangaySk"
+              enctype="multipart/form-data"
+              method="post"
+              class="border rounded p-3 mb-4 bg-light">
 
-                    <div class="col-md-2 d-grid">
-                        <button type="submit" class="btn btn-secondary text-white">
-                            <i class="bi bi-upload me-1"></i> Upload
-                        </button>
-                    </div>
+            <div class="row g-3 align-items-end">
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Select Document</label>
+                    <input type="file" name="File" class="form-control" required />
                 </div>
-            </form>
 
-            <hr />
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Category</label>
+                    <select name="File_Category" class="form-select" required>
+                        <option value="">-- Select Category --</option>
+                        <option>Meeting Minutes</option>
+                        <option>Project Report</option>
+                        <option>Budget Document</option>
+                        <option>Other</option>
+                    </select>
+                </div>
 
-            <!-- RECENT UPLOADS -->
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="fw-bold text-secondary mb-0">
-                    <i class="bi bi-clock-history me-2"></i> Recent Uploads
-                </h6>
-                <span class="badge bg-primary">@((Model != null) ? Model.Count() : 0) file(s)</span>
+                <div class="col-md-2 d-grid">
+                    <button type="submit" class="btn btn-secondary text-white">
+                        <i class="bi bi-upload me-1"></i> Upload
+                    </button>
+                </div>
+
             </div>
+        </form>
 
-            @if (Model != null && Model.Any())
-            {
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-secondary">
+
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-secondary">
+                        <tr>
+                            <th>File ID</th>
+                            <th>File Name</th>
+                            <th>Category</th>
+                            <th>Project ID</th>
+                            <th>User ID</th>
+                            <th>Date Uploaded</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var file in Model)
+                        {
                             <tr>
-                                <th>File ID</th>
-                                <th>File Name</th>
-                                <th>Category</th>
-                                <th>Project ID</th>
-                                <th>User ID</th>
-                                <th>Date Uploaded</th>
-                                <th class="text-center">Actions</th>
+                                <td>@file.File_ID</td>
+
+                                <td class="text-truncate" style="max-width: 200px;">
+                                    <a asp-action="DownloadFile"
+                                       asp-controller="BarangaySk"
+                                       asp-route-id="@file.File_ID">
+                                        @file.File_Name
+                                    </a>
+                                </td>
+
+                                <td>@file.File_Category</td>
+                                <td>@(file.Project_ID?.ToString() ?? "-")</td>
+                                <td>@file.User_ID</td>
+                                <td>@file.Timestamp.ToString("MMM dd, yyyy - hh:mm tt")</td>
+
+                                <td class="text-center">
+                                    <a asp-action="DownloadFile"
+                                       asp-controller="BarangaySk"
+                                       asp-route-id="@file.File_ID"
+                                       class="btn btn-sm btn-outline-primary me-1">
+                                        <i class="bi bi-download"></i> Download
+                                    </a>
+
+                                    <a asp-action="DeleteFile"
+                                       asp-controller="BarangaySk"
+                                       asp-route-id="@file.File_ID"
+                                       class="btn btn-sm btn-outline-danger"
+                                       onclick="return confirm('Are you sure you want to delete this file?');">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </a>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var file in Model)
-                            {
-                                <tr>
-                                    <td>@file.File_ID</td>
-                                    <td class="text-truncate" style="max-width: 200px;">
-                                        <a asp-action="DownloadFile" asp-controller="BarangaySk" asp-route-id="@file.File_ID">
-                                            @file.File_Name
-                                        </a>
-                                    </td>
-                                    <td>@file.File_Category</td>
-                                    <td>@(file.Project_ID.HasValue ? file.Project_ID.ToString() : "-")</td>
-                                    <td>@file.User_ID</td>
-                                    <td>@file.Timestamp.ToString("MMM dd, yyyy - hh:mm tt")</td>
-                                    <td class="text-center">
-                                        <a asp-action="DownloadFile" asp-controller="BarangaySk" asp-route-id="@file.File_ID"
-                                           class="btn btn-sm btn-outline-primary me-1">
-                                            <i class="bi bi-download"></i> Download
-                                        </a>
-                                        <a asp-action="DeleteFile" asp-controller="BarangaySk" asp-route-id="@file.File_ID"
-                                           class="btn btn-sm btn-outline-danger"
-                                           onclick="return confirm('Are you sure you want to delete this file?');">
-                                            <i class="bi bi-trash"></i> Delete
-                                        </a>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
-            else
-            {
-                <div class="text-center py-4">
-                    <i class="bi bi-inbox fs-1 text-muted"></i>
-                    <p class="text-muted mt-2">No documents have been uploaded yet.</p>
-                </div>
-            }
-        </div>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-4">
+                <i class="bi bi-inbox fs-1 text-muted"></i>
+                <p class="text-muted mt-2">No documents have been uploaded yet.</p>
+            </div>
+        }
+
     </div>
 </div>

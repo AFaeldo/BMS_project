@@ -10,122 +10,84 @@
         <h2 class="fw-bold">Barangay Budgets</h2>
     </div>
 
-    <!-- ACTION BUTTONS -->
-    <div class="row mb-3">
-        <div class="col-12 text-end">
-
-            <!-- CSV Button -->
-            <button class="btn btn-success btn-sm me-2"
-                    data-bs-toggle="modal" data-bs-target="#exportModal"
-                    data-export-type="csv">
-                <i class="fa-solid fa-file-excel"></i> Export to CSV
-            </button>
-
-            <!-- PDF Button -->
-            <button class="btn btn-danger btn-sm"
-                    data-bs-toggle="modal" data-bs-target="#exportModal"
-                    data-export-type="pdf">
-                <i class="fa-solid fa-file-pdf"></i> Export to PDF
-            </button>
-
-        </div>
+    <!-- Add Barangay Button -->
+    <div class="col-12 text-end mb-3">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBarangayModal">
+            <i class="bi bi-person-plus"></i> Add Budget
+        </button>
     </div>
 
-
-<!-- MAIN CARD -->
+    <!-- MAIN CARD -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-success">
-            <h5 class="mb-0 fw-bold text-white">Barangay Budgets </h5>
+            <h5 class="mb-0 fw-bold text-white">Barangay Budgets</h5>
         </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>Barangay</th>
-                        <th class="text-end">Allotment</th>
-                        <th class="text-end">Disbursed</th>
-                        <th class="text-end">Balance</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-
-                    <!-- EMPTY STATE ONLY -->
-                    <tr>
-                        <td colspan="5" class="text-center text-muted py-4">
-                            No budget data found.
-                        </td>
-                    </tr>
-
-                </tbody>
-            </table>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Barangay</th>
+                            <th class="text-end">Allotment</th>
+                            <th class="text-end">Disbursed</th>
+                            <th class="text-end">Balance</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                No budget data found.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- EXPORT MODAL -->
-<div class="modal fade" id="exportModal" tabindex="-1">
+<!-- ADD BARANGAY MODAL -->
+<div class="modal fade" id="addBarangayModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content text-dark">
 
-            <div class="modal-header">
-                <h5 class="modal-title" id="exportTitle">Export</h5>
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Add Barangay Budget</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
-            <div class="modal-body">
-                <p id="exportMessage">Are you sure you want to export the data?</p>
-            </div>
+            <form method="post" action="/FederationPresident/AddBarangayBudget">
+                <div class="modal-body">
 
-            <div class="modal-footer">
-                <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                <a id="exportConfirmBtn" href="#" class="btn btn-primary btn-sm">Continue</a>
-            </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Barangay Name</label>
+                        <input type="text" class="form-control" name="BarangayName" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Allotment</label>
+                        <input type="number" class="form-control" name="Allotment" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Disbursed</label>
+                        <input type="number" class="form-control" name="Disbursed" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Balance</label>
+                        <input type="number" class="form-control" name="Balance" required>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success btn-sm">Save</button>
+                </div>
+            </form>
 
         </div>
     </div>
 </div>
-
-@section Scripts {
-
-    <!-- EXPORT MODAL SCRIPT -->
-    <script>
-        const exportModal = document.getElementById('exportModal');
-        const exportTitle = document.getElementById('exportTitle');
-        const exportMessage = document.getElementById('exportMessage');
-        const exportBtn = document.getElementById('exportConfirmBtn');
-
-        const exportOptions = {
-            csv: {
-                title: "Export to CSV",
-                message: "Download CSV file containing all barangay budget data?",
-                href: "/FederationPresident/ExportCSV"
-            },
-            pdf: {
-                title: "Export to PDF",
-                message: "Download PDF file containing all barangay budget data?",
-                href: "/FederationPresident/ExportPDF"
-            }
-        };
-
-        exportModal.addEventListener('show.bs.modal', (event) => {
-            const trigger = event.relatedTarget;
-            if (!trigger) return;
-
-            const type = trigger.getAttribute('data-export-type');
-            const option = exportOptions[type];
-
-            if (option) {
-                exportTitle.textContent = option.title;
-                exportMessage.textContent = option.message;
-                exportBtn.href = option.href;
-            } else {
-                exportTitle.textContent = "Export";
-                exportMessage.textContent = "Choose a valid export option.";
-                exportBtn.removeAttribute('href');
-            }
-        });
-    </script>
-
-}
