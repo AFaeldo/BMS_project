@@ -1,6 +1,7 @@
-﻿﻿@{
-Layout = "~/Views/Shared/_LayoutFederation.cshtml";
-ViewData["Title"] = "Barangay Budgets";
+﻿@model IEnumerable<BMS_project.Models.Budget>
+@{
+    Layout = "~/Views/Shared/_LayoutFederation.cshtml";
+    ViewData["Title"] = "Barangay Budgets";
 }
 
 <div class="container-fluid">
@@ -23,6 +24,17 @@ ViewData["Title"] = "Barangay Budgets";
             <h5 class="mb-0 fw-bold text-white">Barangay Budgets</h5>
         </div>
         <div class="card-body">
+            <div>
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+                }
+                else if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+                }
+            </div>
+
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
@@ -35,11 +47,29 @@ ViewData["Title"] = "Barangay Budgets";
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td colspan="5" class="text-center text-muted py-4">
-                                No budget data found.
-                            </td>
-                        </tr>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@(item.Barangay?.Barangay_Name ?? "—")</td>
+                                    <td class="text-end">₱@String.Format("{0:N2}", item.budget)</td>
+                                    <td class="text-end">₱@String.Format("{0:N2}", item.disbursed)</td>
+                                    <td class="text-end">₱@String.Format("{0:N2}", item.balance)</td>
+                                    <td class="text-end">
+                                        <a class="btn btn-sm btn-outline-secondary" href="#">Details</a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    No budget data found.
+                                </td>
+                            </tr>
+                        }
                     </tbody>
                 </table>
             </div>
@@ -58,26 +88,18 @@ ViewData["Title"] = "Barangay Budgets";
             </div>
 
             <form method="post" action="/FederationPresident/AddBarangayBudget">
+                @Html.AntiForgeryToken()
                 <div class="modal-body">
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Barangay Name</label>
-                        <input type="text" class="form-control" name="BarangayName" required>
+                        <label class="form-label fw-bold">Barangay</label>
+                        @* ViewBag.Barangays populated in controller as SelectList *@
+                        @Html.DropDownList("BarangayId", (SelectList)ViewBag.Barangays, "-- Select Barangay --", new { @class = "form-select", required = "required" })
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label fw-bold">Allotment</label>
-                        <input type="number" class="form-control" name="Allotment" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Disbursed</label>
-                        <input type="number" class="form-control" name="Disbursed" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Balance</label>
-                        <input type="number" class="form-control" name="Balance" required>
+                        <input type="number" step="0.01" class="form-control" name="Allotment" required>
                     </div>
 
                 </div>

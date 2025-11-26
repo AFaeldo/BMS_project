@@ -73,13 +73,6 @@ namespace BMS_project.Data
                 .HasForeignKey(b => b.Barangay_ID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Budget -> User (Federation President who encoded it)
-            modelBuilder.Entity<Budget>()
-                .HasOne(b => b.User)
-                .WithMany()                           // if User doesn't have ICollection<Budget>
-                .HasForeignKey(b => b.User_ID)
-                .OnDelete(DeleteBehavior.Restrict);
-
         }
     }
 }
