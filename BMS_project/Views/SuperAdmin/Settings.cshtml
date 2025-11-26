@@ -1,5 +1,4 @@
 ﻿
-
 @{
     Layout = "~/Views/Shared/_LayoutSuperAdmin.cshtml";
     ViewData["Title"] = "Settings";
@@ -33,14 +32,13 @@
                             </button>
 
                             @* Use tag-helpers: palitan ang controller/action ayon sa project *@
-                            <a asp-controller="ManageUsers" asp-action="Index" class="btn btn-outline-secondary btn-sm" role="button" title="Manage users">
+                            <a asp-controller="SuperAdmin" asp-action="ManageUsers" class="btn btn-outline-secondary btn-sm" role="button" title="Manage users">
                                 <i class="bi bi-people-fill me-1" aria-hidden="true"></i> Manage Users
                             </a>
                         </div>
                     </div>
                 </div>
             </div>
-
             <!-- SYSTEM CONTROL -->
             <div class="col-md-6">
                 <div class="card border-0 shadow-sm rounded-3 h-100">
@@ -72,8 +70,6 @@
         </div>
     </section>
 
-    <!-- SYSTEM SUMMARY -->
-    <!-- SYSTEM SUMMARY -->
     <section class="mt-4">
         <div class="card border-0 shadow-sm rounded-3">
             <div class="card-header bg-transparent d-flex align-items-center justify-content-between">

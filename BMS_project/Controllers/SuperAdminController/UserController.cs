@@ -239,7 +239,7 @@ namespace BMS_project.Controllers.SuperAdminController
         [HttpGet("barangays")]
         public async Task<IActionResult> Barangays()
         {
-            var list = await _context.Barangays
+            var list = await _context.barangays
                 .OrderBy(b => b.Barangay_Name)
                 .Select(b => new { id = b.Barangay_ID, text = b.Barangay_Name })
                 .ToListAsync();

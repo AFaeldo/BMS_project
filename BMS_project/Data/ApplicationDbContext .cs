@@ -12,8 +12,10 @@ namespace BMS_project.Data
         public DbSet<Login> Login { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<YouthMember> YouthMembers { get; set; }
-        public DbSet<Barangay> Barangays { get; set; }
+        public DbSet<Barangay> barangays { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<Budget> Budgets { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -48,7 +50,6 @@ namespace BMS_project.Data
                 .HasOne(u => u.Barangay)
                 .WithMany()                       // if you don't have collection on Barangays
                 .HasForeignKey(u => u.Barangay_ID)
-                .HasConstraintName("fk_user_barangay")
                 .OnDelete(DeleteBehavior.Restrict);
 
             // --- User -> Role (optional) ---
@@ -60,6 +61,25 @@ namespace BMS_project.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Add any additional configuration (indexes, lengths) if needed.
+
+            modelBuilder.Entity<Budget>()
+                .ToTable("budget")                    // actual table name in MySQL
+                .HasKey(b => b.Budget_ID);
+
+            // Budget -> Barangay
+            modelBuilder.Entity<Budget>()
+                .HasOne(b => b.Barangay)
+                .WithMany()                           // if Barangay doesn't have ICollection<Budget>
+                .HasForeignKey(b => b.Barangay_ID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Budget -> User (Federation President who encoded it)
+            modelBuilder.Entity<Budget>()
+                .HasOne(b => b.User)
+                .WithMany()                           // if User doesn't have ICollection<Budget>
+                .HasForeignKey(b => b.User_ID)
+                .OnDelete(DeleteBehavior.Restrict);
+
         }
     }
 }

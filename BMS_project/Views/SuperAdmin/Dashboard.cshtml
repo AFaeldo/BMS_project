@@ -1,4 +1,5 @@
-﻿@{
+﻿@model BMS_project.ViewModels.DashboardViewModel
+@{
     Layout = "~/Views/Shared/_LayoutSuperAdmin.cshtml";
     ViewData["Title"] = "Dashboard";
 }
@@ -18,7 +19,7 @@
                 <div class="card-body">
                     <i class="fa-solid fa-city fs-2 text-primary mb-2"></i>
                     <h6 class="text-muted mb-1">Total Barangay</h6>
-                    <h3 class="fw-bold mb-0">0</h3>
+                    <h3 class="fw-bold mb-0">@((Model?.TotalBarangays) ?? 0)</h3>
                 </div>
             </div>
         </div>
@@ -29,7 +30,7 @@
                 <div class="card-body">
                     <i class="fa-solid fa-circle-check fs-2 text-success mb-2"></i>
                     <h6 class="text-muted mb-1">Total Users</h6>
-                    <h3 class="fw-bold mb-0">0</h3>
+                    <h3 class="fw-bold mb-0">@((Model?.TotalUsers) ?? 0)</h3>
                 </div>
             </div>
         </div>

@@ -1,11 +1,20 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using BMS_project.Data;
+using BMS_project.ViewModels;
 
 namespace BMS_project.Controllers.SuperAdminController
 {
     [Authorize(Roles = "SuperAdmin")]
     public class SuperAdminController : Controller
     {
+        private readonly ApplicationDbContext _context;
+
+        public SuperAdminController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
         public IActionResult BackupMaintenance()
         {
             ViewData["Title"] = "Backup & Maintenance";
@@ -13,8 +22,14 @@ namespace BMS_project.Controllers.SuperAdminController
         }
         public IActionResult Dashboard()
         {
+            var vm = new DashboardViewModel
+            {
+                TotalBarangays = _context.barangays?.Count() ?? 0,
+                TotalUsers = _context.Users?.Count() ?? 0
+            };
+
             ViewData["Title"] = "Dashboard";
-            return View();
+            return View(vm);
         }
 
         public IActionResult ManageUsers()
