@@ -1,4 +1,4 @@
-﻿
+﻿@model IEnumerable<dynamic>
 @{
     Layout = "~/Views/Shared/_BarangayLayout.cshtml";
     ViewData["Title"] = "Document Uploads";
@@ -6,47 +6,57 @@
 
 <div class="container-fluid">
 
-    <!-- PAGE HEADER -->
     <div class="mb-4">
         <h2 class="fw-bold">Document & Records Management</h2>
     </div>
 
     <div class="card-body">
 
-        <!-- UPLOAD FORM -->
         <form asp-action="UploadFile"
               asp-controller="BarangaySk"
               enctype="multipart/form-data"
               method="post"
               class="border rounded p-3 mb-4 bg-light">
 
-            <div class="row g-3 align-items-end">
+            @Html.AntiForgeryToken()
+
+            <div class="row g-3">
 
                 <div class="col-md-6">
-                    <label class="form-label fw-semibold">Select Document</label>
-                    <input type="file" name="File" class="form-control" required />
+                    <label class="form-label fw-semibold">Document Title</label>
+                    <input type="text" name="Title" class="form-control" required />
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <label class="form-label fw-semibold">Category</label>
-                    <select name="File_Category" class="form-select" required>
+                    <select id="fileCategory" name="File_Category" class="form-select" required>
                         <option value="">-- Select Category --</option>
                         <option>Meeting Minutes</option>
+                        <option>Project Proposal</option>
                         <option>Project Report</option>
                         <option>Budget Document</option>
-                        <option>Other</option>
+                        <option value="Other">Other</option>
                     </select>
                 </div>
 
-                <div class="col-md-2 d-grid">
-                    <button type="submit" class="btn btn-secondary text-white">
-                        <i class="bi bi-upload me-1"></i> Upload
-                    </button>
+                <div class="col-md-8">
+                    <label class="form-label fw-semibold">Select Document</label>
+                    <input id="fileInput" type="file" name="File" class="form-control" required />
+                    <div id="selectedFileName" class="small text-muted mt-1" style="display:none;"></div>
                 </div>
 
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Description / Notes</label>
+                    <textarea name="Description" class="form-control" rows="3"></textarea>
+                </div>
+
+                <div class="col-12 d-grid mt-2">
+                    <button type="submit" class="btn btn-secondary text-white">
+                        <i class="bi bi-upload me-1"></i> Upload Document
+                    </button>
+                </div>
             </div>
         </form>
-
 
         @if (Model != null && Model.Any())
         {
@@ -55,9 +65,9 @@
                     <thead class="table-secondary">
                         <tr>
                             <th>File ID</th>
-                            <th>File Name</th>
+                            <th>Title</th>
+                            <th class="text-truncate">File Name</th>
                             <th>Category</th>
-                            <th>Project ID</th>
                             <th>User ID</th>
                             <th>Date Uploaded</th>
                             <th class="text-center">Actions</th>
@@ -69,8 +79,9 @@
                         {
                             <tr>
                                 <td>@file.File_ID</td>
+                                <td>@file.Title</td>
 
-                                <td class="text-truncate" style="max-width: 200px;">
+                                <td style="max-width:260px;" class="text-truncate">
                                     <a asp-action="DownloadFile"
                                        asp-controller="BarangaySk"
                                        asp-route-id="@file.File_ID">
@@ -79,7 +90,6 @@
                                 </td>
 
                                 <td>@file.File_Category</td>
-                                <td>@(file.Project_ID?.ToString() ?? "-")</td>
                                 <td>@file.User_ID</td>
                                 <td>@file.Timestamp.ToString("MMM dd, yyyy - hh:mm tt")</td>
 
@@ -91,13 +101,17 @@
                                         <i class="bi bi-download"></i> Download
                                     </a>
 
-                                    <a asp-action="DeleteFile"
-                                       asp-controller="BarangaySk"
-                                       asp-route-id="@file.File_ID"
-                                       class="btn btn-sm btn-outline-danger"
-                                       onclick="return confirm('Are you sure you want to delete this file?');">
-                                        <i class="bi bi-trash"></i> Delete
-                                    </a>
+                                    <form asp-action="DeleteFile"
+                                          asp-controller="BarangaySk"
+                                          method="post"
+                                          asp-route-id="@file.File_ID"
+                                          class="d-inline-block"
+                                          onsubmit="return confirm('Delete this file?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                         }
@@ -115,3 +129,76 @@
 
     </div>
 </div>
+
+
+<!-- MODAL: CUSTOM CATEGORY -->
+<div class="modal fade" id="otherCategoryModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Specify Category</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <label class="form-label fw-semibold">Custom Category</label>
+                <input type="text" id="otherCategoryInput" class="form-control" />
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button id="saveOtherCategory" class="btn btn-primary btn-sm">Save</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const fileCategory = document.getElementById("fileCategory");
+        const otherModal = new bootstrap.Modal(document.getElementById("otherCategoryModal"));
+        const otherInput = document.getElementById("otherCategoryInput");
+        const saveOther = document.getElementById("saveOtherCategory");
+
+        fileCategory.addEventListener("change", () => {
+            if (fileCategory.value === "Other") {
+                otherInput.value = "";
+                otherModal.show();
+            }
+        });
+
+        saveOther.addEventListener("click", () => {
+            const val = otherInput.value.trim();
+
+            if (val === "") {
+                alert("Please enter a category.");
+                return;
+            }
+
+            const option = document.createElement("option");
+            option.value = val;
+            option.textContent = val;
+            option.selected = true;
+
+            fileCategory.appendChild(option);
+            otherModal.hide();
+        });
+
+        const fileInput = document.getElementById("fileInput");
+        const selectedFileName = document.getElementById("selectedFileName");
+
+        if (fileInput) {
+            fileInput.addEventListener("change", function () {
+                var f = this.files && this.files[0];
+                if (f) {
+                    selectedFileName.style.display = "block";
+                    selectedFileName.textContent = f.name + " (" + Math.round(f.size / 1024) + " KB)";
+                } else {
+                    selectedFileName.style.display = "none";
+                }
+            });
+        }
+    </script>
+}

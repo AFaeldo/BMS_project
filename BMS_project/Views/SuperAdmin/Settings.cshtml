@@ -1,5 +1,4 @@
-﻿
-@{
+﻿@{
     Layout = "~/Views/Shared/_LayoutSuperAdmin.cshtml";
     ViewData["Title"] = "Settings";
 }
@@ -16,26 +15,28 @@
             <div class="card-header bg-transparent d-flex align-items-center justify-content-between">
                 <h6 class="fw-bold text-dark text-uppercase mb-0">User Management</h6>
             </div>
-                    <div class="card-body d-flex align-items-center justify-content-center">
-                        <div class="d-flex flex-wrap gap-2 justify-content-center w-100">
-                            <button type="button" class="btn btn-success btn-sm" title="Assign roles to users">
-                                <i class="bi bi-person-check-fill me-1" aria-hidden="true"></i>
-                                Assign Roles
-                            </button>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                <div class="d-flex flex-wrap gap-2 justify-content-center w-100">
+                    <!-- Replace controller/action with your actual endpoints -->
+                    <a asp-controller="SuperAdmin" asp-action="AssignRoles"
+                       class="btn btn-success btn-sm" role="button" title="Assign roles to users">
+                        <i class="bi bi-person-check-fill me-1" aria-hidden="true"></i>
+                        Assign Roles
+                    </a>
 
-                            <button type="button" class="btn btn-outline-primary btn-sm" title="Manage permissions">
-                                <i class="bi bi-shield-lock me-1" aria-hidden="true"></i>
-                                Manage Permissions
-                            </button>
+                    <a asp-controller="SuperAdmin" asp-action="ManagePermissions"
+                       class="btn btn-outline-primary btn-sm" role="button" title="Manage permissions">
+                        <i class="bi bi-shield-lock me-1" aria-hidden="true"></i>
+                        Manage Permissions
+                    </a>
 
-                            @* Use tag-helpers: palitan ang controller/action ayon sa project *@
-                            <a asp-controller="SuperAdmin" asp-action="ManageUsers" class="btn btn-outline-secondary btn-sm" role="button" title="Manage users">
-                                <i class="bi bi-people-fill me-1" aria-hidden="true"></i> Manage Users
-                            </a>
-                        </div>
-                    </div>
+                    <a asp-controller="SuperAdmin" asp-action="ManageUsers"
+                       class="btn btn-outline-secondary btn-sm" role="button" title="Manage users">
+                        <i class="bi bi-people-fill me-1" aria-hidden="true"></i> Manage Users
+                    </a>
                 </div>
             </div>
+        </div>
     </section>
 
     <section class="mt-4">
@@ -45,15 +46,15 @@
             </div>
 
             <div class="card-body">
-                <div class="row text-center gy-3">
-                    <div class="col-12 col-sm-4">
+                <div class="row align-items-center gy-3">
+                    <div class="col-12 col-sm-4 text-center">
                         <div class="p-3">
                             <h6 class="mb-1 text-muted">Users</h6>
                             <h3 class="fw-bold mb-0">@((Model?.UsersCount != null) ? Model.UsersCount.ToString() : "-")</h3>
                         </div>
                     </div>
 
-                    <div class="col-12 col-sm-4">
+                    <div class="col-12 col-sm-4 text-center">
                         <div class="p-3">
                             <h6 class="mb-1 text-muted">Last Backup</h6>
                             <h3 class="fw-bold mb-0">
@@ -61,7 +62,6 @@
                                     var lastBackupText = "-";
                                     if (Model?.LastBackup != null)
                                     {
-                                        // safe format; change to whatever format/locale you prefer
                                         lastBackupText = Model.LastBackup.Value.ToString("yyyy-MM-dd HH:mm");
                                     }
                                 }
@@ -70,7 +70,7 @@
                         </div>
                     </div>
 
-                    <div class="col-12 col-sm-4">
+                    <div class="col-12 col-sm-4 text-center">
                         <div class="p-3">
                             <h6 class="mb-1 text-muted">Uptime</h6>
                             <h3 class="fw-bold mb-0">@(!string.IsNullOrWhiteSpace(Model?.Uptime) ? Model.Uptime : "-")</h3>
@@ -81,13 +81,12 @@
         </div>
     </section>
 
-
 </div>
 
 <!-- RESET MODAL -->
 <div class="modal fade" id="resetModalCompact" tabindex="-1" aria-labelledby="resetModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-sm modal-dialog-centered">
-        <form asp-controller="SuperAdmin" asp-action="ResetAllAccounts" method="post" class="modal-content">
+        <form asp-controller="SuperAdmin" asp-action="ResetAllAccounts" method="post" class="modal-content" id="resetForm">
             @Html.AntiForgeryToken()
             <div class="modal-header bg-danger text-white">
                 <h6 class="modal-title mb-0" id="resetModalLabel">Reset All Accounts</h6>
@@ -98,7 +97,7 @@
                 <p class="mb-2 text-center">This action will reset all accounts. This cannot be undone.</p>
 
                 <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" value="true" id="confirmResetCheck">
+                    <input class="form-check-input" type="checkbox" value="true" id="confirmResetCheck" aria-describedby="resetHelp">
                     <label class="form-check-label small" for="confirmResetCheck">
                         Yes, I understand and want to reset all accounts
                     </label>
@@ -115,6 +114,18 @@
     </div>
 </div>
 
+<!-- Toast (reusable) -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+    <div id="appToast" class="toast" role="alert" aria-live="polite" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto">System</strong>
+            <small class="text-muted"></small>
+            <button type="button" class="btn-close ms-2 mb-1" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body" id="appToastBody"></div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         (function () {
@@ -127,13 +138,21 @@
                     btn.disabled = !this.checked;
                 });
 
-                
-                btn && btn.form && btn.form.addEventListener('submit', function (evt) {
-                    
+                var form = document.getElementById('resetForm');
+                form && form.addEventListener('submit', function (evt) {
                     btn.disabled = true;
                     spinner.classList.remove('d-none');
                 });
             }
+
+            function showToast(message) {
+                var toastEl = document.getElementById('appToast');
+                document.getElementById('appToastBody').textContent = message;
+                var t = new bootstrap.Toast(toastEl);
+                t.show();
+            }
+
+            // No backup actions here — use the Backup & Maintenance page for backups.
         })();
     </script>
 }

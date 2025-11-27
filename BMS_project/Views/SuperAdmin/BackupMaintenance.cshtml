@@ -17,32 +17,37 @@
         </div>
         <div class="card-body">
             <div class="d-flex flex-wrap gap-2">
-                <button class="btn btn-success">
-                    <i class="bi bi-cloud-plus-fill me-1"></i> Create Backup Now
+                <button id="btnCreateBackup" class="btn btn-success">
+                    <i class="bi bi-cloud-plus-fill me-1"></i>
+                    <span id="btnCreateBackupText">Create Backup Now</span>
+                    <span id="createBackupSpinner" class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
                 </button>
-                <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#backupHistoryModal">
+
+                <button id="btnViewBackupHistory" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#backupHistoryModal">
                     <i class="bi bi-clock-history me-1"></i> View Backup History
                 </button>
             </div>
-            </div>
+        </div>
     </div>
 
-    <!-- SYSTEM MAINTENANCE SECTION -->
+    <!-- announcement -->
     <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-info text-white d-flex align-items-center">
+        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
             <strong>Announcement</strong>
+
+            <!-- Clear button moved to upper right -->
+            <button class="btn btn-outline-light btn-sm" id="btnClearAnnouncements">
+                <i class="bi bi-trash3-fill me-1"></i> Clear
+            </button>
         </div>
+
         <div class="card-body">
-            <div class="d-flex flex-wrap gap-2">
-                <button class="btn btn-primary">
-                    <i></i> Create Announcement
-                </button>
-                <button class="btn btn-outline-danger">
-                    <i class="bi bi-trash3-fill me-1"></i> Clear
-                </button>
-            </div>
+            <button class="btn btn-primary">
+                Create Announcement
+            </button>
         </div>
     </div>
+
 
     <!-- BACKUP HISTORY MODAL -->
     <div class="modal fade" id="backupHistoryModal" tabindex="-1" aria-labelledby="backupHistoryLabel" aria-hidden="true">
@@ -55,26 +60,226 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <table class="table table-sm table-striped align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th scope="col">Date</th>
-                                <th scope="col">Time</th>
-                                <th scope="col">Type</th>
-                                <th scope="col">Size</th>
-                                <th scope="col">Status</th>
-                                <th scope="col">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="backupTableBody">
-                            <!-- Backup data rows will be dynamically inserted here -->
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Date</th>
+                                    <th scope="col">Time</th>
+                                    <th scope="col">Type</th>
+                                    <th scope="col">Size</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="backupTableBody">
+                                <!-- Backup data rows will be dynamically inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="backupHistoryEmpty" class="text-center small text-muted d-none">
+                        No backups found.
+                    </div>
                 </div>
                 <div class="modal-footer">
+                    <button id="refreshBackupHistory" class="btn btn-sm btn-outline-secondary me-auto">Refresh</button>
                     <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Toast (reusable) -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+    <div id="appToast" class="toast" role="alert" aria-live="polite" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto">System</strong>
+            <small class="text-muted"></small>
+            <button type="button" class="btn-close ms-2 mb-1" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body" id="appToastBody"></div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            // helpers
+            function showToast(message) {
+                var toastEl = document.getElementById('appToast');
+                document.getElementById('appToastBody').textContent = message;
+                var t = new bootstrap.Toast(toastEl);
+                t.show();
+            }
+
+            function getAntiForgeryToken() {
+                var tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                return tokenInput ? tokenInput.value : '';
+            }
+
+            function escapeHtml(str) {
+                if (str === null || str === undefined) return '';
+                return String(str)
+                    .replaceAll('&', '&amp;')
+                    .replaceAll('<', '&lt;')
+                    .replaceAll('>', '&gt;')
+                    .replaceAll('"', '&quot;')
+                    .replaceAll("'", '&#39;');
+            }
+
+            // DOM elements
+            var btnCreate = document.getElementById('btnCreateBackup');
+            var createSpinner = document.getElementById('createBackupSpinner');
+            var btnCreateText = document.getElementById('btnCreateBackupText');
+            var backupTableBody = document.getElementById('backupTableBody');
+            var backupHistoryModalEl = document.getElementById('backupHistoryModal');
+            var refreshBackupBtn = document.getElementById('refreshBackupHistory');
+            var backupHistoryEmpty = document.getElementById('backupHistoryEmpty');
+
+            // Build a table row for a backup item
+            function backupRowHtml(item) {
+                var statusBadge = item.status && item.status.toLowerCase() === 'success'
+                    ? '<span class="badge bg-success">Success</span>'
+                    : '<span class="badge bg-warning text-dark">Pending/Failed</span>';
+
+                var sizeText = item.size || '-';
+                var typeText = item.type || '-';
+                var dateText = item.date || '-';
+                var timeText = item.time || '-';
+
+                var actions = `
+                    <div class="btn-group btn-group-sm" role="group" aria-label="actions">
+                        <a href="/SuperAdmin/DownloadBackup/${item.id}" class="btn btn-outline-primary btn-sm">Download</a>
+                        <button data-id="${item.id}" class="btn btn-outline-danger btn-sm btn-delete-backup">Delete</button>
+                    </div>
+                `;
+
+                return `
+                    <tr data-id="${item.id}">
+                        <td>${escapeHtml(dateText)}</td>
+                        <td>${escapeHtml(timeText)}</td>
+                        <td>${escapeHtml(typeText)}</td>
+                        <td>${escapeHtml(sizeText)}</td>
+                        <td>${statusBadge}</td>
+                        <td>${actions}</td>
+                    </tr>
+                `;
+            }
+
+            // Load backup history from server
+            function loadBackupHistory() {
+                backupTableBody.innerHTML = `<tr><td colspan="6" class="text-center small text-muted">Loading...</td></tr>`;
+                fetch('/SuperAdmin/BackupHistory', { method: 'GET', headers: { 'Accept': 'application/json' }, cache: 'no-store' })
+                    .then(function (resp) {
+                        if (!resp.ok) return resp.text().then(t => Promise.reject(t || 'Failed to load history'));
+                        return resp.json();
+                    })
+                    .then(function (data) {
+                        if (!Array.isArray(data) || data.length === 0) {
+                            backupTableBody.innerHTML = '';
+                            backupHistoryEmpty.classList.remove('d-none');
+                            return;
+                        }
+                        backupHistoryEmpty.classList.add('d-none');
+                        backupTableBody.innerHTML = data.map(backupRowHtml).join('');
+                    })
+                    .catch(function (err) {
+                        console.error(err);
+                        backupTableBody.innerHTML = `<tr><td colspan="6" class="text-center small text-danger">Failed to load backup history.</td></tr>`;
+                        showToast(typeof err === 'string' ? err : 'Failed to load backup history.');
+                    });
+            }
+
+            // Create a new backup (POST)
+            function createBackup() {
+                if (!btnCreate) return;
+                btnCreate.disabled = true;
+                createSpinner.classList.remove('d-none');
+                btnCreateText.textContent = 'Creating...';
+
+                fetch('/SuperAdmin/BackupMaintenance', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': getAntiForgeryToken()
+                    },
+                    body: JSON.stringify({ reason: 'manual' })
+                }).then(function (resp) {
+                    if (!resp.ok) return resp.text().then(t => Promise.reject(t || 'Backup failed'));
+                    return resp.json();
+                }).then(function (json) {
+                    if (json && json.success) {
+                        showToast('Backup created successfully.');
+                        if (json.item) {
+                            var rowHtml = backupRowHtml(json.item);
+                            backupHistoryEmpty.classList.add('d-none');
+                            if (backupTableBody) backupTableBody.insertAdjacentHTML('afterbegin', rowHtml);
+                        }
+                    } else {
+                        var msg = (json && json.message) ? json.message : 'Backup completed with issues.';
+                        showToast(msg);
+                    }
+                }).catch(function (err) {
+                    console.error('Backup failed:', err);
+                    showToast(typeof err === 'string' ? err : 'Backup failed.');
+                }).finally(function () {
+                    btnCreate.disabled = false;
+                    createSpinner.classList.add('d-none');
+                    btnCreateText.textContent = 'Create Backup Now';
+                });
+            }
+
+            // delete backup handler (delegated)
+            document.addEventListener('click', function (e) {
+                var target = e.target;
+                var deleteBtn = target.closest && target.closest('.btn-delete-backup');
+                if (!deleteBtn) return;
+
+                var id = deleteBtn.getAttribute('data-id');
+                if (!id) return;
+
+                if (!confirm('Delete this backup? This cannot be undone.')) return;
+
+                deleteBtn.disabled = true;
+                fetch('/SuperAdmin/DeleteBackup/' + encodeURIComponent(id), {
+                    method: 'POST',
+                    headers: { 'RequestVerificationToken': getAntiForgeryToken() }
+                }).then(function (r) {
+                    if (!r.ok) return r.text().then(t => Promise.reject(t || 'Delete failed'));
+                    return r.text();
+                }).then(function () {
+                    var tr = document.querySelector('tr[data-id="' + escapeHtml(id) + '"]');
+                    if (tr) tr.remove();
+                    showToast('Backup deleted.');
+                    if (!backupTableBody.querySelector('tr')) backupHistoryEmpty.classList.remove('d-none');
+                }).catch(function (err) {
+                    console.error(err);
+                    showToast(typeof err === 'string' ? err : 'Delete failed.');
+                }).finally(function () {
+                    deleteBtn.disabled = false;
+                });
+            });
+
+            // wire create button
+            btnCreate && btnCreate.addEventListener('click', function () {
+                if (!confirm('Create a new backup now?')) return;
+                createBackup();
+            });
+
+            // load history when modal opens
+            if (backupHistoryModalEl) {
+                backupHistoryModalEl.addEventListener('show.bs.modal', function () {
+                    loadBackupHistory();
+                });
+            }
+
+            // refresh button inside modal
+            refreshBackupBtn && refreshBackupBtn.addEventListener('click', function () {
+                loadBackupHistory();
+            });
+        })();
+    </script>
+}

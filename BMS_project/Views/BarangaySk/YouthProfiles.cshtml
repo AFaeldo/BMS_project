@@ -31,7 +31,7 @@
                         <th>Age</th>
                         <th>Gender</th>
                         <th>Sitio</th>
-                        <th>Birthday</th>
+                        <th>Birthdate</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -55,16 +55,16 @@
                                             data-lastname="@y.LastName"
                                             data-gender="@y.Gender"
                                             data-sitio="@y.Sitio"
-                                            data-birthday="@y.Birthday.ToString("yyyy-MM-dd")"
+                                            data-birthdate="@y.Birthday.ToString("yyyy-MM-dd")"
                                             data-bs-toggle="modal" data-bs-target="#editYouthModal">
                                         <i class="bi bi-pencil-square"></i> Edit
                                     </button>
 
-                                    <button class="btn btn-sm btn-danger btn-delete"
+                                    <button class="btn btn-sm btn-danger btn-archive"
                                             data-id="@y.Member_ID"
                                             data-name="@y.FirstName @y.LastName"
-                                            data-bs-toggle="modal" data-bs-target="#deleteYouthModal">
-                                        <i class="bi bi-trash"></i> Delete
+                                            data-bs-toggle="modal" data-bs-target="#archiveYouthModal">
+                                        <i class="bi bi-archive"></i> Archive
                                     </button>
                                 </td>
                             </tr>
@@ -118,8 +118,8 @@
                             <input name="Sitio" class="form-control" placeholder="Enter sitio" />
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Birthday</label>
-                            <input name="Birthday" type="date" class="form-control" />
+                            <label class="form-label fw-semibold">Birthdate</label>
+                            <input name="Birthdate" type="date" class="form-control" />
                         </div>
                     </div>
                     <div class="mt-4 d-flex justify-content-end gap-2">
@@ -173,8 +173,8 @@
                             <input id="editSitio" name="Sitio" class="form-control" />
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Birthday</label>
-                            <input id="editBirthday" name="Birthday" type="date" class="form-control" />
+                            <label class="form-label fw-semibold">Birthdate</label>
+                            <input id="editBirthdate" name="Birthdate" type="date" class="form-control" />
                         </div>
                     </div>
                     <div class="mt-4 d-flex justify-content-end gap-2">
@@ -191,27 +191,27 @@
     </div>
 </div>
 
-<!-- Delete Modal -->
-<div class="modal fade" id="deleteYouthModal" tabindex="-1" aria-labelledby="deleteYouthModalLabel" aria-hidden="true">
+<!-- Archive Modal (replaces Delete Modal) -->
+<div class="modal fade" id="archiveYouthModal" tabindex="-1" aria-labelledby="archiveYouthModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content shadow border-0 rounded-3">
             <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title">
-                    <i class="bi bi-exclamation-triangle"></i> Confirm Delete
+                    <i class="bi bi-exclamation-triangle"></i> Confirm Archive
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center">
-                <form asp-controller="Youth" asp-action="Delete" method="post">
+                <form asp-controller="Youth" asp-action="Archive" method="post">
                     @Html.AntiForgeryToken()
-                    <input type="hidden" id="deleteMember_ID" name="Member_ID" />
-                    <p id="deleteMessage" class="mb-3 text-black"></p>
+                    <input type="hidden" id="archiveMember_ID" name="Member_ID" />
+                    <p id="archiveMessage" class="mb-3 text-black"></p>
                     <div class="d-flex justify-content-center gap-2">
                         <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
                             Cancel
                         </button>
                         <button type="submit" class="btn btn-danger px-4">
-                            <i class="bi bi-trash"></i> Delete
+                            <i class="bi bi-archive"></i> Archive
                         </button>
                     </div>
                 </form>
@@ -230,16 +230,16 @@
                 document.getElementById('editLastName').value = btn.dataset.lastname;
                 document.getElementById('editGender').value = btn.dataset.gender;
                 document.getElementById('editSitio').value = btn.dataset.sitio;
-                document.getElementById('editBirthday').value = btn.dataset.birthday;
+                document.getElementById('editBirthdate').value = btn.dataset.birthdate;
             });
         });
 
-        // Fill Delete Modal
-        document.querySelectorAll('.btn-delete').forEach(btn => {
+        // Fill Archive Modal
+        document.querySelectorAll('.btn-archive').forEach(btn => {
             btn.addEventListener('click', () => {
-                document.getElementById('deleteMember_ID').value = btn.dataset.id;
-                document.getElementById('deleteMessage').innerHTML =
-                    `Are you sure you want to delete <strong>${btn.dataset.name}</strong>?`;
+                document.getElementById('archiveMember_ID').value = btn.dataset.id;
+                document.getElementById('archiveMessage').innerHTML =
+                    `Are you sure you want to archive <strong>${btn.dataset.name}</strong>?`;
             });
         });
     </script>

@@ -4,96 +4,191 @@
 }
 
 <div class="container-fluid">
-    <!-- PAGE HEADER -->
-    <div class="mb-4">
-        <h2 class="fw-bold">Report</h2>
-    </div>
 
-    <div class="text-end mb-3">
-        <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#generateReportModal">
-            <i class="bi bi-file-earmark-text"></i> Generate Report
+    <h2 class="fw-bold mb-4">Reports</h2>
+
+    <div class="d-flex flex-wrap gap-2 mb-3 align-items-center justify-content-end">
+
+        <input id="searchInput" class="form-control" style="max-width:300px;" placeholder="Search title..." />
+
+        <div class="btn-group" role="group">
+            <button class="btn btn-outline-secondary active" data-type="">All</button>
+            <button class="btn btn-outline-secondary" data-type="Monthly">Monthly</button>
+            <button class="btn btn-outline-secondary" data-type="Quarterly">Quarterly</button>
+            <button class="btn btn-outline-secondary" data-type="Annual">Annual</button>
+        </div>
+
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#generateReportModal">
+            <i class="bi bi-file-earmark-text me-1"></i> Generate Report
         </button>
+
     </div>
 
-    <div class="card shadow-sm border-0">
+    <div class="card shadow-sm">
         <div class="card-body">
 
-            <!-- TABLE -->
             <table class="table table-hover align-middle">
                 <thead class="table-light">
                     <tr>
                         <th>Report Title</th>
                         <th>Type</th>
+                        <th>Start</th>
+                        <th>End</th>
                         <th>Date Generated</th>
                         <th>Download</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td>Q3 Youth Activity Summary</td>
-                        <td>Quarterly</td>
-                        <td>Oct 20, 2025</td>
-                        <td>
-                            <button class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-download"></i>
-                            </button>
-                        </td>
-                    </tr>
-                </tbody>
+                <tbody id="reportsTbody"></tbody>
             </table>
-        </div>
-    </div>
-</div>
 
-<!-- GENERATE REPORT MODAL -->
-<div class="modal fade" id="generateReportModal" tabindex="-1" aria-labelledby="generateReportModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-md modal-dialog-centered">
-        <div class="modal-content shadow-lg border-0 rounded-4">
-            <div class="modal-header bg-primary text-white rounded-top-4">
-                <h5 class="modal-title fw-bold" id="generateReportModalLabel">
-                    <i class="bi bi-file-earmark-text me-2"></i> Generate New Report
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div id="emptyState" class="text-center text-muted py-4 d-none">
+                <i class="bi bi-inbox fs-1"></i>
+                <p>No reports found. Generate one using <strong>Generate Report</strong>.</p>
             </div>
 
-            <form>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Report Title</label>
-                        <input type="text" class="form-control" placeholder="Enter report title">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Report Type</label>
-                        <select class="form-select">
-                            <option selected disabled>Select report type</option>
-                            <option>Monthly</option>
-                            <option>Quarterly</option>
-                            <option>Annual</option>
-                        </select>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold">Start Date</label>
-                            <input type="date" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold">End Date</label>
-                            <input type="date" class="form-control">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="modal-footer border-0 d-flex justify-content-end gap-2">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle"></i> Cancel
-                    </button>
-                    <button type="submit" class="btn btn-primary px-4">
-                        <i class="bi bi-check-circle"></i> Generate
-                    </button>
-                </div>
-            </form>
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="generateReportModal" tabindex="-1">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Generate Report</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form id="generateReportForm">
+                <div class="modal-body">
+
+                    <label class="form-label fw-semibold">Report Title</label>
+                    <input id="reportTitle" class="form-control mb-3" required />
+
+                    <label class="form-label fw-semibold">Report Type</label>
+                    <select id="reportType" class="form-select mb-3" required>
+                        <option value="">Select type</option>
+                        <option>Monthly</option>
+                        <option>Quarterly</option>
+                        <option>Annual</option>
+                    </select>
+
+                    <div class="row">
+                        <div class="col">
+                            <label class="form-label fw-semibold">Start Date</label>
+                            <input id="reportStart" type="date" class="form-control" required />
+                        </div>
+                        <div class="col">
+                            <label class="form-label fw-semibold">End Date</label>
+                            <input id="reportEnd" type="date" class="form-control" required />
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Generate</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+
+            let reports = [];
+
+            const reportsTbody = document.getElementById('reportsTbody');
+            const emptyState = document.getElementById('emptyState');
+            const searchInput = document.getElementById('searchInput');
+
+            function renderTable(list) {
+                reportsTbody.innerHTML = "";
+                if (!list.length) {
+                    emptyState.classList.remove("d-none");
+                    return;
+                }
+                emptyState.classList.add("d-none");
+
+                list.forEach(r => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${r.title}</td>
+                        <td>${r.type}</td>
+                        <td>${r.startDate}</td>
+                        <td>${r.endDate}</td>
+                        <td>${r.generatedAt}</td>
+                        <td><button class="btn btn-outline-primary btn-sm">Download</button></td>
+                        <td><button class="btn btn-outline-danger btn-sm btn-delete" data-id="${r.id}">Delete</button></td>
+                    `;
+                    reportsTbody.appendChild(tr);
+                });
+            }
+
+            function getSlicerType() {
+                return document.querySelector('.btn-group .active').dataset.type;
+            }
+
+            function applyFilters() {
+                const q = searchInput.value.toLowerCase();
+                const type = getSlicerType();
+                const filtered = reports.filter(r => {
+                    if (q && !r.title.toLowerCase().includes(q)) return false;
+                    if (type && r.type !== type) return false;
+                    return true;
+                });
+                renderTable(filtered);
+            }
+
+            document.querySelectorAll(".btn-group button").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    document.querySelectorAll(".btn-group button").forEach(b => b.classList.remove("active"));
+                    btn.classList.add("active");
+                    applyFilters();
+                });
+            });
+
+            searchInput.addEventListener("input", applyFilters);
+
+            document.getElementById("generateReportForm").addEventListener("submit", function (e) {
+                e.preventDefault();
+
+                const title = reportTitle.value.trim();
+                const type = reportType.value;
+                const start = reportStart.value;
+                const end = reportEnd.value;
+
+                if (!title || !type || !start || !end) return;
+
+                const report = {
+                    id: Date.now(),
+                    title,
+                    type,
+                    startDate: start,
+                    endDate: end,
+                    generatedAt: new Date().toLocaleDateString()
+                };
+
+                reports.unshift(report);
+                applyFilters();
+
+                this.reset();
+                bootstrap.Modal.getInstance(generateReportModal).hide();
+            });
+
+            document.addEventListener("click", function (e) {
+                if (e.target.classList.contains("btn-delete")) {
+                    const id = e.target.dataset.id;
+                    reports = reports.filter(r => r.id != id);
+                    applyFilters();
+                }
+            });
+
+        })();
+    </script>
+}
