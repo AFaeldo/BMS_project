@@ -321,17 +321,17 @@
             }
         });
 
-        // Delete
-        $("#tblManageUsers").on("click", ".btn-delete", function () {
+        // ARCHIVE
+        $("#tblManageUsers").on("click", ".btn-archive", function () {
             const id = $(this).closest("tr").data("userid");
-            if (!confirm("Delete this user?")) return;
+            if (!confirm("Archive this user?")) return;
             $.ajax({
-                url: api.delete(id),
-                method: 'DELETE'
+                url: api.archive(id),
+                method: 'ARCHIVE'
             }).done(() => {
-                showToast("Deleted.");
+                showToast("Archive.");
                 refreshTable();
-            }).fail(xhr => showToast(xhr.responseText || "Delete failed."));
+            }).fail(xhr => showToast(xhr.responseText || "Archive failed."));
         });
     });
 
