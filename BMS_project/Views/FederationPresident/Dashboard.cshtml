@@ -114,11 +114,50 @@
                                 </tr>
                             </thead>
                             <tbody>
-                              
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </div>
-    </div> 
+
+        <!-- BAR GRAPH -->
+        <div class="card card-info card-outline mt-4">
+            <div class="card-header">
+                <h5 class="card-title">Expenses per Barangay</h5>
+            </div>
+
+            <div class="card-body">
+                <canvas id="expensesBarChart" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ChartJS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        var ctx = document.getElementById('expensesBarChart').getContext('2d');
+
+        var chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(Json.Serialize(ViewBag.BarangayNames ?? new string[] { })),
+                datasets: [{
+                    label: 'Expenses (₱)',
+                    data: @Html.Raw(Json.Serialize(ViewBag.Expenses ?? new decimal[] { })),
+                    backgroundColor: '#17a2b8',
+                    borderColor: '#117a8b',
+                    borderWidth: 1,
+                    borderRadius: 6,
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    </script>

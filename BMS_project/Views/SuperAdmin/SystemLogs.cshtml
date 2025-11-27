@@ -10,23 +10,17 @@
         <h2 class="fw-bold">System Logs</h2>
     </div>
 
-
+    <!-- Search Bar -->
     <div class="d-flex justify-content-end mb-3">
-
         <form method="get" asp-action="Index" class="d-flex" style="gap: 10px;">
-
-            <input type="text" name="search" class="form-control"
-                   placeholder="Search logs..." style="width: 230px;" />
-
+            <input type="text" name="search" value="@ViewBag.Search"
+                   class="form-control" placeholder="Search logs..."
+                   style="width: 230px;" />
             <button type="submit" class="btn btn-primary">
                 Search
             </button>
-
         </form>
-
     </div>
-
-
 
     <!-- Logs Table -->
     <div class="card shadow-sm" style="border-radius: 10px;">
@@ -46,12 +40,68 @@
                         <th class="py-3">Remarks</th>
                     </tr>
                 </thead>
-
                 <tbody>
-                    <!-- empty clean table, no sample data -->
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.Log_ID</td>
+                                <td>@item.ProjectTitle</td>
+                                <td>@item.UserName</td>
+                                <td>@item.Status</td>
+                                <td>@item.Changed_On.ToString("MMM dd, yyyy hh:mm tt")</td>
+                                <td>@item.Remarks</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-3 text-muted">
+                                No logs available.
+                            </td>
+                        </tr>
+                    }
                 </tbody>
-
             </table>
         </div>
+
+        <!-- Pagination -->
+        <div class="card-footer bg-white">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center m-0">
+
+                    <!-- Previous -->
+                    <li class="page-item @(ViewBag.Page == 1 ? "disabled" : "")">
+                        <a class="page-link"
+                           href="@Url.Action("Index", new { page = ViewBag.Page - 1, search = ViewBag.Search })">
+                            Previous
+                        </a>
+                    </li>
+
+                    <!-- Page Numbers -->
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item @(ViewBag.Page == i ? "active" : "")">
+                            <a class="page-link"
+                               href="@Url.Action("Index", new { page = i, search = ViewBag.Search })">
+                                @i
+                            </a>
+                        </li>
+                    }
+
+                    <!-- Next -->
+                    <li class="page-item @(ViewBag.Page == ViewBag.TotalPages ? "disabled" : "")">
+                        <a class="page-link"
+                           href="@Url.Action("Index", new { page = ViewBag.Page + 1, search = ViewBag.Search })">
+                            Next
+                        </a>
+                    </li>
+
+                </ul>
+            </nav>
+        </div>
+
     </div>
 </div>

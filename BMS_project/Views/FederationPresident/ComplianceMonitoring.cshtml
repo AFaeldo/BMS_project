@@ -3,6 +3,7 @@
     ViewData["Title"] = "Compliance Monitoring";
 }
 
+
 <div class="container-fluid">
 
     <!-- PAGE HEADER -->
@@ -34,7 +35,7 @@
         </div>
     </div>
 
-    <!-- Compliance Table -->
+    <!-- Compliance Table (simplified columns) -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-success">
             <h5 class="mb-0 fw-bold text-white">Barangay Compliance Records</h5>
@@ -46,24 +47,18 @@
                     <thead class="table-light">
                         <tr>
                             <th>Barangay</th>
-                            <th>Document</th>
                             <th>Status</th>
                             <th>Last Submission</th>
-                            <th>Remarks</th>
                             <th class="text-center">Action</th>
                         </tr>
                     </thead>
 
                     <tbody>
-                      
-                        @* Example 
-                        
+                        @* Example row
                         <tr>
                             <td>@item.Barangay</td>
-                            <td>@item.DocumentName</td>
                             <td>@item.Status</td>
                             <td>@item.LastSubmission</td>
-                            <td>@item.Remarks</td>
                             <td class="text-center">
                                 <button class="btn btn-sm btn-primary btnViewRecord"
                                         data-id="@item.Id">
@@ -71,7 +66,6 @@
                                 </button>
                             </td>
                         </tr>
-                        
                         *@
                     </tbody>
                 </table>
@@ -144,13 +138,24 @@
 </div>
 
 <script>
+    // Open modal when clicking view button
     document.addEventListener("click", function (e) {
         if (e.target.closest(".btnViewRecord")) {
-
             let id = e.target.closest(".btnViewRecord").dataset.id;
-
             let modal = new bootstrap.Modal(document.getElementById("complianceModal"));
             modal.show();
+            // load data via AJAX if needed using id
         }
+    });
+
+    // Example hooks for top-action buttons (wire these to backend endpoints)
+    document.getElementById("btnGenerateCompliance").addEventListener("click", function () {
+        // TODO: trigger report generation
+        console.log("Generate Compliance Report clicked");
+    });
+
+    document.getElementById("btnSendReminders").addEventListener("click", function () {
+        // TODO: trigger reminder notifications
+        console.log("Send Reminder Notifications clicked");
     });
 </script>

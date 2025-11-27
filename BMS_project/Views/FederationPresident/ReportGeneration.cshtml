@@ -6,7 +6,7 @@
 <div class="container-fluid">
 
     <!-- PAGE HEADER -->
-    <div class="mb-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
         <h2 class="fw-bold">Report Generation</h2>
     </div>
 
@@ -45,7 +45,7 @@
         </div>
     </div>
 
-    <!-- Compliance Monitoring Section -->
+    <!-- Compliance Monitoring Section (for Reports page) -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-success text-white fw-semibold">
             Compliance Monitoring
@@ -63,13 +63,14 @@
                             <th>Project Report</th>
                             <th>Last Submission</th>
                             <th>Status</th>
+                            <th>Activity Compliance</th>
+                            <th>Submission Status</th>
                             <th class="text-center">Action</th>
                         </tr>
                     </thead>
 
                     <tbody>
-                       
-                        @* 
+                        @* Example rows go here
                         <tr>
                             <td>@item.Barangay</td>
                             <td>@item.MeetingMinutes</td>
@@ -77,6 +78,8 @@
                             <td>@item.ProjectReport</td>
                             <td>@item.LastSubmission</td>
                             <td>@item.Status</td>
+                            <td>@item.ActivityCompliance</td>
+                            <td>@item.SubmissionStatus</td>
                             <td class="text-center">
                                 <button class="btn btn-sm btn-primary btnViewCompliance" data-id="@item.Id">
                                     <i class="bi bi-eye"></i> View
@@ -98,7 +101,7 @@
 </div>
 
 
-<!-- MODAL FOR VIEWING REPORT / COMPLIANCE DETAILS -->
+<!-- MODAL FOR VIEW / COMPLIANCE DETAILS -->
 <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -111,7 +114,6 @@
             <div class="modal-body">
 
                 <form id="reportModalForm">
-
                     <input type="hidden" id="reportId" />
 
                     <div class="row mb-3">
@@ -147,7 +149,6 @@
                         <label class="form-label fw-semibold">Last Submission</label>
                         <input type="text" class="form-control" id="modalLastSubmission" readonly />
                     </div>
-
                 </form>
 
             </div>
@@ -164,13 +165,11 @@
 <!-- JS TO OPEN MODAL -->
 <script>
     document.addEventListener("click", function (e) {
-
         if (e.target.closest(".btnViewCompliance")) {
-
             let id = e.target.closest(".btnViewCompliance").dataset.id;
-
             let modal = new bootstrap.Modal(document.getElementById("reportModal"));
             modal.show();
+            // load data via AJAX if needed using id
         }
     });
 </script>
