@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using BMS_project.Data;
 using BMS_project.ViewModels;
+using BMS_project.Models;
+using System.Linq;
 
 namespace BMS_project.Controllers.SuperAdminController
 {
@@ -49,11 +51,45 @@ namespace BMS_project.Controllers.SuperAdminController
             ViewData["Title"] = "Settings";
             return View();
         }
+
+        // GET: show list of barangays
         public IActionResult Barangay()
         {
             ViewData["Title"] = "Manage Barangay";
-            return View();
+            var barangays = _context.barangays?.OrderBy(b => b.Barangay_Name).ToList() ?? new List<Barangay>();
+            return View(barangays);
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AddBarangay(string BarangayName)
+        {
+            if (string.IsNullOrWhiteSpace(BarangayName))
+            {
+                TempData["ErrorMessage"] = "Barangay name is required.";
+                return RedirectToAction("Barangay");
+            }
+
+            // prevent duplicates (simple check)
+            var exists = _context.barangays.Any(b => b.Barangay_Name.ToLower() == BarangayName.Trim().ToLower());
+            if (exists)
+            {
+                TempData["ErrorMessage"] = "A barangay with that name already exists.";
+                return RedirectToAction("Barangay");
+            }
+
+            var barangay = new Barangay
+            {
+                Barangay_Name = BarangayName.Trim()
+            };
+
+            _context.barangays.Add(barangay);
+            _context.SaveChanges();
+
+            TempData["SuccessMessage"] = "Barangay added successfully.";
+            return RedirectToAction("Barangay");
+        }
+
         public IActionResult Profile()
         {
             return View();
