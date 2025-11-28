@@ -10,12 +10,30 @@
         <h2 class="fw-bold">Manage Users</h2>
     </div>
 
-    <div class="col-12 text-end mb-3">
-        <!-- changed text to Add User -->
+    <!-- Search + Add button row -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <!-- Search (client-side) -->
+        <form id="userSearchForm" class="d-flex" style="gap: 10px;">
+            <input type="text"
+                   id="searchText"
+                   name="search"
+                   value="@ViewBag.Search"
+                   class="form-control"
+                   placeholder="Search....."
+                   style="width: 230px;" />
+            <button type="submit" class="btn btn-primary">
+                Search
+            </button>
+        </form>
+
+        <!-- Add User Button -->
         <button id="btnAddUserSuper" class="btn btn-primary">
             <i class="bi bi-person-plus me-1"></i> Add User
         </button>
+
     </div>
+
 
     <!-- USERS TABLE -->
     <div class="card shadow-sm mb-4">
@@ -39,40 +57,52 @@
                         </tr>
                     </thead>
                     <tbody>
+                        @* rows are injected via JS *@
                     </tbody>
                 </table>
             </div>
         </div>
+
+        <!-- PAGINATION AREA -->
+        <div class="card-footer bg-white">
+            <nav aria-label="User pagination">
+                <ul class="pagination justify-content-end mb-0" id="userPagination">
+                    @* JS will render page links here *@
+                </ul>
+            </nav>
+        </div>
     </div>
 </div>
 
-<!-- MODAL: ADD / EDIT USER (title will be set dynamically) -->
+<!-- MODAL: ADD / EDIT USER -->
 <div class="modal fade" id="modalUserSuper" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <form id="formUserSuper" class="modal-content" onsubmit="return false;">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">Add User</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"></button>
             </div>
 
             <div class="modal-body">
-                <input id="Super_UserId" type="hidden" value="0">
+                <input id="Super_UserId" type="hidden" value="0" />
 
                 <div class="row g-3">
 
                     <div class="col-md-4">
                         <label class="form-label">Last Name</label>
-                        <input id="Super_LastName" class="form-control" maxlength="100" required>
+                        <input id="Super_LastName" class="form-control" maxlength="100" required />
                     </div>
 
                     <div class="col-md-4">
                         <label class="form-label">First Name</label>
-                        <input id="Super_FirstName" class="form-control" maxlength="100" required>
+                        <input id="Super_FirstName" class="form-control" maxlength="100" required />
                     </div>
 
                     <div class="col-md-4">
                         <label class="form-label">Email</label>
-                        <input id="Super_Email" class="form-control" type="email" maxlength="200" required>
+                        <input id="Super_Email" class="form-control" type="email" maxlength="200" required />
                     </div>
 
                     <div class="col-md-4">
@@ -91,20 +121,19 @@
 
                     <div class="col-md-4">
                         <label class="form-label">Username</label>
-                        <input id="Super_Username" class="form-control" maxlength="100" readonly>
+                        <input id="Super_Username" class="form-control" maxlength="100" readonly />
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label">Password</label>
-                        <input id="Super_Password" class="form-control" type="password" minlength="8">
+                        <input id="Super_Password" class="form-control" type="password" minlength="8" />
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label">Confirm Password</label>
-                        <input id="Super_ConfirmPassword" class="form-control" type="password" minlength="8">
+                        <input id="Super_ConfirmPassword" class="form-control" type="password" minlength="8" />
                     </div>
 
-                    <!-- Status dropdown (Active / Inactive) -->
                     <div class="col-md-4">
                         <label class="form-label">Status</label>
                         <select id="Super_IsActive" class="form-select" required>
@@ -120,12 +149,11 @@
                 <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Cancel</button>
                 <button id="btnSaveSuper" class="btn btn-success" type="button">Save</button>
             </div>
-
         </form>
     </div>
 </div>
 
-<!-- Toast (simple) -->
+<!-- Toast -->
 <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
     <div id="appToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="toast-header">
@@ -151,14 +179,12 @@
             get: id => `/api/users/${id}`,
             create: '/api/users',
             update: id => `/api/users/${id}`,
-            // keep delete if needed elsewhere; archive endpoint added
             delete: id => `/api/users/${id}`,
             archive: id => `/api/users/${id}/archive`,
             barangays: '/api/users/barangays',
             roles: '/api/users/roles'
         };
 
-        // Bootstrap modal instance
         const modalEl = document.getElementById('modalUserSuper');
         const userModal = new bootstrap.Modal(modalEl);
 
@@ -168,9 +194,12 @@
             toast.show();
         }
 
-        function refreshTable() {
-            $.get(api.list)
-                .done(data => renderRows(data))
+        function refreshTable(page = 1) {
+            $.get(api.list, { page })
+                .done(data => {
+                    // adjust if your API wraps items
+                    renderRows(data.items || data);
+                })
                 .fail(() => showToast("Failed to load users."));
         }
 
@@ -192,7 +221,6 @@
                         </td>
                         <td class="text-center">
                             <button class="btn btn-sm btn-primary btn-edit me-1">Edit</button>
-                            <!-- changed Delete to Archive -->
                             <button class="btn btn-sm btn-danger btn-archive">Archive</button>
                         </td>
                     </tr>
@@ -200,7 +228,6 @@
             });
         }
 
-        // simple HTML escape for safety
         function escapeHtml(str) {
             return String(str)
                 .replaceAll('&', '&amp;')
@@ -210,17 +237,18 @@
                 .replaceAll("'", '&#39;');
         }
 
-        //populate barangays and roles
         function loadDropdowns() {
-            //barangays
             $.get(api.barangays).done(list => {
-                const sel = $("#Super_Barangay").empty().append('<option value="">-- Select Barangay --</option>');
+                const sel = $("#Super_Barangay")
+                    .empty()
+                    .append('<option value="">-- Select Barangay --</option>');
                 list.forEach(b => sel.append(`<option value="${b.id}">${escapeHtml(b.text)}</option>`));
             }).fail(() => showToast("Failed to load barangays."));
 
-            //roles
             $.get(api.roles).done(list => {
-                const sel = $("#Super_Role").empty().append('<option value="">-- Select Role --</option>');
+                const sel = $("#Super_Role")
+                    .empty()
+                    .append('<option value="">-- Select Role --</option>');
                 list.forEach(r => sel.append(`<option value="${r.id}">${escapeHtml(r.text)}</option>`));
             }).fail(() => showToast("Failed to load roles."));
         }
@@ -229,22 +257,16 @@
             loadDropdowns();
             refreshTable();
 
-            // Add button now only for adding a new user
             $("#btnAddUserSuper").on("click", () => {
                 $("#formUserSuper")[0].reset();
                 $("#Super_UserId").val(0);
-
-                // set modal title explicitly for add
                 $("#modalUserSuper .modal-title").text("Add User");
-
                 loadDropdowns();
 
-                // Get next username from API (optional)
                 $.get('/api/users/generate-username')
                     .done(res => {
                         $("#Super_Username").val(res.username || '');
-                        $("#Super_Username").prop('readonly', true); // optional
-                        // default status to Active for new users
+                        $("#Super_Username").prop('readonly', true);
                         $("#Super_IsActive").val("true");
                         userModal.show();
                     })
@@ -255,8 +277,6 @@
                     });
             });
 
-
-            //Edit row
             $("#tblManageUsers").on("click", ".btn-edit", function () {
                 const id = $(this).closest("tr").data("userid");
 
@@ -265,20 +285,13 @@
                     $("#Super_LastName").val(u.lastName || '');
                     $("#Super_FirstName").val(u.firstName || '');
                     $("#Super_Email").val(u.email || '');
-                    $("#Super_Barangay").val(u.barangayId || '');
-                    $("#Super_Role").val(u.roleId || '');
                     $("#Super_Username").val(u.username || '');
                     $("#Super_Password").val('');
                     $("#Super_ConfirmPassword").val('');
-                    // set status select (expects boolean isActive)
                     $("#Super_IsActive").val(u.isActive ? "true" : "false");
-
-                    // set the modal title to Edit User (no "Add / Edit")
                     $("#modalUserSuper .modal-title").text("Edit User");
 
-                    // ensure dropdowns are loaded and then show modal
                     loadDropdowns();
-                    // small timeout to let options render then set selected value
                     setTimeout(() => {
                         $("#Super_Barangay").val(u.barangayId || '');
                         $("#Super_Role").val(u.roleId || '');
@@ -287,7 +300,6 @@
                 }).fail(() => showToast("Failed to load user data."));
             });
 
-            // Save (create or update)
             $("#btnSaveSuper").on("click", function () {
                 const id = Number($("#Super_UserId").val() || 0);
                 const payload = {
@@ -301,64 +313,61 @@
                     IsActive: $("#Super_IsActive").val() === "true"
                 };
 
-                // client validation
                 if (!payload.Username) return showToast("Enter username.");
                 if (!id && !payload.Password) return showToast("Password required for new user.");
                 if (payload.Password && payload.Password.length < 8) return showToast("Password must be at least 8 characters.");
                 if ($("#Super_Password").val() !== $("#Super_ConfirmPassword").val()) return showToast("Passwords do not match.");
 
-                console.log("User create/update payload:", { id, payload });
-
                 if (!id) {
-                    // create
                     $.ajax({
                         url: api.create,
                         method: 'POST',
                         contentType: 'application/json',
                         data: JSON.stringify(payload)
-                    }).done((res) => {
-                        console.log("Create response:", res);
+                    }).done(() => {
                         showToast("User created.");
                         refreshTable();
                         userModal.hide();
                     }).fail(xhr => {
-                        console.error("Create failed:", xhr);
                         showToast(xhr.responseText || "Create failed.");
                     });
                 } else {
-                    // update
                     $.ajax({
                         url: api.update(id),
                         method: 'PUT',
                         contentType: 'application/json',
                         data: JSON.stringify(payload)
-                    }).done((res) => {
-                        console.log("Update response:", res);
+                    }).done(() => {
                         showToast("User updated.");
                         refreshTable();
                         userModal.hide();
                     }).fail(xhr => {
-                        console.error("Update failed:", xhr);
                         showToast(xhr.responseText || "Update failed.");
                     });
                 }
             });
 
-            // ARCHIVE (replaces Delete)
             $("#tblManageUsers").on("click", ".btn-archive", function () {
                 const id = $(this).closest("tr").data("userid");
                 if (!confirm("Archive this user?")) return;
                 $.ajax({
                     url: api.archive(id),
-                    method: 'POST' // use POST (or change to your API's expected HTTP verb)
+                    method: 'POST'
                 }).done(() => {
                     showToast("User archived.");
                     refreshTable();
                 }).fail(xhr => {
-                    console.error("Archive failed:", xhr);
                     showToast(xhr.responseText || "Archive failed.");
                 });
             });
+        });
+
+        // pagination click handler (delegated)
+        $(document).on("click", ".page-nav", function (e) {
+            e.preventDefault();
+            const page = Number($(this).data("page") || 1);
+            if (page <= 0) return;
+            refreshTable(page);
         });
 
     })(jQuery);

@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using BMS_project.Data;
 using BMS_project.ViewModels;
 using BMS_project.Models;
+using System;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace BMS_project.Controllers.SuperAdminController
 {
@@ -22,6 +24,7 @@ namespace BMS_project.Controllers.SuperAdminController
             ViewData["Title"] = "Backup & Maintenance";
             return View();
         }
+
         public IActionResult Dashboard()
         {
             var vm = new DashboardViewModel
@@ -52,11 +55,37 @@ namespace BMS_project.Controllers.SuperAdminController
             return View();
         }
 
-        // GET: show list of barangays
-        public IActionResult Barangay()
+        // GET: show list of barangays WITH PAGINATION (10 per page) + search
+        [HttpGet]
+        public IActionResult Barangay(int page = 1, string search = "")
         {
+            const int pageSize = 10;
+
             ViewData["Title"] = "Manage Barangay";
-            var barangays = _context.barangays?.OrderBy(b => b.Barangay_Name).ToList() ?? new List<Barangay>();
+
+            var query = _context.barangays.AsQueryable();
+
+            // search filter (optional)
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(b => b.Barangay_Name.Contains(search));
+            }
+
+            // total items for pagination
+            int totalItems = query.Count();
+
+            // only records for THIS page (10 max)
+            var barangays = query
+                .OrderBy(b => b.Barangay_Name)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            // pass data to the view
+            ViewBag.Page = page;
+            ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            ViewBag.Search = search;
+
             return View(barangays);
         }
 
@@ -71,7 +100,9 @@ namespace BMS_project.Controllers.SuperAdminController
             }
 
             // prevent duplicates (simple check)
-            var exists = _context.barangays.Any(b => b.Barangay_Name.ToLower() == BarangayName.Trim().ToLower());
+            var exists = _context.barangays
+                .Any(b => b.Barangay_Name.ToLower() == BarangayName.Trim().ToLower());
+
             if (exists)
             {
                 TempData["ErrorMessage"] = "A barangay with that name already exists.";

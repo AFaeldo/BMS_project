@@ -16,6 +16,7 @@
     </div>
 
     <!-- BUDGET TABLE -->
+    <!-- BUDGET TABLE -->
     <div class="card shadow-sm border-0">
         <div class="card-body">
             <table class="table table-bordered align-middle">
@@ -24,6 +25,7 @@
                         <th>Request Title</th>
                         <th>Status</th>
                         <th>Allotted Amount</th>
+                        <th>Remaining Balance</th>
                         <th>Date Submitted</th>
                     </tr>
                 </thead>
@@ -32,19 +34,21 @@
                         <td>Community Clean-up Drive</td>
                         <td><span class="badge bg-success">Approved</span></td>
                         <td>₱15,000</td>
+                        <td class="text-success fw-bold">₱5,000</td> 
                         <td>Sept 28, 2025</td>
                     </tr>
                     <tr>
                         <td>Sports Equipment Purchase</td>
                         <td><span class="badge bg-warning text-dark">Pending</span></td>
                         <td>₱25,000</td>
+                        <td class="text-muted fw-bold">—</td> <!-- No balance until approved -->
                         <td>Oct 3, 2025</td>
                     </tr>
                 </tbody>
             </table>
         </div>
     </div>
-</div>
+
 
 <!-- BUDGET REQUEST MODAL -->
 <div class="modal fade" id="budgetModal" tabindex="-1" aria-labelledby="budgetModalLabel" aria-hidden="true">
