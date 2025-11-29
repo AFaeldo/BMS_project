@@ -1,4 +1,5 @@
-﻿@{
+@model BMS_project.Models.Budget
+@{
     Layout = "~/Views/Shared/_BarangayLayout.cshtml";
     ViewData["Title"] = "Budget & Finance";
 }
@@ -7,18 +8,73 @@
 </div>
 
 <div class="container-fluid">
-    <!-- TOTAL BALANCE BOX -->
-    <div class="card shadow-sm border-0 mb-4 p-3 bg-primary text-white">
-        <h5 class="fw-bold">Total Balance</h5>
-        <h3 class="fw-bold">₱0.00</h3>
+    <!-- FINANCIAL STATUS CARDS -->
+    <div class="row mb-4">
+        <!-- Total Allocation -->
+        <div class="col-md-4 mb-3 mb-md-0">
+            <div class="card shadow-sm border-0 h-100 border-start border-4 border-primary">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="text-muted fw-semibold mb-1">Total Allocation</h6>
+                            <h3 class="fw-bold text-primary mb-0">
+                                @(Model?.budget.ToString("C", new System.Globalization.CultureInfo("en-PH")) ?? "₱0.00")
+                            </h3>
+                        </div>
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle">
+                            <i class="bi bi-wallet2 fs-3 text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Disbursed -->
+        <div class="col-md-4 mb-3 mb-md-0">
+            <div class="card shadow-sm border-0 h-100 border-start border-4 border-warning">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="text-muted fw-semibold mb-1">Total Disbursed</h6>
+                            <h3 class="fw-bold text-warning mb-0">
+                                @(Model?.disbursed.ToString("C", new System.Globalization.CultureInfo("en-PH")) ?? "₱0.00")
+                            </h3>
+                        </div>
+                        <div class="bg-warning bg-opacity-10 p-3 rounded-circle">
+                            <i class="bi bi-cash-stack fs-3 text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Remaining Balance -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100 border-start border-4 border-success">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="text-muted fw-semibold mb-1">Remaining Balance</h6>
+                            <h3 class="fw-bold text-success mb-0">
+                                @(Model?.balance.ToString("C", new System.Globalization.CultureInfo("en-PH")) ?? "₱0.00")
+                            </h3>
+                        </div>
+                        <div class="bg-success bg-opacity-10 p-3 rounded-circle">
+                            <i class="bi bi-piggy-bank fs-3 text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
-
 
     <!-- BUDGET TABLE -->
     <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3">
+            <h5 class="card-title mb-0 fw-bold">Budget Utilization History</h5>
+        </div>
         <div class="card-body">
-            <table class="table table-bordered align-middle">
+            <table class="table table-bordered align-middle table-hover">
                 <thead class="table-light">
                     <tr>
                         <th>Request Title</th>
@@ -28,16 +84,17 @@
                     </tr>
                 </thead>
                 <tbody>
+                    <!-- TODO: Bind this to a real list of projects/allocations if available -->
                     <tr>
                         <td>Community Clean-up Drive</td>
                         <td><span class="badge bg-success">Approved</span></td>
-                        <td>₱15,000</td>
+                        <td>₱15,000.00</td>
                         <td>Sept 28, 2025</td>
                     </tr>
                     <tr>
                         <td>Sports Equipment Purchase</td>
                         <td><span class="badge bg-warning text-dark">Pending</span></td>
-                        <td>₱25,000</td>
+                        <td>₱25,000.00</td>
                         <td>Oct 3, 2025</td>
                     </tr>
                 </tbody>

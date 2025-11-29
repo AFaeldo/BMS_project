@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -20,7 +23,9 @@
             <div class="text-center py-3">
                 <img src="~/images/iconKabataan.png" alt="Sk Logo"
                      class="img-fluid mb-2" style="max-width: 85px; height: 85px;">
-                <h6 class="fw-bold text-white mb-0">KABATAAN+</h6>
+                <h6 class="fw-bold text-white mb-0">
+                    KABATAAN+ @(HttpContextAccessor.HttpContext?.Session.GetString("BarangayName"))
+                </h6>
                 <p class="text-light small mb-0">Hello, Barangay SK Official</p>
             </div>
 

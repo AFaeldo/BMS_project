@@ -51,7 +51,117 @@ namespace BMS_project.Controllers
         public IActionResult ProjectApprovals()
         {
             ViewData["Title"] = "Project Approvals";
-            return View();
+
+            var pendingProjects = _context.Projects
+                .Include(p => p.User).ThenInclude(u => u.Barangay)
+                .Include(p => p.Allocations)
+                .Where(p => p.Project_Status == "Pending")
+                .Select(p => new ProjectApprovalListViewModel
+                {
+                    Project_ID = p.Project_ID,
+                    Title = p.Project_Title,
+                    Description = p.Project_Description,
+                    Barangay = p.User.Barangay != null ? p.User.Barangay.Barangay_Name : "N/A",
+                    Amount = p.Allocations.Any() ? p.Allocations.FirstOrDefault().Amount_Allocated : 0,
+                    Date = p.Date_Submitted,
+                    Status = p.Project_Status
+                })
+                .ToList();
+
+            return View(pendingProjects);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveProject(ProjectApprovalActionViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                // In a real scenario, you'd return to the view with errors. 
+                // Since this is likely a modal or direct action, we'll return a bad request or redirect with error.
+                TempData["ErrorMessage"] = "Invalid input.";
+                return RedirectToAction(nameof(ProjectApprovals));
+            }
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var project = await _context.Projects
+                    .Include(p => p.Allocations)
+                    .Include(p => p.User)
+                    .FirstOrDefaultAsync(p => p.Project_ID == model.Project_ID);
+
+                if (project == null)
+                {
+                    return NotFound();
+                }
+
+                if (project.Project_Status != "Pending")
+                {
+                    TempData["ErrorMessage"] = "Project is not pending.";
+                    return RedirectToAction(nameof(ProjectApprovals));
+                }
+
+                var allocation = project.Allocations.FirstOrDefault();
+                if (allocation == null)
+                {
+                    TempData["ErrorMessage"] = "Allocation record not found.";
+                    return RedirectToAction(nameof(ProjectApprovals));
+                }
+
+                // 1. Update Amount if changed
+                decimal finalAmount = allocation.Amount_Allocated;
+                if (model.Approved_Amount.HasValue && model.Approved_Amount.Value != allocation.Amount_Allocated)
+                {
+                    allocation.Amount_Allocated = model.Approved_Amount.Value;
+                    finalAmount = model.Approved_Amount.Value;
+                    _context.ProjectAllocations.Update(allocation);
+                }
+
+                // 2. Update Project Status
+                project.Project_Status = "Approved";
+                _context.Projects.Update(project);
+
+                // 3. Deduct from Budget
+                var budget = await _context.Budgets.FirstOrDefaultAsync(b => b.Budget_ID == allocation.Budget_ID);
+                if (budget == null)
+                {
+                    throw new Exception("Budget not found.");
+                }
+
+                if (budget.balance < finalAmount)
+                {
+                    TempData["ErrorMessage"] = "Insufficient budget balance for approval.";
+                    return RedirectToAction(nameof(ProjectApprovals));
+                }
+
+                budget.disbursed += finalAmount;
+                budget.balance -= finalAmount;
+                _context.Budgets.Update(budget);
+
+                // 4. Log
+                var log = new ProjectLog
+                {
+                    Project_ID = project.Project_ID,
+                    User_ID = project.User_ID, // Or current user (President) if we fetched it
+                    Status = "Approved",
+                    Changed_On = DateTime.Now,
+                    Remarks = model.Remarks ?? "Approved by Federation President"
+                };
+                _context.ProjectLogs.Add(log);
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                TempData["SuccessMessage"] = "Project approved successfully.";
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                TempData["ErrorMessage"] = "Error approving project: " + ex.Message;
+            }
+
+            return RedirectToAction(nameof(ProjectApprovals));
         }
 
         // Load list of budgets and pass to view

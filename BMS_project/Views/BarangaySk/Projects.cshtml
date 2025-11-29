@@ -1,4 +1,5 @@
-﻿@{
+@model IEnumerable<BMS_project.Models.Project>
+@{
     Layout = "~/Views/Shared/_BarangayLayout.cshtml";
     ViewData["Title"] = "Project Management";
 }
@@ -9,6 +10,25 @@
     <div class="mb-4">
         <h2 class="fw-bold">Project Management</h2>
     </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+        </div>
+    }
 
     <div class="col-12 text-end mb-3">
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProjectModal">
@@ -23,68 +43,72 @@
             <table class="table table-hover align-middle text-center">
                 <thead class="table-primary">
                     <tr>
-                        <th>Project ID</th>
                         <th>Project Title</th>
                         <th>Description</th>
                         <th>Start Date</th>
                         <th>End Date</th>
+                        <th>Alloted Budget</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td>Community Clean-Up Drive</td>
-                        <td>Barangay clean-up and waste segregation.</td>
-                        <td>2025-01-10</td>
-                        <td>2025-01-15</td>
-                        <td><span class="badge bg-info text-dark">Ongoing</span></td>
-                        <td>
-                            <button class="btn btn-sm btn-warning text-white btn-edit"
-                                    data-id="1"
-                                    data-title="Community Clean-Up Drive"
-                                    data-desc="Barangay clean-up and waste segregation."
-                                    data-start="2025-01-10"
-                                    data-end="2025-01-15"
-                                    data-status="Ongoing"
-                                    data-bs-toggle="modal" data-bs-target="#editProjectModal">
-                                <i class="bi bi-pencil-square"></i> Edit
-                            </button>
-                            <button class="btn btn-sm btn-danger btn-delete"
-                                    data-id="1"
-                                    data-title="Community Clean-Up Drive"
-                                    data-bs-toggle="modal" data-bs-target="#deleteProjectModal">
-                                <i class="bi bi-trash"></i> Delete
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>Youth Leadership Training</td>
-                        <td>Training seminar for young leaders.</td>
-                        <td>2025-03-01</td>
-                        <td>2025-03-05</td>
-                        <td><span class="badge bg-success">Completed</span></td>
-                        <td>
-                            <button class="btn btn-sm btn-warning text-white btn-edit"
-                                    data-id="2"
-                                    data-title="Youth Leadership Training"
-                                    data-desc="Training seminar for young leaders."
-                                    data-start="2025-03-01"
-                                    data-end="2025-03-05"
-                                    data-status="Completed"
-                                    data-bs-toggle="modal" data-bs-target="#editProjectModal">
-                                <i class="bi bi-pencil-square"></i> Edit
-                            </button>
-                            <button class="btn btn-sm btn-danger btn-delete"
-                                    data-id="2"
-                                    data-title="Youth Leadership Training"
-                                    data-bs-toggle="modal" data-bs-target="#deleteProjectModal">
-                                <i class="bi bi-trash"></i> Delete
-                            </button>
-                        </td>
-                    </tr>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var project in Model)
+                        {
+                            var budget = project.Allocations?.FirstOrDefault()?.Amount_Allocated ?? 0;
+                            <tr>
+                                <td>@project.Project_Title</td>
+                                <td>@project.Project_Description</td>
+                                <td>@(project.Start_Date?.ToString("yyyy-MM-dd") ?? "-")</td>
+                                <td>@(project.End_Date?.ToString("yyyy-MM-dd") ?? "-")</td>
+                                <td>@budget.ToString("C", new System.Globalization.CultureInfo("en-PH"))</td>
+                                <td>
+                                    @if (project.Project_Status == "Completed")
+                                    {
+                                        <span class="badge bg-success">Completed</span>
+                                    }
+                                    else if (project.Project_Status == "Ongoing" || project.Project_Status == "Approved")
+                                    {
+                                        <span class="badge bg-info text-dark">@project.Project_Status</span>
+                                    }
+                                    else if (project.Project_Status == "Rejected")
+                                    {
+                                        <span class="badge bg-danger">Rejected</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">@project.Project_Status</span>
+                                    }
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-warning text-white btn-edit"
+                                            data-id="@project.Project_ID"
+                                            data-title="@project.Project_Title"
+                                            data-desc="@project.Project_Description"
+                                            data-start="@(project.Start_Date?.ToString("yyyy-MM-dd"))"
+                                            data-end="@(project.End_Date?.ToString("yyyy-MM-dd"))"
+                                            data-status="@project.Project_Status"
+                                            data-bs-toggle="modal" data-bs-target="#editProjectModal">
+                                        <i class="bi bi-pencil-square"></i> Edit
+                                    </button>
+                                    <button class="btn btn-sm btn-danger btn-delete"
+                                            data-id="@project.Project_ID"
+                                            data-title="@project.Project_Title"
+                                            data-bs-toggle="modal" data-bs-target="#deleteProjectModal">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-muted">No projects found.</td>
+                        </tr>
+                    }
                 </tbody>
             </table>
         </div>
@@ -101,34 +125,29 @@
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form>
+            <form method="post" asp-action="CreateProject">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Project Title</label>
-                        <input type="text" class="form-control" placeholder="Enter project title">
+                        <input type="text" name="Project_Title" class="form-control" placeholder="Enter project title" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Description</label>
-                        <textarea class="form-control" rows="2" placeholder="Enter description"></textarea>
+                        <textarea name="Project_Description" class="form-control" rows="2" placeholder="Enter description"></textarea>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-semibold">Start Date</label>
-                            <input type="date" class="form-control">
+                            <input type="date" name="Start_Date" class="form-control">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-semibold">End Date</label>
-                            <input type="date" class="form-control">
+                            <input type="date" name="End_Date" class="form-control">
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Status</label>
-                        <select class="form-select">
-                            <option selected disabled>Select status</option>
-                            <option>Pending</option>
-                            <option>Ongoing</option>
-                            <option>Completed</option>
-                        </select>
+                        <label class="form-label fw-semibold">Alloted Budget</label>
+                        <input type="number" step="0.01" name="Allocated_Amount" class="form-control" placeholder="Enter a Budget" required>
                     </div>
                 </div>
                 <div class="modal-footer border-0">
@@ -151,6 +170,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form>
+                <!-- NOTE: Update logic not yet implemented in Controller, this is just UI -->
                 <div class="modal-body">
                     <input type="hidden" id="editProjectID">
                     <div class="mb-3">
@@ -173,11 +193,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Status</label>
-                        <select id="editStatus" class="form-select">
-                            <option>Pending</option>
-                            <option>Ongoing</option>
-                            <option>Completed</option>
-                        </select>
+                        <input type="text" id="editStatus" class="form-control" readonly>
                     </div>
                 </div>
                 <div class="modal-footer border-0">

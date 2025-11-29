@@ -1,4 +1,5 @@
-﻿@{
+@model IEnumerable<BMS_project.ViewModels.ProjectApprovalListViewModel>
+@{
     Layout = "~/Views/Shared/_LayoutFederation.cshtml";
     ViewData["Title"] = "Project Approvals";
 }
@@ -27,6 +28,21 @@
         </div>
     </div>
 
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
     <!-- Table -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-primary">
@@ -48,36 +64,48 @@
                 </thead>
 
                 <tbody>
-                    <tr>
-                        <td>Community Health Center Renovation</td>
-                        <td>Barangay San Isidro</td>
-                        <td>
-                            <a href="#" class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-file-earmark-pdf"></i> PDF
-                            </a>
-                        </td>
-                        <td>₱500,000</td>
-                        <td>2025-11-20</td>
-                        <td>Pending</td>
-                        <td class="text-center">
-                            <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#viewModal"
-                                    data-title="Community Health Center Renovation"
-                                    data-bgy="San Isidro"
-                                    data-budget="₱500,000"
-                                    data-date="2025-11-20"
-                                    data-status="Pending"
-                                    data-reason=""
-                                    data-doc="#">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                            <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal"
-                                    data-id="1"
-                                    data-budget="500000"
-                                    data-status="Pending">
-                                <i class="bi bi-pencil-square"></i>
-                            </button>
-                        </td>
-                    </tr>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.Title</td>
+                                <td>@item.Barangay</td>
+                                <td>
+                                    <a href="#" class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-file-earmark-pdf"></i> PDF
+                                    </a>
+                                </td>
+                                <td>@item.Amount.ToString("C", new System.Globalization.CultureInfo("en-PH"))</td>
+                                <td>@(item.Date.HasValue ? item.Date.Value.ToString("yyyy-MM-dd") : "-")</td>
+                                <td>@item.Status</td>
+                                <td class="text-center">
+                                    <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#viewModal"
+                                            data-title="@item.Title"
+                                            data-bgy="@item.Barangay"
+                                            data-budget="@item.Amount.ToString("C", new System.Globalization.CultureInfo("en-PH"))"
+                                            data-date="@(item.Date.HasValue ? item.Date.Value.ToString("yyyy-MM-dd") : "-")"
+                                            data-status="@item.Status"
+                                            data-desc="@item.Description"
+                                            data-doc="#">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal"
+                                            data-id="@item.Project_ID"
+                                            data-budget="@item.Amount"
+                                            data-status="@item.Status">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">No pending projects found.</td>
+                        </tr>
+                    }
                 </tbody>
 
             </table>
@@ -159,6 +187,11 @@
                     </div>
                 </div>
 
+                 <div class="mb-3">
+                    <label class="fw-semibold">Description:</label>
+                    <textarea id="vDesc" class="form-control" readonly></textarea>
+                </div>
+
                 <div class="mb-3">
                     <label class="fw-semibold">Reason (if rejected):</label>
                     <textarea id="vReason" class="form-control" readonly></textarea>
@@ -182,7 +215,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
 
-            <form method="post" asp-controller="FederationPresident" asp-action="EditProject" id="editForm">
+            <form method="post" asp-controller="FederationPresident" asp-action="ApproveProject" id="editForm">
 
                 <div class="modal-header bg-warning text-dark">
                     <h5 class="modal-title">Edit Project Details</h5>
@@ -190,10 +223,10 @@
                 </div>
 
                 <div class="modal-body text-dark">
-                    <input type="hidden" name="ProjectId" id="eId">
+                    <input type="hidden" name="Project_ID" id="eId">
 
                     <label class="fw-semibold">Update Budget</label>
-                    <input type="number" class="form-control mb-3" name="AllotedBudget" id="eBudget" />
+                    <input type="number" step="0.01" class="form-control mb-3" name="Approved_Amount" id="eBudget" />
 
                     <label class="fw-semibold">Update Status</label>
                     <select class="form-select" name="Status" id="eStatus">
@@ -224,10 +257,17 @@
         const rows = document.querySelectorAll("#projectTable tbody tr");
 
         rows.forEach(row => {
-            if (row.children.length === 1) return;
+            if (row.children.length === 1) return; // Skip "No projects found" row
             const title = row.cells[0].textContent.toLowerCase();
             const status = row.cells[5].textContent.trim(); // Status column
-            row.style.display = (title.includes(searchValue) && (filterValue === "" || status === filterValue)) ? "" : "none";
+            const matchesSearch = title.includes(searchValue);
+            const matchesFilter = filterValue === "" || status === filterValue;
+            
+            if (matchesSearch && matchesFilter) {
+                 row.style.display = "";
+            } else {
+                 row.style.display = "none";
+            }
         });
     });
 
@@ -240,6 +280,7 @@
         document.getElementById('vBudget').value = b.getAttribute('data-budget');
         document.getElementById('vDate').value = b.getAttribute('data-date');
         document.getElementById('vStatus').value = b.getAttribute('data-status');
+        document.getElementById('vDesc').value = b.getAttribute('data-desc');
         document.getElementById('vReason').value = b.getAttribute('data-reason') || "—";
         document.getElementById('vDoc').href = b.getAttribute('data-doc');
     });
@@ -260,8 +301,17 @@
             e.preventDefault();
             // Populate Remarks Modal
             document.getElementById('remarksProjectId').value = document.getElementById('eId').value;
-            document.getElementById('remarksProjectTitle').value = document.getElementById('eTitle')?.value || "";
+            // Note: eTitle isn't available in editModal, so we might have to find it or just leave it blank.
+            // The previous code had `document.getElementById('eTitle')?.value`, but eTitle input doesn't exist in editModal.
+            // We can try to find the row logic or just not show the title.
+            document.getElementById('remarksProjectTitle').value = "Project ID: " + document.getElementById('eId').value; 
             document.getElementById('remarksStatus').value = status;
+            
+            // Close Edit Modal
+            const editModalInstance = bootstrap.Modal.getInstance(editModal);
+            editModalInstance.hide();
+
+            // Open Remarks Modal
             const remarksModalEl = new bootstrap.Modal(document.getElementById('remarksModal'));
             remarksModalEl.show();
         }

@@ -6,6 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 builder.Services.AddControllersWithViews();
+builder.Services.AddSession(); // Add Session
+builder.Services.AddHttpContextAccessor(); // Add HttpContextAccessor
 
 //  Configure Cookie Authentication (only once)
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -39,6 +41,7 @@ app.UseRouting();
 // Authentication before Authorization
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseSession(); // Enable Session
 
 app.MapStaticAssets();
 

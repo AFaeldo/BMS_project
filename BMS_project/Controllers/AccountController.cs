@@ -39,6 +39,8 @@ public class AccountController : Controller
         var lowerUsername = username.ToLower();
         var user = await _context.Login
             .Include(l => l.Role)
+            .Include(l => l.User)
+            .ThenInclude(u => u.Barangay)
             .FirstOrDefaultAsync(u => u.Username.ToLower() == lowerUsername);
 
         if (user == null)
@@ -121,6 +123,12 @@ public class AccountController : Controller
 
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal,
             new AuthenticationProperties { IsPersistent = true });
+
+        // Store Barangay Name in Session
+        if (user.User?.Barangay != null)
+        {
+            HttpContext.Session.SetString("BarangayName", user.User.Barangay.Barangay_Name);
+        }
 
         // Redirect based on role
         return roleKey switch
