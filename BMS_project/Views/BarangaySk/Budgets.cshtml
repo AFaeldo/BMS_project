@@ -2,20 +2,19 @@
     Layout = "~/Views/Shared/_BarangayLayout.cshtml";
     ViewData["Title"] = "Budget & Finance";
 }
+<div class="mb-4">
+    <h2 class="fw-bold"> Budget Auditing</h2>
+</div>
 
 <div class="container-fluid">
-    <!-- PAGE HEADER -->
-    <div class="mb-4">
-        <h2 class="fw-bold"> Budget Auditing & Requests</h2>
+    <!-- TOTAL BALANCE BOX -->
+    <div class="card shadow-sm border-0 mb-4 p-3 bg-primary text-white">
+        <h5 class="fw-bold">Total Balance</h5>
+        <h3 class="fw-bold">₱0.00</h3>
     </div>
 
-    <div class="text-end mb-3">
-        <button class="btn btn-warning text-dark shadow-sm" data-bs-toggle="modal" data-bs-target="#budgetModal">
-            <i class="bi bi-upload"></i> Submit New Budget Request
-        </button>
-    </div>
 
-    <!-- BUDGET TABLE -->
+
     <!-- BUDGET TABLE -->
     <div class="card shadow-sm border-0">
         <div class="card-body">
@@ -25,7 +24,6 @@
                         <th>Request Title</th>
                         <th>Status</th>
                         <th>Allotted Amount</th>
-                        <th>Remaining Balance</th>
                         <th>Date Submitted</th>
                     </tr>
                 </thead>
@@ -34,20 +32,19 @@
                         <td>Community Clean-up Drive</td>
                         <td><span class="badge bg-success">Approved</span></td>
                         <td>₱15,000</td>
-                        <td class="text-success fw-bold">₱5,000</td> 
                         <td>Sept 28, 2025</td>
                     </tr>
                     <tr>
                         <td>Sports Equipment Purchase</td>
                         <td><span class="badge bg-warning text-dark">Pending</span></td>
                         <td>₱25,000</td>
-                        <td class="text-muted fw-bold">—</td> <!-- No balance until approved -->
                         <td>Oct 3, 2025</td>
                     </tr>
                 </tbody>
             </table>
         </div>
     </div>
+</div>
 
 
 <!-- BUDGET REQUEST MODAL -->

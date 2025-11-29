@@ -11,12 +11,10 @@ namespace BMS_project.Models
 
         public int Barangay_ID { get; set; }
 
-        // DB columns from your ERD: budget, disbursed, balance
-        public decimal budget { get; set; }   // Allotment
+        public decimal budget { get; set; }   
         public decimal disbursed { get; set; }
         public decimal balance { get; set; }
 
-        // Navigation property
         public virtual Barangay Barangay { get; set; }
     }
 }

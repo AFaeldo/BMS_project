@@ -1,4 +1,4 @@
-﻿using BaranggayManagementSystem.Models;
+﻿using BMS_project.Models;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

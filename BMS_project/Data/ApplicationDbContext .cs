@@ -15,6 +15,10 @@ namespace BMS_project.Data
         public DbSet<Barangay> barangays { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Budget> Budgets { get; set; }
+        public DbSet<Project> Projects { get; set; }
+        public DbSet<ProjectAllocation> ProjectAllocations { get; set; }
+        public DbSet<ProjectLog> ProjectLogs { get; set; }
+        public DbSet<FileUpload> FileUploads { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -72,6 +76,68 @@ namespace BMS_project.Data
                 .WithMany()                           // if Barangay doesn't have ICollection<Budget>
                 .HasForeignKey(b => b.Barangay_ID)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // --- Project ---
+            modelBuilder.Entity<Project>()
+                .ToTable("project")
+                .HasKey(p => p.Project_ID);
+
+            modelBuilder.Entity<Project>()
+                .HasOne(p => p.User)
+                .WithMany()
+                .HasForeignKey(p => p.User_ID)
+                .OnDelete(DeleteBehavior.Cascade); // project_ibfk_1
+
+            // --- Project Allocation ---
+            modelBuilder.Entity<ProjectAllocation>()
+                .ToTable("project_allocation")
+                .HasKey(pa => pa.Allocation_ID);
+
+            modelBuilder.Entity<ProjectAllocation>()
+                .HasOne(pa => pa.Budget)
+                .WithMany()
+                .HasForeignKey(pa => pa.Budget_ID)
+                .OnDelete(DeleteBehavior.Cascade); // fk_alloc_budget
+
+            modelBuilder.Entity<ProjectAllocation>()
+                .HasOne(pa => pa.Project)
+                .WithMany(p => p.Allocations)
+                .HasForeignKey(pa => pa.Project_ID)
+                .OnDelete(DeleteBehavior.Cascade); // fk_alloc_project
+
+            // --- Project Log ---
+            modelBuilder.Entity<ProjectLog>()
+                .ToTable("project_log")
+                .HasKey(pl => pl.Log_ID);
+
+            modelBuilder.Entity<ProjectLog>()
+                .HasOne(pl => pl.Project)
+                .WithMany(p => p.Logs)
+                .HasForeignKey(pl => pl.Project_ID)
+                .OnDelete(DeleteBehavior.Cascade); // project_log_ibfk_1
+
+            modelBuilder.Entity<ProjectLog>()
+                .HasOne(pl => pl.User)
+                .WithMany()
+                .HasForeignKey(pl => pl.User_ID)
+                .OnDelete(DeleteBehavior.SetNull); // project_log_ibfk_2
+
+            // --- File Upload ---
+            modelBuilder.Entity<FileUpload>()
+                .ToTable("file_upload")
+                .HasKey(f => f.File_ID);
+
+            modelBuilder.Entity<FileUpload>()
+                .HasOne(f => f.Project)
+                .WithMany(p => p.Files)
+                .HasForeignKey(f => f.Project_ID)
+                .OnDelete(DeleteBehavior.Cascade); // file_upload_ibfk_1
+
+            modelBuilder.Entity<FileUpload>()
+                .HasOne(f => f.User)
+                .WithMany()
+                .HasForeignKey(f => f.User_ID)
+                .OnDelete(DeleteBehavior.SetNull); // file_upload_ibfk_2
 
         }
     }
