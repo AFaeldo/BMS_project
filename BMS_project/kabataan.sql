@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 29, 2025 at 04:58 PM
+-- Generation Time: Nov 29, 2025 at 09:57 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -120,7 +120,9 @@ CREATE TABLE `budget` (
 
 INSERT INTO `budget` (`budget_id`, `Barangay_ID`, `budget`, `disbursed`, `balance`) VALUES
 (1, 7, 1050000.00, 0.00, 1050000.00),
-(2, 17, 50000000.00, 0.00, 50000000.00);
+(2, 17, 50000000.00, 0.00, 50000000.00),
+(3, 16, 1000000.00, 0.00, 1000000.00),
+(4, 5, 2000000.00, 0.00, 2000000.00);
 
 -- --------------------------------------------------------
 
@@ -131,8 +133,7 @@ INSERT INTO `budget` (`budget_id`, `Barangay_ID`, `budget`, `disbursed`, `balanc
 CREATE TABLE `file_upload` (
   `File_ID` int(11) NOT NULL,
   `File_Name` varchar(255) NOT NULL,
-  `File` longblob NOT NULL,
-  `File_Category` varchar(100) DEFAULT NULL,
+  `File` varchar(255) NOT NULL,
   `Project_ID` int(11) DEFAULT NULL,
   `User_ID` int(11) DEFAULT NULL,
   `Timestamp` datetime DEFAULT current_timestamp()
@@ -159,7 +160,8 @@ CREATE TABLE `login` (
 INSERT INTO `login` (`id`, `username`, `password`, `Role_ID`, `User_ID`) VALUES
 (5, 'SK0001', 'AQAAAAIAAYagAAAAEMg1nQ7sImaiG9dG7xjeRhR1W0ci+IiDltOARI2ZQXE4DWDLUvlZtaOns70IHjqYig==', 1, 5),
 (6, 'SK0002', 'AQAAAAIAAYagAAAAEBQnVePJDQ0MztACXLlvdGOcfmgR6ssXXJqi4jEk5rO4npn3iWIbe/gVV8rlY1MVSw==', 3, 6),
-(7, 'SK0003', 'AQAAAAIAAYagAAAAEN094Oxib6sq8Y6QswEPoVhqFXpUV+XmQKuq9MgLQulXpRzxIeZqWfNwHojvWTnipQ==', 2, 7);
+(7, 'SK0003', 'AQAAAAIAAYagAAAAEN094Oxib6sq8Y6QswEPoVhqFXpUV+XmQKuq9MgLQulXpRzxIeZqWfNwHojvWTnipQ==', 2, 7),
+(9, 'SK0004', 'AQAAAAIAAYagAAAAEBD/mpOOVTKybSilgkzc3zqfKV+J7Kk7SqkNAxHcqTfbbChYXJ7xkltEMmk8k8lwog==', 3, 9);
 
 -- --------------------------------------------------------
 
@@ -248,7 +250,8 @@ CREATE TABLE `user` (
 INSERT INTO `user` (`User_ID`, `First_Name`, `Last_Name`, `Email`, `Barangay_ID`, `Role_ID`) VALUES
 (5, 'Brent Paulos', 'Bolanos', 'ifdhjbjkfhb@gmail.com', 7, 1),
 (6, 'Brent', 'Dela Cruz', 'ifdhjbjkfhb@gmail.com', 16, 3),
-(7, 'Juan', 'Dela Cruz', 'ifdhjbjkfhb@gmail.com', 19, 2);
+(7, 'Juan', 'Dela Cruz', 'ifdhjbjkfhb@gmail.com', 19, 2),
+(9, 'Juan', 'Dela Cruz', 'ifdhjbjkfhb@gmail.com', 5, 3);
 
 -- --------------------------------------------------------
 
@@ -359,7 +362,7 @@ ALTER TABLE `barangay`
 -- AUTO_INCREMENT for table `budget`
 --
 ALTER TABLE `budget`
-  MODIFY `budget_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `budget_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `file_upload`
@@ -371,7 +374,7 @@ ALTER TABLE `file_upload`
 -- AUTO_INCREMENT for table `login`
 --
 ALTER TABLE `login`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `project`
@@ -401,7 +404,7 @@ ALTER TABLE `role`
 -- AUTO_INCREMENT for table `user`
 --
 ALTER TABLE `user`
-  MODIFY `User_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `User_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `youth_member`

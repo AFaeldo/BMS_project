@@ -48,27 +48,54 @@ namespace BMS_project.Controllers
             return View();
         }
 
-        public IActionResult ProjectApprovals()
+        public async Task<IActionResult> ProjectApprovals()
         {
             ViewData["Title"] = "Project Approvals";
 
-            var pendingProjects = _context.Projects
-                .Include(p => p.User).ThenInclude(u => u.Barangay)
-                .Include(p => p.Allocations)
+            var projects = await _context.Projects
+                .Include(p => p.User)
+                .ThenInclude(u => u.Barangay)
+                .Include(p => p.Files) // Include Files
+                .Include(p => p.Allocations) // Include Allocations
                 .Where(p => p.Project_Status == "Pending")
+                .OrderByDescending(p => p.Date_Submitted)
                 .Select(p => new ProjectApprovalListViewModel
                 {
                     Project_ID = p.Project_ID,
                     Title = p.Project_Title,
                     Description = p.Project_Description,
-                    Barangay = p.User.Barangay != null ? p.User.Barangay.Barangay_Name : "N/A",
-                    Amount = p.Allocations.Any() ? p.Allocations.FirstOrDefault().Amount_Allocated : 0,
-                    Date = p.Date_Submitted,
-                    Status = p.Project_Status
+                    Barangay = p.User.Barangay.Barangay_Name,
+                    Status = p.Project_Status,
+                    DateSubmitted = p.Date_Submitted ?? DateTime.Now,
+                    // Fix: Populate Amount from Allocation
+                    Amount = p.Allocations.FirstOrDefault() != null ? p.Allocations.FirstOrDefault().Amount_Allocated : 0,
+                    DocumentPath = p.Files.FirstOrDefault() != null ? p.Files.FirstOrDefault().File : null
                 })
-                .ToList();
+                .ToListAsync();
 
-            return View(pendingProjects);
+            return View(projects);
+        }
+
+        // New Action for AJAX Fetch
+        [HttpGet]
+        public async Task<IActionResult> GetProjectDetails(int id)
+        {
+            var project = await _context.Projects
+                .Include(p => p.Allocations)
+                .FirstOrDefaultAsync(p => p.Project_ID == id);
+
+            if (project == null)
+            {
+                return NotFound();
+            }
+
+            var amount = project.Allocations.FirstOrDefault()?.Amount_Allocated ?? 0;
+
+            return Json(new
+            {
+                amount = amount,
+                status = project.Project_Status
+            });
         }
 
         [HttpPost]
@@ -77,8 +104,6 @@ namespace BMS_project.Controllers
         {
             if (!ModelState.IsValid)
             {
-                // In a real scenario, you'd return to the view with errors. 
-                // Since this is likely a modal or direct action, we'll return a bad request or redirect with error.
                 TempData["ErrorMessage"] = "Invalid input.";
                 return RedirectToAction(nameof(ProjectApprovals));
             }
@@ -96,10 +121,13 @@ namespace BMS_project.Controllers
                     return NotFound();
                 }
 
-                if (project.Project_Status != "Pending")
+                // Allow editing if it's Pending (or maybe strictly Pending as per original code)
+                // For now, keeping the check but you might want to remove it if you want to edit approved projects.
+                if (project.Project_Status != "Pending") 
                 {
-                    TempData["ErrorMessage"] = "Project is not pending.";
-                    return RedirectToAction(nameof(ProjectApprovals));
+                     // Only allow editing Pending projects for now
+                     TempData["ErrorMessage"] = "Can only edit pending projects.";
+                     return RedirectToAction(nameof(ProjectApprovals));
                 }
 
                 var allocation = project.Allocations.FirstOrDefault();
@@ -119,46 +147,50 @@ namespace BMS_project.Controllers
                 }
 
                 // 2. Update Project Status
-                project.Project_Status = "Approved";
+                string newStatus = !string.IsNullOrEmpty(model.Status) ? model.Status : "Approved";
+                project.Project_Status = newStatus;
                 _context.Projects.Update(project);
 
-                // 3. Deduct from Budget
-                var budget = await _context.Budgets.FirstOrDefaultAsync(b => b.Budget_ID == allocation.Budget_ID);
-                if (budget == null)
+                // 3. Handle Budget Logic (Only if Approved)
+                if (newStatus == "Approved")
                 {
-                    throw new Exception("Budget not found.");
-                }
+                    var budget = await _context.Budgets.FirstOrDefaultAsync(b => b.Budget_ID == allocation.Budget_ID);
+                    if (budget == null)
+                    {
+                        throw new Exception("Budget not found.");
+                    }
 
-                if (budget.balance < finalAmount)
-                {
-                    TempData["ErrorMessage"] = "Insufficient budget balance for approval.";
-                    return RedirectToAction(nameof(ProjectApprovals));
-                }
+                    if (budget.balance < finalAmount)
+                    {
+                        // Rollback is handled by catch block
+                        throw new Exception("Insufficient budget balance for approval.");
+                    }
 
-                budget.disbursed += finalAmount;
-                budget.balance -= finalAmount;
-                _context.Budgets.Update(budget);
+                    budget.disbursed += finalAmount;
+                    budget.balance -= finalAmount;
+                    _context.Budgets.Update(budget);
+                }
 
                 // 4. Log
                 var log = new ProjectLog
                 {
                     Project_ID = project.Project_ID,
-                    User_ID = project.User_ID, // Or current user (President) if we fetched it
-                    Status = "Approved",
+                    User_ID = project.User_ID, 
+                    Status = newStatus,
                     Changed_On = DateTime.Now,
-                    Remarks = model.Remarks ?? "Approved by Federation President"
+                    Remarks = model.Remarks ?? $"Project status updated to {newStatus} by Federation President"
                 };
                 _context.ProjectLogs.Add(log);
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                TempData["SuccessMessage"] = "Project approved successfully.";
+                TempData["SuccessMessage"] = $"Project {newStatus.ToLower()} successfully.";
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                TempData["ErrorMessage"] = "Error approving project: " + ex.Message;
+                TempData["ErrorMessage"] = "Error processing project: " + ex.Message;
             }
 
             return RedirectToAction(nameof(ProjectApprovals));

@@ -11,5 +11,9 @@ namespace BMS_project.ViewModels
         public decimal Amount { get; set; }
         public DateTime? Date { get; set; }
         public string Status { get; set; }
+
+        public DateTime DateSubmitted { get; set; }
+        
+        public string? DocumentPath { get; set; }
     }
 }

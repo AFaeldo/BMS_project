@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace BMS_project.ViewModels
 {
@@ -19,5 +20,11 @@ namespace BMS_project.ViewModels
 
         [DataType(DataType.Date)]
         public DateTime? End_Date { get; set; }
+
+        // New properties for file upload
+        [Required(ErrorMessage = "Please upload a project document (PDF).")]
+        public IFormFile UploadedFile { get; set; }
+        
+        public string DocumentName { get; set; }
     }
 }

@@ -18,11 +18,7 @@ namespace BMS_project.Models
 
         [Required]
         [Column("File")]
-        public byte[] File { get; set; } // Maps to longblob
-
-        [Column("File_Category")]
-        [StringLength(100)]
-        public string File_Category { get; set; }
+        public String File { get; set; } // This now stores the STRING path (e.g., "~/Uploads/myfile.pdf")
 
         [Column("Project_ID")]
         public int? Project_ID { get; set; }

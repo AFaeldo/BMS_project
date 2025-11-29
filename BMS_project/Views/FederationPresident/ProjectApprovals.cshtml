@@ -72,9 +72,16 @@
                                 <td>@item.Title</td>
                                 <td>@item.Barangay</td>
                                 <td>
-                                    <a href="#" class="btn btn-outline-primary btn-sm">
-                                        <i class="bi bi-file-earmark-pdf"></i> PDF
-                                    </a>
+                                    @if (!string.IsNullOrEmpty(item.DocumentPath))
+                                    {
+                                        <a href="@Url.Content(item.DocumentPath)" target="_blank" class="btn btn-outline-primary btn-sm">
+                                            <i class="bi bi-file-earmark-pdf"></i> View
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">No Doc</span>
+                                    }
                                 </td>
                                 <td>@item.Amount.ToString("C", new System.Globalization.CultureInfo("en-PH"))</td>
                                 <td>@(item.Date.HasValue ? item.Date.Value.ToString("yyyy-MM-dd") : "-")</td>
@@ -87,7 +94,7 @@
                                             data-date="@(item.Date.HasValue ? item.Date.Value.ToString("yyyy-MM-dd") : "-")"
                                             data-status="@item.Status"
                                             data-desc="@item.Description"
-                                            data-doc="#">
+                                            data-doc="@(string.IsNullOrEmpty(item.DocumentPath) ? "" : Url.Content(item.DocumentPath))">
                                         <i class="bi bi-eye"></i>
                                     </button>
                                     <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal"
@@ -282,16 +289,46 @@
         document.getElementById('vStatus').value = b.getAttribute('data-status');
         document.getElementById('vDesc').value = b.getAttribute('data-desc');
         document.getElementById('vReason').value = b.getAttribute('data-reason') || "—";
-        document.getElementById('vDoc').href = b.getAttribute('data-doc');
+        
+        const docPath = b.getAttribute('data-doc');
+        const docBtn = document.getElementById('vDoc');
+        if (docPath) {
+            docBtn.href = docPath;
+            docBtn.classList.remove('d-none');
+            docBtn.textContent = "Open PDF";
+        } else {
+            docBtn.href = "#";
+            docBtn.classList.add('d-none');
+        }
     });
 
     // EDIT MODAL
     const editModal = document.getElementById('editModal');
     editModal.addEventListener('show.bs.modal', e => {
-        const b = e.relatedTarget;
-        document.getElementById('eId').value = b.getAttribute('data-id');
-        document.getElementById('eBudget').value = b.getAttribute('data-budget');
-        document.getElementById('eStatus').value = b.getAttribute('data-status');
+        const btn = e.relatedTarget;
+        const id = btn.getAttribute('data-id');
+        
+        document.getElementById('eId').value = id;
+        
+        // Clear previous values or show loading state
+        document.getElementById('eBudget').value = "";
+        
+        // Fetch latest details via AJAX
+        fetch(`/FederationPresident/GetProjectDetails?id=${id}`)
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('eBudget').value = data.amount;
+                document.getElementById('eStatus').value = data.status;
+            })
+            .catch(err => {
+                console.error("Failed to fetch project details", err);
+                // Fallback to data attributes if fetch fails
+                document.getElementById('eBudget').value = btn.getAttribute('data-budget');
+                document.getElementById('eStatus').value = btn.getAttribute('data-status');
+            });
     });
 
     // AUTO OPEN REMARKS MODAL WHEN REJECTED FROM EDIT

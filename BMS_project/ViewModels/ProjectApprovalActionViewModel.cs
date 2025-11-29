@@ -10,6 +10,8 @@ namespace BMS_project.ViewModels
         [Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than 0")]
         public decimal? Approved_Amount { get; set; }
 
-        public string Remarks { get; set; }
+        public string? Status { get; set; }
+
+        public string? Remarks { get; set; }
     }
 }
