@@ -5,7 +5,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-
+using Newtonsoft.Json;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace BMS_project.Controllers
 {
@@ -21,15 +23,36 @@ namespace BMS_project.Controllers
             _webHostEnvironment = webHostEnvironment;
         }
 
-        public IActionResult Dashboard()
+        public async Task<IActionResult> Dashboard()
         {
             ViewData["Title"] = "Dashboard";
 
-            var vm = new DashboardViewModel
-            {
-                TotalBarangays = _context.barangays?.Count() ?? 0,
-            };
-            return View(vm);
+            var viewModel = new FederationDashboardViewModel();
+
+            // Project Counts
+            viewModel.TotalApprovedProjects = await _context.Projects.CountAsync(p => p.Project_Status == "Approved");
+            viewModel.TotalPendingProjects = await _context.Projects.CountAsync(p => p.Project_Status == "Pending");
+
+            // Budget Totals
+            viewModel.TotalFederationBudget = await _context.Budgets.SumAsync(b => (decimal?)b.budget) ?? 0M;
+            viewModel.TotalDisbursed = await _context.Budgets.SumAsync(b => (decimal?)b.disbursed) ?? 0M;
+            viewModel.TotalRemainingBalance = await _context.Budgets.SumAsync(b => (decimal?)b.balance) ?? 0M;
+
+            // Chart Data Preparation
+            var barangayExpenses = await _context.Budgets
+                .Include(b => b.Barangay)
+                .Select(b => new BarangayExpense
+                {
+                    BarangayName = b.Barangay.Barangay_Name,
+                    TotalDisbursed = b.disbursed
+                })
+                .ToListAsync();
+
+            viewModel.BarangayExpenseList = barangayExpenses;
+            viewModel.ChartLabelsJson = JsonConvert.SerializeObject(barangayExpenses.Select(be => be.BarangayName).ToList());
+            viewModel.ChartDataJson = JsonConvert.SerializeObject(barangayExpenses.Select(be => be.TotalDisbursed).ToList());
+
+            return View(viewModel);
         }
 
         public IActionResult ComplianceMonitoring()

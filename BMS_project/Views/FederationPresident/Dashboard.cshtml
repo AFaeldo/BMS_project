@@ -1,4 +1,4 @@
-﻿@model BMS_project.ViewModels.DashboardViewModel
+@model BMS_project.ViewModels.FederationDashboardViewModel
 @{
     Layout = "~/Views/Shared/_LayoutFederation.cshtml";
     ViewData["Title"] = "Dashboard";
@@ -8,156 +8,182 @@
 
     <!-- PAGE HEADER -->
     <div class="mb-4">
-        <h2 class="fw-bold">Administrative Dashboard</h2>
+        <h2 class="fw-bold">Federation Dashboard</h2>
     </div>
 
     <!-- Summary Cards -->
     <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card shadow-sm border-0 rounded-3 text-center py-3">
+        <div class="col-md-4 col-lg-3">
+            <div class="card shadow-sm border-0 rounded-3 text-center py-3 h-100">
                 <div class="card-body">
-                    <i class="fa-solid fa-city fs-2 text-primary mb-2"></i>
-                    <h6 class="text-muted mb-1">Total Barangay</h6>
-                    <h3 class="fw-bold mb-0">@((Model?.TotalBarangays) ?? 0)</h3>
+                    <i class="fa-solid fa-check-circle fs-2 text-success mb-2"></i>
+                    <h6 class="text-muted mb-1">Approved Projects</h6>
+                    <h3 class="fw-bold mb-0 animated-number" data-target="@Model.TotalApprovedProjects">0</h3>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="card shadow-sm border-0 rounded-3 text-center py-3">
-                <div class="card-body">
-                    <i class="fa-solid fa-diagram-project fs-2 text-info mb-2"></i>
-                    <h6 class="text-muted mb-1">Total Projects</h6>
-                    <h3 class="fw-bold mb-0">@((ViewBag.TotalProjects ?? 0))</h3>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card shadow-sm border-0 rounded-3 text-center py-3">
-                <div class="card-body">
-                    <i class="fa-solid fa-circle-check fs-2 text-success mb-2"></i>
-                    <h6 class="text-muted mb-1">Compliant Barangay</h6>
-                    <h3 class="fw-bold mb-0">@((ViewBag.CompliantBarangays ?? 0))</h3>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card shadow-sm border-0 rounded-3 text-center py-3">
+        <div class="col-md-4 col-lg-3">
+            <div class="card shadow-sm border-0 rounded-3 text-center py-3 h-100">
                 <div class="card-body">
                     <i class="fa-solid fa-hourglass-half fs-2 text-warning mb-2"></i>
-                    <h6 class="text-muted mb-1">Pending Submissions</h6>
-                    <h3 class="fw-bold mb-0">@((ViewBag.PendingSubmissions ?? 0))</h3>
+                    <h6 class="text-muted mb-1">Pending Projects</h6>
+                    <h3 class="fw-bold mb-0 animated-number" data-target="@Model.TotalPendingProjects">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-3">
+            <div class="card shadow-sm border-0 rounded-3 text-center py-3 h-100">
+                <div class="card-body">
+                    <i class="fa-solid fa-money-bill-wave fs-2 text-primary mb-2"></i>
+                    <h6 class="text-muted mb-1">Federation Budget</h6>
+                    <h3 class="fw-bold mb-0 animated-number-currency" data-target="@Model.TotalFederationBudget">₱0.00</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm border-0 rounded-3 text-center py-3 h-100">
+                <div class="card-body">
+                    <i class="fa-solid fa-money-check-dollar fs-2 text-danger mb-2"></i>
+                    <h6 class="text-muted mb-1">Total Disbursed</h6>
+                    <h3 class="fw-bold mb-0 animated-number-currency" data-target="@Model.TotalDisbursed">₱0.00</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm border-0 rounded-3 text-center py-3 h-100">
+                <div class="card-body">
+                    <i class="fa-solid fa-wallet fs-2 text-info mb-2"></i>
+                    <h6 class="text-muted mb-1">Remaining Balance</h6>
+                    <h3 class="fw-bold mb-0 animated-number-currency" data-target="@Model.TotalRemainingBalance">₱0.00</h3>
                 </div>
             </div>
         </div>
     </div>
-
 
     <div class="row g-3 mb-4">
-
-
-        <!-- Barangay Budget Overview (Left) -->
-        <div class="col-lg-6">
-            <div class="card shadow-sm border-0 rounded-3 h-100">
-
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <div class="fw-bold">Barangay Budget Overview</div>
-                    <a class="btn btn-sm btn-outline-primary"
-                       href="@Url.Action("Index", "FederationBudget")"
-                       aria-label="View full budget list">
-                        Full List
-                    </a>
-                </div>
-
-                <div class="p-3">
-                    <div class="row text-center">
-                        <div class="col-4">
-                            <div class="text-muted small">Allotment</div>
-                            <div class="fw-bold">₱@String.Format("{0:N2}", (ViewBag.TotalAllotment ?? 0m))</div>
-                        </div>
-
-                        <div class="col-4">
-                            <div class="text-muted small">Disbursed</div>
-                            <div class="fw-bold">₱@String.Format("{0:N2}", (ViewBag.TotalDisbursed ?? 0m))</div>
-                        </div>
-
-                        <div class="col-4">
-                            <div class="text-muted small">Balance</div>
-                            <div class="fw-bold">₱@String.Format("{0:N2}", (ViewBag.TotalBalance ?? 0m))</div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-
-        <!-- 🟦 Barangay Activity Tracker (Right) -->
-        <div class="col-lg-6">
-            <div class="card shadow-sm border-0 rounded-3 h-100">
-                <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
-                    <span>Barangay Activity Tracker</span>
-                    <a class="btn btn-sm btn-outline-secondary" href="#">View All</a>
+        <!-- LINE CHART -->
+        <div class="col-12">
+            <div class="card card-info card-outline h-100">
+                <div class="card-header bg-white">
+                    <h5 class="card-title fw-bold">Expenses per Barangay</h5>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Barangay</th>
-                                    <th>Submission</th>
-                                    <th>Status</th>
-                                    <th>Last Updated</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
-                    </div>
+                    <canvas id="expensesBarChart" height="200"></canvas>
                 </div>
-            </div>
-        </div>
-
-        <!-- BAR GRAPH -->
-        <div class="card card-info card-outline mt-4">
-            <div class="card-header">
-                <h5 class="card-title">Expenses per Barangay</h5>
-            </div>
-
-            <div class="card-body">
-                <canvas id="expensesBarChart" height="120"></canvas>
             </div>
         </div>
     </div>
-
 
     <!-- ChartJS -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
-        var ctx = document.getElementById('expensesBarChart').getContext('2d');
-
-        var chart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: @Html.Raw(Json.Serialize(ViewBag.BarangayNames ?? new string[] { })),
-                datasets: [{
-                    label: 'Expenses (₱)',
-                    data: @Html.Raw(Json.Serialize(ViewBag.Expenses ?? new decimal[] { })),
-                    backgroundColor: '#17a2b8',
-                    borderColor: '#117a8b',
-                    borderWidth: 1,
-                    borderRadius: 6,
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: { beginAtZero: true }
+        document.addEventListener('DOMContentLoaded', function () {
+            // Chart.js initialization
+            var ctx = document.getElementById('expensesBarChart').getContext('2d');
+            var chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: @Html.Raw(Model.ChartLabelsJson),
+                    datasets: [{
+                        label: 'Expenses (₱)',
+                        data: @Html.Raw(Model.ChartDataJson),
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)', // Single fill color for line chart
+                        borderColor: 'rgba(54, 162, 235, 1)',     // Single line color
+                        borderWidth: 2,
+                        tension: 0, // For smoother curves
+                        fill: false, // Fill area under the line
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Allow chart to take full height
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Amount (₱)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Barangay'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false // Hide legend if only one dataset
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
                 }
+            });
+
+            // Number animation
+            function animateNumber(element, start, end, duration, isCurrency) {
+                let startTime = null;
+
+                // Easing function (easeOutCubic)
+                function easeOutCubic(t) {
+                    return (--t) * t * t + 1;
+                }
+
+                function step(currentTime) {
+                    if (!startTime) startTime = currentTime;
+                    let progress = (currentTime - startTime) / duration;
+                    progress = easeOutCubic(progress); // Apply easing function
+                    progress = Math.min(progress, 1); // Clamp progress to 1
+
+                    let currentValue = start + (end - start) * progress;
+
+                    if (isCurrency) {
+                        element.innerText = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(currentValue);
+                    } else {
+                        element.innerText = Math.floor(currentValue);
+                    }
+
+                    if (progress < 1) {
+                        requestAnimationFrame(step);
+                    } else {
+                        // Ensure final value is exactly the target
+                        if (isCurrency) {
+                            element.innerText = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(end);
+                        } else {
+                            element.innerText = end;
+                        }
+                    }
+                }
+                requestAnimationFrame(step);
             }
+
+            document.querySelectorAll('.animated-number').forEach(element => {
+                const target = parseInt(element.dataset.target);
+                animateNumber(element, 0, target, 1500, false); // 1.5 seconds duration
+            });
+
+            document.querySelectorAll('.animated-number-currency').forEach(element => {
+                const target = parseFloat(element.dataset.target);
+                animateNumber(element, 0, target, 1500, true); // 1.5 seconds duration
+            });
         });
     </script>
