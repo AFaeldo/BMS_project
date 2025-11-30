@@ -94,12 +94,6 @@
                                             data-bs-toggle="modal" data-bs-target="#deleteProjectModal">
                                         <i class="bi bi-trash"></i> Delete
                                     </button>
-                                    <button class="btn btn-sm btn-info text-white btn-upload"
-                                            data-id="@project.Project_ID"
-                                            data-title="@project.Project_Title"
-                                            data-bs-toggle="modal" data-bs-target="#uploadModal">
-                                        <i class="bi bi-upload"></i> Upload
-                                    </button>
                                 </td>
                             </tr>
                         }
@@ -112,42 +106,6 @@
                     }
                 </tbody>
             </table>
-        </div>
-    </div>
-</div>
-
-<!-- UPLOAD DOCUMENT MODAL -->
-<div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow rounded-4">
-            <div class="modal-header bg-info text-white rounded-top-4">
-                <h5 class="modal-title fw-bold">
-                    <i class="bi bi-file-earmark-pdf me-2"></i> Upload Document
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="post" asp-action="UploadDocument" enctype="multipart/form-data">
-                <div class="modal-body">
-                    <input type="hidden" name="ProjectId" id="uploadProjectId">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Project Title</label>
-                        <input type="text" id="uploadProjectTitle" class="form-control" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Document Name</label>
-                        <input type="text" name="DocumentName" class="form-control" placeholder="Enter custom document name">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Select PDF File</label>
-                        <input type="file" name="UploadedFile" class="form-control" accept=".pdf" required>
-                        <div class="form-text">Only .pdf files are allowed.</div>
-                    </div>
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-info text-white px-4">Upload</button>
-                </div>
-            </form>
         </div>
     </div>
 </div>
@@ -356,14 +314,6 @@
                 document.getElementById('deleteProjectID').value = btn.dataset.id;
                 document.getElementById('deleteMessage').innerHTML =
                     `Are you sure you want to delete <strong>${btn.dataset.title}</strong>?`;
-            });
-        });
-
-        // Populate Upload Modal
-        document.querySelectorAll('.btn-upload').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.getElementById('uploadProjectId').value = btn.dataset.id;
-                document.getElementById('uploadProjectTitle').value = btn.dataset.title;
             });
         });
     </script>
