@@ -72,7 +72,7 @@ namespace BMS_project.Controllers
                 // sanitize filename
                 safeDocName = string.Join("_", safeDocName.Split(Path.GetInvalidFileNameChars()));
 
-                string uniqueFileName = $"{safeDocName}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid():N[..6]}{extension}";
+                string uniqueFileName = $"{safeDocName}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid().ToString("N").Substring(0, 6)}{extension}";
                 string filePath = Path.Combine(uploadFolder, uniqueFileName);
 
                 using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
@@ -183,7 +183,7 @@ namespace BMS_project.Controllers
             }
 
             using var transaction = await _context.Database.BeginTransactionAsync();
-            string savedFilePath = null;
+            string? savedFilePath = null;
             bool transactionCommitted = false;
 
             try
@@ -231,7 +231,7 @@ namespace BMS_project.Controllers
                 safeDocName = string.Join("_", safeDocName.Split(Path.GetInvalidFileNameChars()));
 
                 var extension2 = Path.GetExtension(model.UploadedFile.FileName).ToLowerInvariant();
-                string uniqueFileName = $"{safeDocName}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid():N[..6]}{extension2}";
+                string uniqueFileName = $"{safeDocName}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid().ToString("N").Substring(0, 6)}{extension2}";
                 savedFilePath = Path.Combine(uploadFolder, uniqueFileName);
 
                 using (var stream = new FileStream(savedFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
