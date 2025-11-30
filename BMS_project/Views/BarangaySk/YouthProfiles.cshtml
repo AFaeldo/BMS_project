@@ -93,33 +93,46 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
+                <!-- Display global validation summary if any -->
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
                 <form asp-controller="Youth" asp-action="Add" method="post" novalidate>
                     @Html.AntiForgeryToken()
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">First Name</label>
-                            <input name="FirstName" class="form-control" placeholder="Enter first name" />
+                            <input name="FirstName" class="form-control" placeholder="Enter first name" value="@(ViewBag.NewYouth?.FirstName)" />
+                            <span class="text-danger">@Html.ValidationMessage("FirstName")</span>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Last Name</label>
-                            <input name="LastName" class="form-control" placeholder="Enter last name" />
+                            <input name="LastName" class="form-control" placeholder="Enter last name" value="@(ViewBag.NewYouth?.LastName)" />
+                            <span class="text-danger">@Html.ValidationMessage("LastName")</span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Age</label>
+                            <input type="number" name="Age" id="addYouthAge" class="form-control" min="13" max="21" placeholder="13-21" readonly value="@(ViewBag.NewYouth?.Age != 0 ? ViewBag.NewYouth?.Age : "")" />
+                            <span class="text-danger">@Html.ValidationMessage("Age")</span>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Gender</label>
                             <select name="Gender" class="form-select">
                                 <option value="">-- Select Gender --</option>
-                                <option>Male</option>
-                                <option>Female</option>
-                                <option>Other</option>
+                                <option value="Male" selected="@(ViewBag.NewYouth?.Gender == "Male")">Male</option>
+                                <option value="Female" selected="@(ViewBag.NewYouth?.Gender == "Female")">Female</option>
+                                <option value="Other" selected="@(ViewBag.NewYouth?.Gender == "Other")">Other</option>
                             </select>
+                            <span class="text-danger">@Html.ValidationMessage("Gender")</span>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Sitio</label>
-                            <input name="Sitio" class="form-control" placeholder="Enter sitio" />
+                            <input name="Sitio" class="form-control" placeholder="Enter sitio" value="@(ViewBag.NewYouth?.Sitio)" />
+                            <span class="text-danger">@Html.ValidationMessage("Sitio")</span>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Birthdate</label>
-                            <input name="Birthdate" type="date" class="form-control" />
+                            <input name="Birthday" id="addYouthBirthdate" type="date" class="form-control" value="@(ViewBag.NewYouth?.Birthday != null && ViewBag.NewYouth.Birthday != DateTime.MinValue ? ((DateTime)ViewBag.NewYouth.Birthday).ToString("yyyy-MM-dd") : "")" />
+                            <span class="text-danger">@Html.ValidationMessage("Birthday")</span>
                         </div>
                     </div>
                     <div class="mt-4 d-flex justify-content-end gap-2">
@@ -222,6 +235,13 @@
 
 @section Scripts {
     <script>
+        // Check if we need to show the Add Youth Modal (e.g. after validation error)
+        var showAddModal = '@(ViewBag.ShowAddModal ?? false)'.toLowerCase() === 'true';
+        if (showAddModal) {
+            var addModal = new bootstrap.Modal(document.getElementById('addYouthModal'));
+            addModal.show();
+        }
+
         // Fill Edit Modal
         document.querySelectorAll('.btn-edit').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -242,6 +262,29 @@
                     `Are you sure you want to archive <strong>${btn.dataset.name}</strong>?`;
             });
         });
+
+        // Auto-calculate Age from Birthdate for Add Youth Modal
+        const addYouthBirthdateInput = document.getElementById('addYouthBirthdate');
+        const addYouthAgeInput = document.getElementById('addYouthAge');
+
+        if (addYouthBirthdateInput && addYouthAgeInput) {
+            addYouthBirthdateInput.addEventListener('change', function() {
+                const birthdateValue = this.value;
+                if (birthdateValue) {
+                    const birthdate = new Date(birthdateValue);
+                    const today = new Date();
+                    let age = today.getFullYear() - birthdate.getFullYear();
+                    const monthDifference = today.getMonth() - birthdate.getMonth();
+
+                    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthdate.getDate())) {
+                        age--;
+                    }
+                    addYouthAgeInput.value = age;
+                } else {
+                    addYouthAgeInput.value = '';
+                }
+            });
+        }
     </script>
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");

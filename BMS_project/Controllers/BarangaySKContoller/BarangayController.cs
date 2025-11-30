@@ -9,7 +9,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using System;
 using System.IO;
-
+using System.Collections.Generic; // added for List<T>
+        
 namespace BMS_project.Controllers
 {
     [Authorize(Roles = "BarangaySk")]
@@ -24,6 +25,13 @@ namespace BMS_project.Controllers
             _context = context;
             _webHostEnvironment = webHostEnvironment;
             _logger = logger;
+        }
+
+        // Helper: read Barangay_ID from claims (same pattern used elsewhere)
+        private int? GetBarangayIdFromClaims()
+        {
+            var claim = User.Claims.FirstOrDefault(c => c.Type == "Barangay_ID");
+            return claim != null && int.TryParse(claim.Value, out int id) ? id : (int?)null;
         }
 
         [HttpPost]
@@ -352,11 +360,22 @@ namespace BMS_project.Controllers
             return View();
         }
 
+        // YouthProfiles: filter by Barangay_ID claim so each barangay only sees its own youth
         public IActionResult YouthProfiles()
         {
             ViewData["Title"] = "Youth Profiling";
-            var youthList = _context.YouthMembers.ToList();
-            return View("~/Views/BarangaySk/YouthProfiles.cshtml", youthList);
+
+            var barangayId = GetBarangayIdFromClaims();
+            if (barangayId.HasValue)
+            {
+                var youthList = _context.YouthMembers
+                    .Where(y => y.Barangay_ID == barangayId.Value)
+                    .ToList();
+                return View("~/Views/BarangaySk/YouthProfiles.cshtml", youthList);
+            }
+
+            // If no Barangay claim: return empty list to avoid exposing data
+            return View("~/Views/BarangaySk/YouthProfiles.cshtml", new List<YouthMember>());
         }
 
         public async Task<IActionResult> Projects()

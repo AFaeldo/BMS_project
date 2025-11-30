@@ -113,10 +113,16 @@ public class AccountController : Controller
 
         // Create claims & sign-in
         var claims = new List<Claim>
-    {
-        new Claim(ClaimTypes.Name, user.Username),
-        new Claim(ClaimTypes.Role, roleKey)
-    };
+        {
+            new Claim(ClaimTypes.Name, user.Username),
+            new Claim(ClaimTypes.Role, roleKey)
+        };
+
+        // Add Barangay_ID claim if it exists
+        if (user.User?.Barangay_ID != null)
+        {
+            claims.Add(new Claim("Barangay_ID", user.User.Barangay_ID.ToString()));
+        }
 
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         var principal = new ClaimsPrincipal(identity);

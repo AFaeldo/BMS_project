@@ -34,5 +34,8 @@ namespace BMS_project.Models
         [Required, DataType(DataType.Date)]
         [Column("Birthday")]
         public DateTime Birthday { get; set; }
+
+        [Column("Barangay_ID")]
+        public int? Barangay_ID { get; set; }
     }
 }
