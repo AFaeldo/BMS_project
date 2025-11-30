@@ -38,6 +38,9 @@ namespace BMS_project.Models
         [Column("End_Date")]
         public DateTime? End_Date { get; set; }
 
+        [Column("IsArchived")]
+        public bool IsArchived { get; set; } = false;
+
         // Navigation properties
         public ICollection<ProjectAllocation> Allocations { get; set; }
         public ICollection<ProjectLog> Logs { get; set; }

@@ -37,5 +37,8 @@ namespace BMS_project.Models
 
         [Column("Barangay_ID")]
         public int? Barangay_ID { get; set; }
+
+        [Column("IsArchived")]
+        public bool IsArchived { get; set; } = false;
     }
 }

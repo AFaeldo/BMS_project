@@ -34,8 +34,13 @@ namespace BMS_project.Controllers
             if (barangayId.HasValue)
             {
                 var youthList = _context.YouthMembers
-                    .Where(y => y.Barangay_ID == barangayId.Value)
+                    .Where(y => y.Barangay_ID == barangayId.Value && !y.IsArchived)
                     .ToList();
+                
+                ViewBag.ArchivedYouth = _context.YouthMembers
+                    .Where(y => y.Barangay_ID == barangayId.Value && y.IsArchived)
+                    .ToList();
+
                 return View("~/Views/BarangaySk/YouthProfiles.cshtml", youthList);
             }
 
@@ -87,14 +92,14 @@ namespace BMS_project.Controllers
                 _context.SaveChanges();
 
                 TempData["SuccessMessage"] = "Youth member added successfully!";
-                return RedirectToAction(nameof(YouthProfiles));
+                return RedirectToAction("YouthProfiles", "BarangaySk");
             }
 
             TempData["ErrorMessage"] = "Please fix the errors below.";
 
             // Fix: Ensure the list is still filtered by Barangay even on error
             var errorYouthList = _context.YouthMembers
-                .Where(y => y.Barangay_ID == barangayId.Value)
+                .Where(y => y.Barangay_ID == barangayId.Value && !y.IsArchived)
                 .ToList();
 
             // Pass the invalid model back to the view to repopulate the form
@@ -102,6 +107,73 @@ namespace BMS_project.Controllers
             ViewBag.ShowAddModal = true;
 
             return View("~/Views/BarangaySk/YouthProfiles.cshtml", errorYouthList);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(YouthMember member)
+        {
+            var existing = _context.YouthMembers.Find(member.Member_ID);
+            if (existing == null)
+            {
+                TempData["ErrorMessage"] = "Member not found.";
+                return RedirectToAction("YouthProfiles", "BarangaySk");
+            }
+
+            // Update fields
+            existing.FirstName = member.FirstName;
+            existing.LastName = member.LastName;
+            existing.Gender = member.Gender;
+            existing.Sitio = member.Sitio;
+            existing.Birthday = member.Birthday;
+            
+            // Recalculate age
+            var calculatedAge = DateTime.Now.Year - member.Birthday.Year;
+            if (member.Birthday.Date > DateTime.Now.AddYears(-calculatedAge))
+                calculatedAge--;
+            existing.Age = calculatedAge;
+
+            _context.SaveChanges();
+            TempData["SuccessMessage"] = "Member updated successfully!";
+            return RedirectToAction("YouthProfiles", "BarangaySk");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Archive(int Member_ID)
+        {
+            var member = _context.YouthMembers.Find(Member_ID);
+            if (member == null)
+            {
+                TempData["ErrorMessage"] = "Member not found.";
+                return RedirectToAction("YouthProfiles", "BarangaySk");
+            }
+
+            member.IsArchived = true;
+            _context.SaveChanges();
+            TempData["SuccessMessage"] = "Member archived successfully!";
+            return RedirectToAction("YouthProfiles", "BarangaySk");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult RestoreSelected(int[] selectedIds)
+        {
+            if (selectedIds != null && selectedIds.Length > 0)
+            {
+                var members = _context.YouthMembers.Where(m => selectedIds.Contains(m.Member_ID)).ToList();
+                foreach (var m in members)
+                {
+                    m.IsArchived = false;
+                }
+                _context.SaveChanges();
+                TempData["SuccessMessage"] = "Selected members restored successfully!";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "No members selected.";
+            }
+            return RedirectToAction("YouthProfiles", "BarangaySk");
         }
     }
 }

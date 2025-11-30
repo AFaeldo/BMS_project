@@ -369,8 +369,13 @@ namespace BMS_project.Controllers
             if (barangayId.HasValue)
             {
                 var youthList = _context.YouthMembers
-                    .Where(y => y.Barangay_ID == barangayId.Value)
+                    .Where(y => y.Barangay_ID == barangayId.Value && !y.IsArchived)
                     .ToList();
+
+                ViewBag.ArchivedYouth = _context.YouthMembers
+                    .Where(y => y.Barangay_ID == barangayId.Value && y.IsArchived)
+                    .ToList();
+
                 return View("~/Views/BarangaySk/YouthProfiles.cshtml", youthList);
             }
 
@@ -393,7 +398,7 @@ namespace BMS_project.Controllers
             }
 
             var projects = await _context.Projects
-                .Where(p => p.User_ID == login.User.User_ID)
+                .Where(p => p.User_ID == login.User.User_ID && !p.IsArchived)
                 .Include(p => p.Allocations)
                 .OrderByDescending(p => p.Date_Submitted)
                 .Select(p => new ProjectListViewModel
@@ -408,7 +413,67 @@ namespace BMS_project.Controllers
                 })
                 .ToListAsync();
 
+            var archivedProjects = await _context.Projects
+                .Where(p => p.User_ID == login.User.User_ID && p.IsArchived)
+                .Select(p => new ProjectListViewModel
+                {
+                    Project_ID = p.Project_ID,
+                    Project_Title = p.Project_Title,
+                    Project_Description = p.Project_Description,
+                    Start_Date = p.Start_Date,
+                    End_Date = p.End_Date,
+                    Project_Status = p.Project_Status
+                })
+                .ToListAsync();
+
+            ViewBag.ArchivedProjects = archivedProjects;
+
             return View(projects);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteProject(int id)
+        {
+            var project = await _context.Projects.FindAsync(id);
+            if (project == null)
+            {
+                TempData["ErrorMessage"] = "Project not found.";
+                return RedirectToAction(nameof(Projects));
+            }
+
+            // Soft delete
+            project.IsArchived = true;
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Project archived successfully!";
+            return RedirectToAction(nameof(Projects));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RestoreSelected(int[] selectedIds)
+        {
+            if (selectedIds != null && selectedIds.Length > 0)
+            {
+                var projectsToRestore = await _context.Projects
+                    .Where(p => selectedIds.Contains(p.Project_ID))
+                    .ToListAsync();
+
+                foreach (var p in projectsToRestore)
+                {
+                    p.IsArchived = false;
+                }
+
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Selected projects restored successfully!";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "No projects selected for restoration.";
+            }
+
+            return RedirectToAction(nameof(Projects));
         }
 
         public async Task<IActionResult> Budgets()

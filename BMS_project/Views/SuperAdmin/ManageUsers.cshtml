@@ -28,9 +28,14 @@
         </form>
 
         <!-- Add User Button -->
-        <button id="btnAddUserSuper" class="btn btn-primary">
-            <i class="bi bi-person-plus me-1"></i> Add User
-        </button>
+        <div>
+            <button id="btnViewArchived" class="btn btn-secondary me-2">
+                <i class="bi bi-archive me-1"></i> View Archived
+            </button>
+            <button id="btnAddUserSuper" class="btn btn-primary">
+                <i class="bi bi-person-plus me-1"></i> Add User
+            </button>
+        </div>
 
     </div>
 
@@ -70,6 +75,39 @@
                     @* JS will render page links here *@
                 </ul>
             </nav>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: ARCHIVED USERS -->
+<div class="modal fade" id="modalArchivedUsers" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title"><i class="bi bi-archive me-2"></i>Archived Users</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table id="tblArchivedUsers" class="table table-hover align-middle text-center">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Select</th>
+                                <th>Username</th>
+                                <th>Name</th>
+                                <th>Role</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- JS will inject rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                <button id="btnRestoreSelected" class="btn btn-success px-4">Restore Selected</button>
+            </div>
         </div>
     </div>
 </div>
@@ -176,17 +214,22 @@
 
         const api = {
             list: '/api/users',
+            archived_list: '/api/users/archived',
             get: id => `/api/users/${id}`,
             create: '/api/users',
             update: id => `/api/users/${id}`,
             delete: id => `/api/users/${id}`,
             archive: id => `/api/users/${id}/archive`,
+            restore: '/api/users/restore',
             barangays: '/api/users/barangays',
             roles: '/api/users/roles'
         };
 
         const modalEl = document.getElementById('modalUserSuper');
         const userModal = new bootstrap.Modal(modalEl);
+        
+        const modalArchivedEl = document.getElementById('modalArchivedUsers');
+        const archivedModal = new bootstrap.Modal(modalArchivedEl);
 
         function showToast(msg) {
             $("#toastMsg").text(msg);
@@ -205,6 +248,10 @@
 
         function renderRows(data) {
             const tbody = $("#tblManageUsers tbody").empty();
+            if (!data || data.length === 0) {
+                tbody.append('<tr><td colspan="8" class="text-center">No users found.</td></tr>');
+                return;
+            }
             data.forEach(u => {
                 tbody.append(`
                     <tr data-userid="${u.id}">
@@ -226,6 +273,29 @@
                     </tr>
                 `);
             });
+        }
+
+        function loadArchivedUsers() {
+            $.get(api.archived_list)
+                .done(data => {
+                    const tbody = $("#tblArchivedUsers tbody").empty();
+                    if (!data || data.length === 0) {
+                        tbody.append('<tr><td colspan="4" class="text-muted">No archived users found.</td></tr>');
+                        return;
+                    }
+                    data.forEach(u => {
+                        tbody.append(`
+                            <tr>
+                                <td><input type="checkbox" class="form-check-input restore-check" value="${u.id}"></td>
+                                <td>${escapeHtml(u.username)}</td>
+                                <td>${escapeHtml((u.firstName || '') + ' ' + (u.lastName || ''))}</td>
+                                <td>${escapeHtml(u.role || '')}</td>
+                            </tr>
+                        `);
+                    });
+                    archivedModal.show();
+                })
+                .fail(() => showToast("Failed to load archived users."));
         }
 
         function escapeHtml(str) {
@@ -275,6 +345,32 @@
                         $("#Super_IsActive").val("true");
                         userModal.show();
                     });
+            });
+
+            $("#btnViewArchived").on("click", () => {
+                loadArchivedUsers();
+            });
+
+            $("#btnRestoreSelected").on("click", () => {
+                const selectedIds = [];
+                $(".restore-check:checked").each(function() {
+                    selectedIds.push(Number($(this).val()));
+                });
+
+                if (selectedIds.length === 0) return showToast("No users selected.");
+
+                $.ajax({
+                    url: api.restore,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(selectedIds)
+                }).done(() => {
+                    showToast("Users restored.");
+                    archivedModal.hide();
+                    refreshTable();
+                }).fail(xhr => {
+                    showToast(xhr.responseText || "Restore failed.");
+                });
             });
 
             $("#tblManageUsers").on("click", ".btn-edit", function () {

@@ -13,6 +13,9 @@
     </div>
 
     <div class="col-12 text-end mb-3">
+        <button class="btn btn-secondary me-2" data-bs-toggle="modal" data-bs-target="#archivedYouthModal">
+            <i class="bi bi-archive"></i> View Archived Youth
+        </button>
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addYouthModal">
             <i class="bi bi-person-plus"></i> Add Youth
         </button>
@@ -229,6 +232,65 @@
                     </div>
                 </form>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- RESTORE YOUTH MODAL -->
+<div class="modal fade" id="archivedYouthModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-secondary text-white rounded-top-4">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-archive me-2"></i> Archived Youth Members
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-controller="Youth" asp-action="RestoreSelected" method="post">
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle text-center">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Select</th>
+                                    <th>Name</th>
+                                    <th>Age</th>
+                                    <th>Gender</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    var archivedYouth = ViewBag.ArchivedYouth as List<BMS_project.Models.YouthMember>;
+                                    if (archivedYouth != null && archivedYouth.Any())
+                                    {
+                                        foreach (var item in archivedYouth)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <input type="checkbox" name="selectedIds" value="@item.Member_ID" class="form-check-input" />
+                                                </td>
+                                                <td>@item.FirstName @item.LastName</td>
+                                                <td>@item.Age</td>
+                                                <td>@item.Gender</td>
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td colspan="4" class="text-muted">No archived members found.</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success px-4">Restore Selected</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

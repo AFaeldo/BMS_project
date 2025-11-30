@@ -27,6 +27,7 @@ namespace BMS_project.Controllers.SuperAdminController
             var data = await _context.Login
                 .Include(l => l.User)
                 .Include(l => l.Role)
+                .Where(l => l.User != null && !l.User.IsArchived) // Filter active users
                 .Select(l => new UserListDto
                 {
                     Id = l.Id,
@@ -39,6 +40,31 @@ namespace BMS_project.Controllers.SuperAdminController
                     Role = l.Role != null ? l.Role.Role_Name : null,
                     Email = l.User != null ? l.User.Email : null,
                     IsActive = true
+                })
+                .ToListAsync();
+
+            return Ok(data);
+        }
+
+        [HttpGet("archived")]
+        public async Task<IActionResult> GetArchived()
+        {
+            var data = await _context.Login
+                .Include(l => l.User)
+                .Include(l => l.Role)
+                .Where(l => l.User != null && l.User.IsArchived) // Filter archived users
+                .Select(l => new UserListDto
+                {
+                    Id = l.Id,
+                    Username = l.Username,
+                    LastName = l.User != null ? l.User.Last_Name : null,
+                    FirstName = l.User != null ? l.User.First_Name : null,
+                    BarangayId = l.User != null ? l.User.Barangay_ID : null,
+                    BarangayName = l.User != null && l.User.Barangay != null ? l.User.Barangay.Barangay_Name : null,
+                    RoleId = l.Role_ID,
+                    Role = l.Role != null ? l.Role.Role_Name : null,
+                    Email = l.User != null ? l.User.Email : null,
+                    IsActive = false
                 })
                 .ToListAsync();
 
@@ -117,7 +143,8 @@ namespace BMS_project.Controllers.SuperAdminController
                     Last_Name = dto.LastName,
                     Email = dto.Email,
                     Barangay_ID = dto.BarangayId,
-                    Role_ID = dto.RoleId
+                    Role_ID = dto.RoleId,
+                    IsArchived = false
                 };
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
@@ -200,40 +227,53 @@ namespace BMS_project.Controllers.SuperAdminController
             }
         }
 
-        // DELETE: api/users/5
+        // DELETE: api/users/5/archive (Soft Delete)
+        [HttpPost("{id:int}/archive")]
+        public async Task<IActionResult> Archive(int id)
+        {
+            var login = await _context.Login.Include(l => l.User).FirstOrDefaultAsync(l => l.Id == id);
+            if (login == null || login.User == null) return NotFound();
+
+            login.User.IsArchived = true;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { success = true });
+        }
+
+        // POST: api/users/restore
+        [HttpPost("restore")]
+        public async Task<IActionResult> Restore([FromBody] int[] ids)
+        {
+            if (ids == null || ids.Length == 0) return BadRequest("No users selected.");
+
+            // Note: We receive Login IDs, but IsArchived is on User.
+            // We need to find users associated with these login IDs.
+            var logins = await _context.Login
+                .Include(l => l.User)
+                .Where(l => ids.Contains(l.Id))
+                .ToListAsync();
+
+            foreach (var l in logins)
+            {
+                if (l.User != null)
+                {
+                    l.User.IsArchived = false;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(new { success = true });
+        }
+
+        // DELETE: api/users/5 (Kept for backward compatibility or hard delete if needed, but for now, let's make it return 405 or alias to archive if desired. 
+        // Requirement says "Change logic... do NOT use Remove". So I will replace this method body to use soft delete logic too, but typically HTTP verb implies meaning.
+        // I'll keep this as Archive logic but via Delete verb if existing frontend uses DELETE.)
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var login = await _context.Login.FirstOrDefaultAsync(l => l.Id == id);
-            if (login == null) return NotFound();
-
-            User user = null;
-            if (login.User_ID == null || login.User_ID is DBNull)
-                user = null;
-            else
-                user = await _context.Users.FirstOrDefaultAsync(u => u.User_ID == login.User_ID);
-
-            await using var tx = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                _context.Login.Remove(login);
-                await _context.SaveChangesAsync();
-
-                if (user != null)
-                {
-                    _context.Users.Remove(user);
-                    await _context.SaveChangesAsync();
-                }
-
-                await tx.CommitAsync();
-                return Ok(new { success = true });
-            }
-            catch (Exception ex)
-            {
-                await tx.RollbackAsync();
-                return StatusCode(500, ex.Message);
-            }
+             return await Archive(id);
         }
+
 
         // GET: api/users/barangays
         [HttpGet("barangays")]

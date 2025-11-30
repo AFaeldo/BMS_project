@@ -11,20 +11,6 @@
         <h2 class="fw-bold">Project Management</h2>
     </div>
     
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
     @if (!ViewData.ModelState.IsValid)
     {
         <div class="alert alert-danger">
@@ -38,6 +24,9 @@
     }
 
     <div class="col-12 text-end mb-3">
+        <button class="btn btn-secondary me-2" data-bs-toggle="modal" data-bs-target="#archivedProjectsModal">
+            <i class="bi bi-archive"></i> View Archived Projects
+        </button>
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProjectModal">
             <i class="bi bi-plus-circle"></i> Add Project
         </button>
@@ -270,18 +259,79 @@
         <div class="modal-content border-0 shadow rounded-4">
             <div class="modal-header bg-danger text-white rounded-top-4">
                 <h5 class="modal-title fw-bold">
-                    <i class="bi bi-exclamation-triangle me-2"></i> Confirm Delete
+                    <i class="bi bi-exclamation-triangle me-2"></i> Confirm Archive
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body text-center">
-                <input type="hidden" id="deleteProjectID">
-                <p id="deleteMessage" class="mb-4 text-black"></p>
-                <div class="d-flex justify-content-center gap-2">
-                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger px-4">Delete</button>
+            <form method="post" asp-action="DeleteProject">
+                <div class="modal-body text-center">
+                    <input type="hidden" name="id" id="deleteProjectID">
+                    <p id="deleteMessage" class="mb-4 text-black"></p>
+                    <div class="d-flex justify-content-center gap-2">
+                        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger px-4">Archive</button>
+                    </div>
                 </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ARCHIVED PROJECTS MODAL -->
+<div class="modal fade" id="archivedProjectsModal" tabindex="-1" aria-labelledby="archivedProjectsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-secondary text-white rounded-top-4">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-archive me-2"></i> Archived Projects
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
+            <form method="post" asp-action="RestoreSelected">
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle text-center">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Select</th>
+                                    <th>Project Title</th>
+                                    <th>Description</th>
+                                    <th>Date Archived</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    var archived = ViewBag.ArchivedProjects as List<BMS_project.ViewModels.ProjectListViewModel>;
+                                    if (archived != null && archived.Any())
+                                    {
+                                        foreach (var item in archived)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <input type="checkbox" name="selectedIds" value="@item.Project_ID" class="form-check-input" />
+                                                </td>
+                                                <td>@item.Project_Title</td>
+                                                <td>@item.Project_Description</td>
+                                                <td>-</td> <!-- Date archived not tracked in model yet, could use Date_Submitted or add a new field -->
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td colspan="4" class="text-muted">No archived projects found.</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success px-4">Restore Selected</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

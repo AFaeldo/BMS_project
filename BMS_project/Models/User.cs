@@ -32,5 +32,8 @@ namespace BMS_project.Models
         public Role Role { get; set; }
 
         public Login Login { get; set; }              // optional 1:1 nav prop
+
+        [Column("IsArchived")]
+        public bool IsArchived { get; set; } = false;
     }
 }
