@@ -13,10 +13,12 @@ namespace BMS_project.Controllers
     public class FederationPresidentController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public FederationPresidentController(ApplicationDbContext context)
+        public FederationPresidentController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         public IActionResult Dashboard()
@@ -69,7 +71,8 @@ namespace BMS_project.Controllers
                     DateSubmitted = p.Date_Submitted ?? DateTime.Now,
                     // Fix: Populate Amount from Allocation
                     Amount = p.Allocations.FirstOrDefault() != null ? p.Allocations.FirstOrDefault().Amount_Allocated : 0,
-                    DocumentPath = p.Files.FirstOrDefault() != null ? p.Files.FirstOrDefault().File : null
+                    DocumentPath = p.Files.FirstOrDefault() != null ? p.Files.FirstOrDefault().File : null,
+                    DocumentId = p.Files.FirstOrDefault() != null ? p.Files.FirstOrDefault().File_ID : null
                 })
                 .ToListAsync();
 
@@ -194,6 +197,61 @@ namespace BMS_project.Controllers
             }
 
             return RedirectToAction(nameof(ProjectApprovals));
+        }
+
+        public async Task<IActionResult> DownloadFile(int id)
+        {
+            var fileUpload = await _context.FileUploads.FindAsync(id);
+            if (fileUpload == null)
+            {
+                return NotFound();
+            }
+
+            string filePath;
+            
+            // Check if it's a legacy path (starts with /UploadedFiles/)
+            if (fileUpload.File.StartsWith("/UploadedFiles/"))
+            {
+                 // Legacy: located in wwwroot
+                 // Remove leading slash for Path.Combine
+                 filePath = System.IO.Path.Combine(_webHostEnvironment.WebRootPath, fileUpload.File.TrimStart('/'));
+            }
+            else
+            {
+                // New: located in UploadedFiles directory in ContentRoot
+                string relativePath = fileUpload.File;
+                // If the stored path doesn't start with UploadedFiles, prepend it (assuming it's just the filename or relative)
+                if (!relativePath.StartsWith("UploadedFiles") && !relativePath.Contains("/") && !relativePath.Contains("\\"))
+                {
+                     relativePath = System.IO.Path.Combine("UploadedFiles", relativePath);
+                }
+                // If it is already "UploadedFiles/file.pdf", it's fine.
+                
+                filePath = System.IO.Path.Combine(_webHostEnvironment.ContentRootPath, relativePath);
+            }
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound("File not found on server.");
+            }
+
+            var memory = new MemoryStream();
+            using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            {
+                await stream.CopyToAsync(memory);
+            }
+            memory.Position = 0;
+
+            string contentType = "application/pdf"; // Default to PDF as per restriction
+            // basic mime type check if needed
+            if (filePath.EndsWith(".jpg") || filePath.EndsWith(".jpeg")) contentType = "image/jpeg";
+            else if (filePath.EndsWith(".png")) contentType = "image/png";
+            
+            // Use the original file name for download
+            string downloadName = !string.IsNullOrEmpty(fileUpload.File_Name) ? fileUpload.File_Name : "document.pdf";
+            if (!downloadName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase)) downloadName += ".pdf";
+
+            return File(memory, contentType, downloadName);
         }
 
         // Load list of budgets and pass to view

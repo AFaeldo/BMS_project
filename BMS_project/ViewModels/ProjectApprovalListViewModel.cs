@@ -15,5 +15,6 @@ namespace BMS_project.ViewModels
         public DateTime DateSubmitted { get; set; }
         
         public string? DocumentPath { get; set; }
+        public int? DocumentId { get; set; }
     }
 }

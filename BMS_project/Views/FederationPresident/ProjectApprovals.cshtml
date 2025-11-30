@@ -72,9 +72,9 @@
                                 <td>@item.Title</td>
                                 <td>@item.Barangay</td>
                                 <td>
-                                    @if (!string.IsNullOrEmpty(item.DocumentPath))
+                                    @if (item.DocumentId.HasValue)
                                     {
-                                        <a href="@Url.Content(item.DocumentPath)" target="_blank" class="btn btn-outline-primary btn-sm">
+                                        <a asp-action="DownloadFile" asp-route-id="@item.DocumentId" target="_blank" class="btn btn-outline-primary btn-sm">
                                             <i class="bi bi-file-earmark-pdf"></i> View
                                         </a>
                                     }
@@ -94,7 +94,7 @@
                                             data-date="@(item.Date.HasValue ? item.Date.Value.ToString("yyyy-MM-dd") : "-")"
                                             data-status="@item.Status"
                                             data-desc="@item.Description"
-                                            data-doc="@(string.IsNullOrEmpty(item.DocumentPath) ? "" : Url.Content(item.DocumentPath))">
+                                            data-doc="@(item.DocumentId.HasValue ? Url.Action("DownloadFile", new { id = item.DocumentId }) : "")">
                                         <i class="bi bi-eye"></i>
                                     </button>
                                     <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal"

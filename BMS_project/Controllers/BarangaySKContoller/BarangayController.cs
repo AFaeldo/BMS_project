@@ -4,9 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using BMS_project.Data;
 using BMS_project.Models;
 using BMS_project.ViewModels;
+using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.Threading.Tasks;
 using System;
+using System.IO;
 
 namespace BMS_project.Controllers
 {
@@ -15,11 +17,13 @@ namespace BMS_project.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly ILogger<BarangaySkController> _logger;
 
-        public BarangaySkController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
+        public BarangaySkController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment, ILogger<BarangaySkController> logger)
         {
             _context = context;
             _webHostEnvironment = webHostEnvironment;
+            _logger = logger;
         }
 
         [HttpPost]
@@ -32,8 +36,7 @@ namespace BMS_project.Controllers
                 return RedirectToAction(nameof(Projects));
             }
 
-            // 1. Validation: Check for PDF
-            var extension = System.IO.Path.GetExtension(UploadedFile.FileName).ToLowerInvariant();
+            var extension = Path.GetExtension(UploadedFile.FileName).ToLowerInvariant();
             if (extension != ".pdf" || UploadedFile.ContentType != "application/pdf")
             {
                 TempData["ErrorMessage"] = "Only PDF files are allowed.";
@@ -42,51 +45,60 @@ namespace BMS_project.Controllers
 
             try
             {
-                // 2. Directory Setup
-                string uploadFolder = System.IO.Path.Combine(_webHostEnvironment.WebRootPath, "UploadedFiles");
-                if (!System.IO.Directory.Exists(uploadFolder))
+                // Prefer web root so files are served statically and to avoid writing into protected app folders
+                var baseFolder = !string.IsNullOrEmpty(_webHostEnvironment.WebRootPath)
+                    ? _webHostEnvironment.WebRootPath
+                    : _webHostEnvironment.ContentRootPath;
+
+                string uploadFolder = Path.Combine(baseFolder, "UploadedFiles");
+                if (!Directory.Exists(uploadFolder))
                 {
-                    System.IO.Directory.CreateDirectory(uploadFolder);
+                    Directory.CreateDirectory(uploadFolder);
+                    _logger.LogInformation("Created upload directory: {UploadFolder}", uploadFolder);
                 }
 
-                // 3. File Naming
-                // Sanitize DocumentName or use a default if empty
-                string safeDocName = string.IsNullOrWhiteSpace(DocumentName) 
-                    ? "Document" 
-                    : string.Join("_", DocumentName.Split(System.IO.Path.GetInvalidFileNameChars()));
-                
-                // Format: Name_Timestamp.pdf
-                string uniqueFileName = $"{safeDocName}_{DateTime.Now:yyyyMMddHHmmss}{extension}";
-                string filePath = System.IO.Path.Combine(uploadFolder, uniqueFileName);
+                string safeDocName = string.IsNullOrWhiteSpace(DocumentName)
+                    ? "Document"
+                    : Path.GetFileNameWithoutExtension(DocumentName);
 
-                // 4. Save File
-                using (var stream = new System.IO.FileStream(filePath, System.IO.FileMode.Create))
+                // sanitize filename
+                safeDocName = string.Join("_", safeDocName.Split(Path.GetInvalidFileNameChars()));
+
+                string uniqueFileName = $"{safeDocName}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid():N[..6]}{extension}";
+                string filePath = Path.Combine(uploadFolder, uniqueFileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
                     await UploadedFile.CopyToAsync(stream);
                 }
 
                 // 5. Database Insert
-                // Need User_ID for the record
                 var username = User.Identity.Name;
                 var user = await _context.Login.Include(l => l.User).FirstOrDefaultAsync(l => l.Username == username);
-                int? userId = user?.User?.User_ID;
+                
+                if (user?.User == null)
+                {
+                    throw new Exception("User not found or not associated with a profile.");
+                }
 
                 var fileUpload = new FileUpload
                 {
                     Project_ID = ProjectId,
-                    User_ID = userId,
+                    User_ID = user.User.User_ID,
                     File_Name = DocumentName,
-                    File = "/UploadedFiles/" + uniqueFileName,
+                    File = "UploadedFiles/" + uniqueFileName, // Store relative path
                     Timestamp = DateTime.Now
                 };
 
-                _context.FileUploads.Add(fileUpload); // Assuming DbSet<FileUpload> is named FileUploads
+                _context.FileUploads.Add(fileUpload);
                 await _context.SaveChangesAsync();
 
                 TempData["SuccessMessage"] = "Document uploaded successfully!";
+                _logger.LogInformation("File uploaded: {FilePath} by user {Username}", filePath, username);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "File upload failed for project {ProjectId}", ProjectId);
                 TempData["ErrorMessage"] = "File upload failed: " + ex.Message;
             }
 
@@ -103,6 +115,8 @@ namespace BMS_project.Controllers
         // POST: Create Project
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequestSizeLimit(100 * 1024 * 1024)] // 100 MB
+        [RequestFormLimits(MultipartBodyLengthLimit = 100 * 1024 * 1024)] // 100 MB
         public async Task<IActionResult> CreateProject(ProjectCreationViewModel model)
         {
             if (!ModelState.IsValid)
@@ -114,23 +128,20 @@ namespace BMS_project.Controllers
                 return RedirectToAction(nameof(Projects));
             }
 
-            // Early Validation for File Upload
-            if (model.UploadedFile != null && model.UploadedFile.Length > 0)
+                if (model.UploadedFile == null || model.UploadedFile.Length == 0)
             {
-                var extension = System.IO.Path.GetExtension(model.UploadedFile.FileName).ToLowerInvariant();
-                if (extension != ".pdf" || model.UploadedFile.ContentType != "application/pdf")
-                {
-                    TempData["ErrorMessage"] = "Only PDF files are allowed.";
-                    return RedirectToAction(nameof(Projects));
-                }
-            }
-            else
-            {
-                 TempData["ErrorMessage"] = "Please upload a project document (PDF).";
-                 return RedirectToAction(nameof(Projects));
+                TempData["ErrorMessage"] = "Please upload a project document (PDF).";
+                return RedirectToAction(nameof(Projects));
             }
 
-            var username = User.Identity.Name;
+            var ext = Path.GetExtension(model.UploadedFile.FileName).ToLowerInvariant();
+            if (ext != ".pdf" || model.UploadedFile.ContentType != "application/pdf")
+            {
+                TempData["ErrorMessage"] = "Only PDF files are allowed.";
+                return RedirectToAction(nameof(Projects));
+            }
+
+            var username = User.Identity?.Name;
             var login = await _context.Login
                 .Include(l => l.User)
                 .FirstOrDefaultAsync(l => l.Username == username);
@@ -163,16 +174,14 @@ namespace BMS_project.Controllers
                 return RedirectToAction(nameof(Projects));
             }
 
-            // Start Transaction
             using var transaction = await _context.Database.BeginTransactionAsync();
             string savedFilePath = null;
             bool transactionCommitted = false;
 
             try
             {
-                Console.WriteLine("Starting project creation transaction...");
+                _logger.LogInformation("Starting project creation transaction for user {UserId}", user.User_ID);
 
-                // 1. Create Project
                 var project = new Project
                 {
                     User_ID = user.User_ID,
@@ -185,10 +194,8 @@ namespace BMS_project.Controllers
                 };
 
                 _context.Projects.Add(project);
-                await _context.SaveChangesAsync(); // Save to generate Project_ID
-                Console.WriteLine($"Project created with ID: {project.Project_ID}");
+                await _context.SaveChangesAsync();
 
-                // 2. Create Allocation
                 var allocation = new ProjectAllocation
                 {
                     Budget_ID = budget.Budget_ID,
@@ -196,36 +203,33 @@ namespace BMS_project.Controllers
                     Amount_Allocated = model.Allocated_Amount
                 };
                 _context.ProjectAllocations.Add(allocation);
-                Console.WriteLine("Project allocation added.");
 
-                // 3. Handle File Upload
-                if (_webHostEnvironment.WebRootPath == null)
+                // Save file to webroot UploadedFiles
+                var baseFolder = !string.IsNullOrEmpty(_webHostEnvironment.WebRootPath)
+                    ? _webHostEnvironment.WebRootPath
+                    : _webHostEnvironment.ContentRootPath;
+
+                string uploadFolder = Path.Combine(baseFolder, "UploadedFiles");
+                if (!Directory.Exists(uploadFolder))
                 {
-                    // Fallback if WebRootPath is null
-                    _webHostEnvironment.WebRootPath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot");
+                    Directory.CreateDirectory(uploadFolder);
+                    _logger.LogInformation("Created upload directory: {UploadFolder}", uploadFolder);
                 }
 
-                string uploadFolder = System.IO.Path.Combine(_webHostEnvironment.WebRootPath, "UploadedFiles");
-                if (!System.IO.Directory.Exists(uploadFolder))
-                {
-                    System.IO.Directory.CreateDirectory(uploadFolder);
-                    Console.WriteLine($"Created upload directory: {uploadFolder}");
-                }
+                string safeDocName = string.IsNullOrWhiteSpace(model.DocumentName)
+                    ? "Document"
+                    : Path.GetFileNameWithoutExtension(model.DocumentName);
 
-                string safeDocName = string.IsNullOrWhiteSpace(model.DocumentName) 
-                    ? "Document" 
-                    : string.Join("_", model.DocumentName.Split(System.IO.Path.GetInvalidFileNameChars()));
-                
-                var extension = System.IO.Path.GetExtension(model.UploadedFile.FileName).ToLowerInvariant();
-                string uniqueFileName = $"{safeDocName}_{DateTime.Now:yyyyMMddHHmmss}{extension}";
-                savedFilePath = System.IO.Path.Combine(uploadFolder, uniqueFileName);
+                safeDocName = string.Join("_", safeDocName.Split(Path.GetInvalidFileNameChars()));
 
-                Console.WriteLine($"Saving file to: {savedFilePath}");
-                using (var stream = new System.IO.FileStream(savedFilePath, System.IO.FileMode.Create))
+                var extension2 = Path.GetExtension(model.UploadedFile.FileName).ToLowerInvariant();
+                string uniqueFileName = $"{safeDocName}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid():N[..6]}{extension2}";
+                savedFilePath = Path.Combine(uploadFolder, uniqueFileName);
+
+                using (var stream = new FileStream(savedFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
                     await model.UploadedFile.CopyToAsync(stream);
                 }
-                Console.WriteLine("File saved successfully.");
 
                 var fileUpload = new FileUpload
                 {
@@ -237,7 +241,6 @@ namespace BMS_project.Controllers
                 };
                 _context.FileUploads.Add(fileUpload);
 
-                // 4. Log the action
                 var log = new ProjectLog
                 {
                     Project_ID = project.Project_ID,
@@ -248,51 +251,93 @@ namespace BMS_project.Controllers
                 };
                 _context.ProjectLogs.Add(log);
 
-                // 5. Final Save & Commit
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
                 transactionCommitted = true;
-                Console.WriteLine("Transaction committed successfully.");
 
+                _logger.LogInformation("Transaction committed for project {ProjectId}", project.Project_ID);
                 TempData["SuccessMessage"] = "Project submitted successfully!";
                 return RedirectToAction(nameof(Projects));
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"ERROR in CreateProject: {ex.Message}");
-                Console.WriteLine(ex.StackTrace);
-
-                // Rollback transaction ONLY if not committed
+                _logger.LogError(ex, "ERROR in CreateProject");
                 if (!transactionCommitted)
                 {
                     try
                     {
                         await transaction.RollbackAsync();
-                        Console.WriteLine("Transaction rolled back.");
+                        _logger.LogInformation("Transaction rolled back.");
                     }
-                    catch (Exception rollbackEx)
+                    catch (Exception rbEx)
                     {
-                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                        _logger.LogError(rbEx, "Rollback failed");
                     }
                 }
 
-                // Clean up the uploaded file if it was created
                 if (savedFilePath != null && System.IO.File.Exists(savedFilePath))
                 {
-                    try 
-                    { 
+                    try
+                    {
                         System.IO.File.Delete(savedFilePath);
-                        Console.WriteLine("Cleaned up orphaned file.");
-                    } 
-                    catch 
-                    { 
-                        // Ignore cleanup errors
+                        _logger.LogInformation("Cleaned up orphaned file {Path}", savedFilePath);
+                    }
+                    catch (Exception cleanupEx)
+                    {
+                        _logger.LogWarning(cleanupEx, "Failed to delete orphaned file");
                     }
                 }
 
-                TempData["ErrorMessage"] = "An error occurred while creating the project: " + ex.Message;
+                TempData["ErrorMessage"] = "An error occurred: " + ex.Message;
                 return RedirectToAction(nameof(Projects));
             }
+        }
+
+        // Download File Action
+        public async Task<IActionResult> DownloadFile(int id)
+        {
+            var fileUpload = await _context.FileUploads.FindAsync(id);
+            if (fileUpload == null)
+            {
+                return NotFound();
+            }
+
+            string filePath;
+
+            if (!string.IsNullOrEmpty(fileUpload.File) && (fileUpload.File.StartsWith("/UploadedFiles/") || fileUpload.File.StartsWith("UploadedFiles/")))
+            {
+                var trimmed = fileUpload.File.TrimStart('/');
+                filePath = Path.Combine(_webHostEnvironment.WebRootPath ?? _webHostEnvironment.ContentRootPath, trimmed);
+            }
+            else
+            {
+                // fallback: treat DB value as relative to content root
+                var relativePath = fileUpload.File ?? string.Empty;
+                if (!relativePath.StartsWith("UploadedFiles") && !relativePath.Contains("/") && !relativePath.Contains("\\"))
+                {
+                    relativePath = Path.Combine("UploadedFiles", relativePath);
+                }
+                filePath = Path.Combine(_webHostEnvironment.ContentRootPath, relativePath);
+            }
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                _logger.LogWarning("Requested file not found: {FilePath}", filePath);
+                return NotFound("File not found on server.");
+            }
+
+            var memory = new MemoryStream();
+            using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                await stream.CopyToAsync(memory);
+            }
+            memory.Position = 0;
+
+            string contentType = "application/pdf";
+            string downloadName = !string.IsNullOrEmpty(fileUpload.File_Name) ? fileUpload.File_Name : "document.pdf";
+            if (!downloadName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase)) downloadName += ".pdf";
+
+            return File(memory, contentType, downloadName);
         }
 
         public IActionResult Dashboard()
@@ -307,7 +352,6 @@ namespace BMS_project.Controllers
             return View();
         }
 
-        // Load youth members and pass to the view so the table can render data
         public IActionResult YouthProfiles()
         {
             ViewData["Title"] = "Youth Profiling";
@@ -317,26 +361,18 @@ namespace BMS_project.Controllers
 
         public async Task<IActionResult> Projects()
         {
-            Console.WriteLine("Entering Projects GET action...");
             ViewData["Title"] = "Project Management";
 
             var username = User.Identity.Name;
-            Console.WriteLine($"Current User: {username}");
-
             var login = await _context.Login
                 .Include(l => l.User)
                 .FirstOrDefaultAsync(l => l.Username == username);
 
             if (login == null || login.User == null)
             {
-                Console.WriteLine("Login or User not found.");
-                // Handle the case where user is not found (though Authorize attribute should prevent this mostly)
                 return RedirectToAction("Login", "Account");
             }
 
-            Console.WriteLine($"Fetching projects for UserID: {login.User.User_ID}");
-            
-            // Map to ViewModel to avoid circular references in View
             var projects = await _context.Projects
                 .Where(p => p.User_ID == login.User.User_ID)
                 .Include(p => p.Allocations)
@@ -352,10 +388,7 @@ namespace BMS_project.Controllers
                     Allocated_Budget = p.Allocations.FirstOrDefault() != null ? p.Allocations.FirstOrDefault().Amount_Allocated : 0
                 })
                 .ToListAsync();
-            
-            Console.WriteLine($"Found {projects.Count} projects.");
 
-            Console.WriteLine("Returning View(projects)...");
             return View(projects);
         }
 
@@ -370,7 +403,6 @@ namespace BMS_project.Controllers
 
             if (login == null || login.User == null || login.User.Barangay_ID == null)
             {
-                // Return default empty budget if user/barangay not found
                 return View(new Budget { budget = 0, disbursed = 0, balance = 0 });
             }
 
