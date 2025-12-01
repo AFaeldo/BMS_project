@@ -15,6 +15,7 @@ namespace BMS_project.Models.Dto
         public int? RoleId { get; set; }
         public string Role { get; set; }
         public string Email { get; set; }
+        public string Term { get; set; }
         public bool IsActive { get; set; } = true;
     }
 }

@@ -4,5 +4,6 @@
     {
         public int TotalBarangays { get; set; }
         public int TotalUsers { get; set; }
+        public string CurrentTerm { get; set; }
     }
 }

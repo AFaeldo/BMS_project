@@ -46,13 +46,13 @@
             </div>
         </div>
 
-        <!-- System Alerts -->
+        <!-- Current Term -->
         <div class="col-md-3">
             <div class="card shadow-sm border-0 rounded-3 text-center py-3">
                 <div class="card-body">
-                    <i class="fa-solid fa-diagram-project fs-2 text-info mb-2"></i>
-                    <h6 class="text-muted mb-1">System Alerts</h6>
-                    <h3 class="fw-bold mb-0">0</h3>
+                    <i class="fa-solid fa-calendar-days fs-2 text-info mb-2"></i>
+                    <h6 class="text-muted mb-1">Current Term</h6>
+                    <h3 class="fw-bold mb-0">@Model?.CurrentTerm</h3>
                 </div>
             </div>
         </div>
@@ -80,6 +80,11 @@
                 <div class="card-body d-flex justify-content-center">
                     <div class="d-flex flex-wrap gap-2 justify-content-center w-100">
 
+                        <button type="button" class="btn btn-primary btn-sm w-100 d-flex align-items-center justify-content-center"
+                                data-bs-toggle="modal" data-bs-target="#modalSetTerm">
+                            <i class="bi bi-calendar-plus me-1"></i> Set New Term
+                        </button>
+
                         <a asp-controller="SystemLogs" asp-action="Index"
                            class="btn btn-outline-secondary btn-sm w-100 d-flex align-items-center justify-content-center">
                             <i class="bi bi-journal-text me-1"></i> View Logs
@@ -102,7 +107,41 @@
         </div>
 
 
-
+<!-- MODAL: SET NEW TERM -->
+<div class="modal fade" id="modalSetTerm" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form asp-action="SetNewTerm" method="post" class="modal-content shadow-lg border-0 rounded-3">
+            @Html.AntiForgeryToken()
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-calendar-event"></i> Set New Term Period</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <small><i class="bi bi-exclamation-circle"></i> Setting a new term will end the current one.</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Term Name</label>
+                    <input type="text" name="TermName" class="form-control" placeholder="e.g., 2025-2028 Term" required />
+                </div>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label fw-bold">Start Date</label>
+                        <input type="date" name="StartDate" class="form-control" required />
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label fw-bold">Official End Date</label>
+                        <input type="date" name="EndDate" class="form-control" required />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">Set Term</button>
+            </div>
+        </form>
+    </div>
+</div>
 
     <script>
         // Clear Recent SK Activities

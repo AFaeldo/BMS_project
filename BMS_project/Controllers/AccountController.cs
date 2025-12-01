@@ -40,12 +40,22 @@ public class AccountController : Controller
         var user = await _context.Login
             .Include(l => l.Role)
             .Include(l => l.User)
-            .ThenInclude(u => u.Barangay)
+                .ThenInclude(u => u.Barangay)
+            .Include(l => l.User)
+                .ThenInclude(u => u.ServiceRecords)
+                    .ThenInclude(sr => sr.KabataanTermPeriod)
             .FirstOrDefaultAsync(u => u.Username.ToLower() == lowerUsername);
 
         if (user == null)
         {
             ViewBag.Error = "Invalid username or password.";
+            return View();
+        }
+
+        // Check if Archived
+        if (user.User != null && user.User.IsArchived)
+        {
+            ViewBag.Error = "Account is archived or resigned.";
             return View();
         }
 
@@ -80,6 +90,43 @@ public class AccountController : Controller
                 user.Password = passwordHasher.HashPassword(user, password);
                 _context.Update(user);
                 await _context.SaveChangesAsync();
+            }
+        }
+
+        // Term Expiry Check (Skip for SuperAdmin)
+        // Assuming SuperAdmin role ID is 1 or name is "SuperAdmin"
+        bool isSuperAdmin = (user.Role_ID == 1) || 
+                            (user.Role != null && (user.Role.Role_Name == "SuperAdmin" || user.Role.Role_Name == "Super Admin"));
+
+        if (!isSuperAdmin && user.User != null)
+        {
+            var activeRecord = user.User.ServiceRecords?.FirstOrDefault(r => r.Status == "Active");
+            
+            // If they have an active record, check date
+            if (activeRecord != null && activeRecord.KabataanTermPeriod != null)
+            {
+                if (activeRecord.KabataanTermPeriod.Official_End_Date < DateTime.Today)
+                {
+                    // Term Ended -> Auto Archive
+                    user.User.IsArchived = true;
+                    activeRecord.Status = "Term Ended";
+                    
+                    _context.Users.Update(user.User);
+                    _context.KabataanServiceRecords.Update(activeRecord);
+                    await _context.SaveChangesAsync();
+
+                    ViewBag.Error = "Your term has expired. Account is now archived.";
+                    return View();
+                }
+            }
+            else if (!isSuperAdmin)
+            {
+                // Non-admin users MUST have an active term record to login? 
+                // Or if they are just created but no term assigned (unlikely with new logic), let them in?
+                // Requirement: "When a new user is created... assign them the Current Active Term ID."
+                // So if they exist and are not archived, they should have one. 
+                // If missing, it might be legacy data. We'll allow login but maybe warn? 
+                // For strictness, let's allow but log or ignore. 
             }
         }
 

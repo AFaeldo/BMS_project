@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using BMS_project.Data;
@@ -24,10 +24,17 @@ namespace BMS_project.Controllers.SuperAdminController
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
+            // Fetch users and their active service record term
+            // Note: We assume one active service record per user ideally.
             var data = await _context.Login
                 .Include(l => l.User)
+                    .ThenInclude(u => u.ServiceRecords)
+                        .ThenInclude(sr => sr.KabataanTermPeriod)
+                .Include(l => l.User)
+                    .ThenInclude(u => u.Barangay)
                 .Include(l => l.Role)
                 .Where(l => l.User != null && !l.User.IsArchived) // Filter active users
+                .OrderBy(l => l.Username)
                 .Select(l => new UserListDto
                 {
                     Id = l.Id,
@@ -39,6 +46,7 @@ namespace BMS_project.Controllers.SuperAdminController
                     RoleId = l.Role_ID,
                     Role = l.Role != null ? l.Role.Role_Name : null,
                     Email = l.User != null ? l.User.Email : null,
+                    Term = l.User.ServiceRecords.Where(sr => sr.Status == "Active").Select(sr => sr.KabataanTermPeriod.Term_Name).FirstOrDefault() ?? "No Active Term",
                     IsActive = true
                 })
                 .ToListAsync();
@@ -129,6 +137,13 @@ namespace BMS_project.Controllers.SuperAdminController
             if (dto.BarangayId == null) return BadRequest("Barangay is required.");
             if (string.IsNullOrWhiteSpace(dto.Email)) return BadRequest("Email Is Required");
 
+            // Check active term
+            var activeTerm = await _context.KabataanTermPeriods.FirstOrDefaultAsync(t => t.IsActive);
+            if (activeTerm == null)
+            {
+                return BadRequest("No Active Term Period found. Please set a term in the Dashboard first.");
+            }
+
             // check duplicate username
             if (await _context.Login.AnyAsync(l => l.Username == dto.Username))
                 return BadRequest("Username already exists.");
@@ -159,6 +174,17 @@ namespace BMS_project.Controllers.SuperAdminController
                 login.Password = _passwordHasher.HashPassword(user, dto.Password);
 
                 _context.Login.Add(login);
+
+                // create service record
+                var serviceRecord = new KabataanServiceRecord
+                {
+                    User_ID = user.User_ID,
+                    Term_ID = activeTerm.Term_ID,
+                    Role_ID = dto.RoleId ?? 0,
+                    Status = "Active"
+                };
+                _context.KabataanServiceRecords.Add(serviceRecord);
+
                 await _context.SaveChangesAsync();
 
                 await tx.CommitAsync();
@@ -216,6 +242,10 @@ namespace BMS_project.Controllers.SuperAdminController
 
                 _context.Login.Update(login);
                 await _context.SaveChangesAsync();
+                
+                // We do not update ServiceRecord on simple Edit, unless Role changed? 
+                // For now, keeping it simple. If role changes, logic might be needed, 
+                // but requirement didn't specify editing past history.
 
                 await tx.CommitAsync();
                 return Ok(new { success = true });
@@ -227,55 +257,104 @@ namespace BMS_project.Controllers.SuperAdminController
             }
         }
 
-        // DELETE: api/users/5/archive (Soft Delete)
+        // POST: api/users/5/archive (Resign/Step Down)
         [HttpPost("{id:int}/archive")]
         public async Task<IActionResult> Archive(int id)
         {
-            var login = await _context.Login.Include(l => l.User).FirstOrDefaultAsync(l => l.Id == id);
+            var login = await _context.Login
+                .Include(l => l.User)
+                .FirstOrDefaultAsync(l => l.Id == id);
+
             if (login == null || login.User == null) return NotFound();
 
-            login.User.IsArchived = true;
-            await _context.SaveChangesAsync();
+            // Prevent archiving SuperAdmin
+            if (login.Role != null && (login.Role.Role_Name == "SuperAdmin" || login.Role.Role_Name == "Super Admin"))
+            {
+                 return BadRequest("Super Admin cannot be archived/resigned.");
+            }
+             // Also check Role_ID directly if needed (usually 1)
+            if (login.Role_ID == 1) return BadRequest("Super Admin cannot be archived.");
+
+
+            await using var tx = await _context.Database.BeginTransactionAsync();
+            try 
+            {
+                // 1. Set User to Archived
+                login.User.IsArchived = true;
+
+                // 2. Find Active Service Record and mark as Resigned
+                var activeRecord = await _context.KabataanServiceRecords
+                    .Where(r => r.User_ID == login.User_ID && r.Status == "Active")
+                    .OrderByDescending(r => r.Record_ID)
+                    .FirstOrDefaultAsync();
+
+                if (activeRecord != null)
+                {
+                    activeRecord.Status = "Resigned";
+                    activeRecord.Actual_End_Date = DateTime.Now;
+                    _context.KabataanServiceRecords.Update(activeRecord);
+                }
+
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
+            }
+            catch(Exception ex)
+            {
+                await tx.RollbackAsync();
+                return StatusCode(500, ex.Message);
+            }
 
             return Ok(new { success = true });
         }
 
-        // POST: api/users/restore
+        // POST: api/users/restore (Re-Elect Selected)
         [HttpPost("restore")]
         public async Task<IActionResult> Restore([FromBody] int[] ids)
         {
             if (ids == null || ids.Length == 0) return BadRequest("No users selected.");
 
-            // Note: We receive Login IDs, but IsArchived is on User.
-            // We need to find users associated with these login IDs.
+            var activeTerm = await _context.KabataanTermPeriods.FirstOrDefaultAsync(t => t.IsActive);
+            if (activeTerm == null) return BadRequest("No Active Term Period found. Cannot re-elect users.");
+
             var logins = await _context.Login
                 .Include(l => l.User)
                 .Where(l => ids.Contains(l.Id))
                 .ToListAsync();
 
-            foreach (var l in logins)
+            await using var tx = await _context.Database.BeginTransactionAsync();
+            try
             {
-                if (l.User != null)
+                foreach (var l in logins)
                 {
-                    l.User.IsArchived = false;
+                    if (l.User != null)
+                    {
+                        // Un-archive user
+                        l.User.IsArchived = false;
+
+                        // Create NEW Service Record (Re-election)
+                        var newRecord = new KabataanServiceRecord
+                        {
+                            User_ID = l.User.User_ID,
+                            Term_ID = activeTerm.Term_ID,
+                            Role_ID = l.Role_ID,
+                            Status = "Active"
+                        };
+                        _context.KabataanServiceRecords.Add(newRecord);
+                    }
                 }
+
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
+                return Ok(new { success = true });
             }
-
-            await _context.SaveChangesAsync();
-            return Ok(new { success = true });
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                return StatusCode(500, ex.Message);
+            }
         }
 
-        // DELETE: api/users/5 (Kept for backward compatibility or hard delete if needed, but for now, let's make it return 405 or alias to archive if desired. 
-        // Requirement says "Change logic... do NOT use Remove". So I will replace this method body to use soft delete logic too, but typically HTTP verb implies meaning.
-        // I'll keep this as Archive logic but via Delete verb if existing frontend uses DELETE.)
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-             return await Archive(id);
-        }
-
-
-        // GET: api/users/barangays
+        // DELETE: api/users/barangays
         [HttpGet("barangays")]
         public async Task<IActionResult> Barangays()
         {

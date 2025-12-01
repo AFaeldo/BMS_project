@@ -19,6 +19,8 @@ namespace BMS_project.Data
         public DbSet<ProjectAllocation> ProjectAllocations { get; set; }
         public DbSet<ProjectLog> ProjectLogs { get; set; }
         public DbSet<FileUpload> FileUploads { get; set; }
+        public DbSet<KabataanTermPeriod> KabataanTermPeriods { get; set; }
+        public DbSet<KabataanServiceRecord> KabataanServiceRecords { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -31,6 +33,9 @@ namespace BMS_project.Data
             modelBuilder.Entity<YouthMember>().ToTable("youth_member").HasKey(y => y.Member_ID);
             modelBuilder.Entity<Barangay>().ToTable("barangay").HasKey(b => b.Barangay_ID);
             modelBuilder.Entity<User>().ToTable("user").HasKey(u => u.User_ID); // Changed to "user"
+            modelBuilder.Entity<KabataanTermPeriod>().ToTable("kabataan_term_period").HasKey(t => t.Term_ID);
+            modelBuilder.Entity<KabataanServiceRecord>().ToTable("kabataan_service_record").HasKey(r => r.Record_ID);
+
 
             // --- Login -> Role (existing) ---
             modelBuilder.Entity<Login>()

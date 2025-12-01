@@ -33,6 +33,8 @@ namespace BMS_project.Models
 
         public Login Login { get; set; }              // optional 1:1 nav prop
 
+        public ICollection<KabataanServiceRecord> ServiceRecords { get; set; }
+
         [Column("IsArchived")]
         public bool IsArchived { get; set; } = false;
     }

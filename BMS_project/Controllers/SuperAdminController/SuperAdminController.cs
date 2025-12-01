@@ -27,14 +27,57 @@ namespace BMS_project.Controllers.SuperAdminController
 
         public IActionResult Dashboard()
         {
+            var activeTerm = _context.KabataanTermPeriods.FirstOrDefault(t => t.IsActive);
             var vm = new DashboardViewModel
             {
                 TotalBarangays = _context.barangays?.Count() ?? 0,
-                TotalUsers = _context.Users?.Count() ?? 0
+                TotalUsers = _context.Users?.Count() ?? 0,
+                CurrentTerm = activeTerm?.Term_Name ?? "No Active Term"
             };
 
             ViewData["Title"] = "Dashboard";
             return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult SetNewTerm(string TermName, DateTime StartDate, DateTime EndDate)
+        {
+            if (string.IsNullOrWhiteSpace(TermName))
+            {
+                TempData["ErrorMessage"] = "Term Name is required.";
+                return RedirectToAction("Dashboard");
+            }
+
+            try
+            {
+                // Deactivate all existing terms
+                var existingTerms = _context.KabataanTermPeriods.Where(t => t.IsActive).ToList();
+                foreach (var term in existingTerms)
+                {
+                    term.IsActive = false;
+                }
+
+                // Create new term
+                var newTerm = new KabataanTermPeriod
+                {
+                    Term_Name = TermName,
+                    Start_Date = StartDate,
+                    Official_End_Date = EndDate,
+                    IsActive = true
+                };
+
+                _context.KabataanTermPeriods.Add(newTerm);
+                _context.SaveChanges();
+
+                TempData["SuccessMessage"] = "New Term Period set successfully.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Error setting new term: " + ex.Message;
+            }
+
+            return RedirectToAction("Dashboard");
         }
 
         public IActionResult ManageUsers()

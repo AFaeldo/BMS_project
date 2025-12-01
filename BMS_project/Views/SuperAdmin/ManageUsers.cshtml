@@ -1,4 +1,4 @@
-﻿@{
+@{
     Layout = "~/Views/Shared/_LayoutSuperAdmin.cshtml";
     ViewData["Title"] = "Manage Users";
 }
@@ -56,8 +56,7 @@
                             <th>First Name</th>
                             <th>Barangay</th>
                             <th>Role</th>
-                            <th>Email</th>
-                            <th class="text-center">Status</th>
+                            <th>Term Period</th>
                             <th class="text-center">Actions</th>
                         </tr>
                     </thead>
@@ -106,7 +105,7 @@
             </div>
             <div class="modal-footer border-0">
                 <button class="btn btn-light" data-bs-dismiss="modal">Close</button>
-                <button id="btnRestoreSelected" class="btn btn-success px-4">Restore Selected</button>
+                <button id="btnRestoreSelected" class="btn btn-success px-4">Re-elect Selected</button>
             </div>
         </div>
     </div>
@@ -145,14 +144,14 @@
                         <input id="Super_Email" class="form-control" type="email" maxlength="200" required />
                     </div>
 
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label class="form-label fw-semibold">Barangay</label>
                         <select id="Super_Barangay" class="form-select" required>
                             <option value="">-- Select Barangay --</option>
                         </select>
                     </div>
 
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label class="form-label fw-semibold">Role</label>
                         <select id="Super_Role" class="form-select" required>
                             <option value="">-- Select Role --</option>
@@ -164,22 +163,14 @@
                         <input id="Super_Username" class="form-control" maxlength="100" readonly />
                     </div>
 
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label class="form-label fw-semibold">Password</label>
                         <input id="Super_Password" class="form-control" type="password" minlength="8" />
                     </div>
 
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label class="form-label fw-semibold">Confirm Password</label>
                         <input id="Super_ConfirmPassword" class="form-control" type="password" minlength="8" />
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">Status</label>
-                        <select id="Super_IsActive" class="form-select" required>
-                            <option value="true">Active</option>
-                            <option value="false">Inactive</option>
-                        </select>
                     </div>
 
                 </div>
@@ -193,13 +184,13 @@
     </div>
 </div>
 
-<!-- MODAL: ARCHIVE CONFIRMATION -->
+<!-- MODAL: RESIGN / ARCHIVE CONFIRMATION -->
 <div class="modal fade" id="modalArchiveUser" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content shadow border-0 rounded-3">
             <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title">
-                    <i class="bi bi-exclamation-triangle"></i> Confirm Archive
+                    <i class="bi bi-exclamation-triangle"></i> Confirm Resignation
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -211,7 +202,7 @@
                         Cancel
                     </button>
                     <button type="button" id="btnConfirmArchive" class="btn btn-danger px-4">
-                        <i class="bi bi-archive"></i> Archive
+                        <i class="bi bi-box-arrow-right"></i> Confirm Resign
                     </button>
                 </div>
             </div>
@@ -280,7 +271,7 @@
         function renderRows(data) {
             const tbody = $("#tblManageUsers tbody").empty();
             if (!data || data.length === 0) {
-                tbody.append('<tr><td colspan="8" class="text-center">No users found.</td></tr>');
+                tbody.append('<tr><td colspan="7" class="text-center">No users found.</td></tr>');
                 return;
             }
             data.forEach(u => {
@@ -291,18 +282,13 @@
                         <td>${escapeHtml(u.firstName || '')}</td>
                         <td>${escapeHtml(u.barangayName || '')}</td>
                         <td>${escapeHtml(u.role || '')}</td>
-                        <td>${escapeHtml(u.email || '')}</td>
-                        <td class="text-center">
-                            <span class="badge ${u.isActive ? "bg-success" : "bg-secondary"}">
-                                ${u.isActive ? "Active" : "Inactive"}
-                            </span>
-                        </td>
+                        <td>${escapeHtml(u.term || 'N/A')}</td>
                         <td class="text-center">
                             <button class="btn btn-sm btn-warning text-white btn-edit me-1" title="Edit">
                                 <i class="bi bi-pencil-square"></i> Edit
                             </button>
-                            <button class="btn btn-sm btn-danger btn-archive" title="Archive">
-                                <i class="bi bi-archive"></i> Archive
+                            <button class="btn btn-sm btn-danger btn-archive" title="Resign / Step Down">
+                                <i class="bi bi-box-arrow-right"></i> Resign
                             </button>
                         </td>
                     </tr>
@@ -377,12 +363,10 @@
                     .done(res => {
                         $("#Super_Username").val(res.username || '');
                         $("#Super_Username").prop('readonly', true);
-                        $("#Super_IsActive").val("true");
                         userModal.show();
                     })
                     .fail(() => {
                         showToast("Failed to generate username. You can type one manually.");
-                        $("#Super_IsActive").val("true");
                         userModal.show();
                     });
             });
@@ -405,11 +389,11 @@
                     contentType: 'application/json',
                     data: JSON.stringify(selectedIds)
                 }).done(() => {
-                    showToast("Users restored.");
+                    showToast("Users re-elected to current term.");
                     archivedModal.hide();
                     refreshTable();
                 }).fail(xhr => {
-                    showToast(xhr.responseText || "Restore failed.");
+                    showToast(xhr.responseText || "Re-election failed.");
                 });
             });
 
@@ -424,7 +408,6 @@
                     $("#Super_Username").val(u.username || '');
                     $("#Super_Password").val('');
                     $("#Super_ConfirmPassword").val('');
-                    $("#Super_IsActive").val(u.isActive ? "true" : "false");
                     
                     // Style for EDIT
                     $("#modalUserHeader").removeClass("bg-primary").addClass("bg-warning");
@@ -449,8 +432,7 @@
                     LastName: $("#Super_LastName").val().trim(),
                     Email: $("#Super_Email").val().trim(),
                     BarangayId: Number($("#Super_Barangay").val() || 0) || null,
-                    RoleId: Number($("#Super_Role").val() || 0) || null,
-                    IsActive: $("#Super_IsActive").val() === "true"
+                    RoleId: Number($("#Super_Role").val() || 0) || null
                 };
 
                 if (!payload.Username) return showToast("Enter username.");
@@ -487,14 +469,14 @@
                 }
             });
 
-            // TRIGGER ARCHIVE MODAL
+            // TRIGGER ARCHIVE (RESIGN) MODAL
             $("#tblManageUsers").on("click", ".btn-archive", function () {
                 const tr = $(this).closest("tr");
                 const id = tr.data("userid");
                 const name = tr.find("td:nth-child(3)").text() + " " + tr.find("td:nth-child(2)").text(); // First Last
 
                 $("#archiveUserId").val(id);
-                $("#archiveMessage").html(`Are you sure you want to archive <strong>${name}</strong>?`);
+                $("#archiveMessage").html(`Are you sure you want to force resign <strong>${name}</strong>?<br>This will archive the user and end their term.`);
                 archiveConfirmModal.show();
             });
 
@@ -506,11 +488,11 @@
                     url: api.archive(id),
                     method: 'POST'
                 }).done(() => {
-                    showToast("User archived.");
+                    showToast("User resigned and archived.");
                     refreshTable();
                     archiveConfirmModal.hide();
                 }).fail(xhr => {
-                    showToast(xhr.responseText || "Archive failed.");
+                    showToast(xhr.responseText || "Action failed.");
                 });
             });
         });
