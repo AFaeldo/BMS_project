@@ -102,6 +102,34 @@ namespace BMS_project.Controllers
             return View(projects);
         }
 
+        public async Task<IActionResult> ProjectHistory()
+        {
+            ViewData["Title"] = "Project History";
+
+            var projects = await _context.Projects
+                .Include(p => p.User)
+                .ThenInclude(u => u.Barangay)
+                .Include(p => p.Allocations)
+                .Include(p => p.Files)
+                .Where(p => p.Project_Status != "Pending")
+                .OrderByDescending(p => p.Date_Submitted)
+                .Select(p => new ProjectApprovalListViewModel
+                {
+                    Project_ID = p.Project_ID,
+                    Title = p.Project_Title,
+                    Description = p.Project_Description,
+                    Barangay = p.User.Barangay.Barangay_Name,
+                    Status = p.Project_Status,
+                    DateSubmitted = p.Date_Submitted ?? DateTime.Now,
+                    Amount = p.Allocations.FirstOrDefault() != null ? p.Allocations.FirstOrDefault().Amount_Allocated : 0,
+                    DocumentPath = p.Files.FirstOrDefault() != null ? p.Files.FirstOrDefault().File : null,
+                    DocumentId = p.Files.FirstOrDefault() != null ? p.Files.FirstOrDefault().File_ID : null
+                })
+                .ToListAsync();
+
+            return View(projects);
+        }
+
         // New Action for AJAX Fetch
         [HttpGet]
         public async Task<IActionResult> GetProjectDetails(int id)

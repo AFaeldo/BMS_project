@@ -1,0 +1,68 @@
+@model IEnumerable<BMS_project.ViewModels.ProjectListViewModel>
+@{
+    Layout = "~/Views/Shared/_BarangayLayout.cshtml";
+    ViewData["Title"] = "Project History";
+}
+
+<div class="container-fluid">
+
+    <!-- PAGE HEADER -->
+    <div class="mb-4">
+        <h2 class="fw-bold">Project History</h2>
+        <p class="text-muted">View the history of all non-pending projects for your Barangay.</p>
+    </div>
+
+    <!-- Project List -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <h5 class="card-title mb-3 fw-semibold">Project History List</h5>
+            <table class="table table-hover align-middle text-center">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Project Title</th>
+                        <th>Status</th>
+                        <th>Allocated Budget</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var project in Model)
+                        {
+                            <tr>
+                                <td>@project.Project_Title</td>
+                                <td>
+                                    @if (project.Project_Status == "Completed")
+                                    {
+                                        <span class="badge bg-success">Completed</span>
+                                    }
+                                    else if (project.Project_Status == "Ongoing" || project.Project_Status == "Approved")
+                                    {
+                                        <span class="badge bg-info text-dark">@project.Project_Status</span>
+                                    }
+                                    else if (project.Project_Status == "Rejected")
+                                    {
+                                        <span class="badge bg-danger">Rejected</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">@project.Project_Status</span>
+                                    }
+                                </td>
+                                <td>@project.Allocated_Budget.ToString("C", new System.Globalization.CultureInfo("en-PH"))</td>
+                                <td>@(project.Date_Submitted?.ToString("yyyy-MM-dd") ?? "-")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="text-muted">No history found.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

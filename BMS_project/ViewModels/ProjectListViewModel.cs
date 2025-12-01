@@ -9,6 +9,7 @@ namespace BMS_project.ViewModels
         public string Project_Description { get; set; }
         public DateTime? Start_Date { get; set; }
         public DateTime? End_Date { get; set; }
+        public DateTime? Date_Submitted { get; set; }
         public string Project_Status { get; set; }
         public decimal Allocated_Budget { get; set; }
     }

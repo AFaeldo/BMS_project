@@ -383,6 +383,41 @@ namespace BMS_project.Controllers
             return View("~/Views/BarangaySk/YouthProfiles.cshtml", new List<YouthMember>());
         }
 
+        public async Task<IActionResult> ProjectList()
+        {
+            ViewData["Title"] = "Project History";
+
+            var username = User.Identity.Name;
+            var login = await _context.Login
+                .Include(l => l.User)
+                .FirstOrDefaultAsync(l => l.Username == username);
+
+            if (login == null || login.User == null || login.User.Barangay_ID == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var projects = await _context.Projects
+                .Include(p => p.User)
+                .Include(p => p.Allocations)
+                .Where(p => p.User.Barangay_ID == login.User.Barangay_ID && p.Project_Status != "Pending")
+                .OrderByDescending(p => p.Date_Submitted)
+                .Select(p => new ProjectListViewModel
+                {
+                    Project_ID = p.Project_ID,
+                    Project_Title = p.Project_Title,
+                    Project_Description = p.Project_Description,
+                    Start_Date = p.Start_Date,
+                    End_Date = p.End_Date,
+                    Date_Submitted = p.Date_Submitted,
+                    Project_Status = p.Project_Status,
+                    Allocated_Budget = p.Allocations.FirstOrDefault() != null ? p.Allocations.FirstOrDefault().Amount_Allocated : 0
+                })
+                .ToListAsync();
+
+            return View(projects);
+        }
+
         public async Task<IActionResult> Projects()
         {
             ViewData["Title"] = "Project Management";
