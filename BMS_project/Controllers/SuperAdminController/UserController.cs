@@ -5,6 +5,7 @@ using BMS_project.Data;
 using BMS_project.Models;
 using BMS_project.Models.Dto;
 using System.Security.Claims;
+using BMS_project.Services;
 
 namespace BMS_project.Controllers.SuperAdminController
 {
@@ -14,10 +15,12 @@ namespace BMS_project.Controllers.SuperAdminController
     {
         private readonly ApplicationDbContext _context;
         private readonly PasswordHasher<User> _passwordHasher;
+        private readonly ISystemLogService _systemLogService;
 
-        public UsersController(ApplicationDbContext context)
+        public UsersController(ApplicationDbContext context, ISystemLogService systemLogService)
         {
             _context = context;
+            _systemLogService = systemLogService;
             _passwordHasher = new PasswordHasher<User>();
         }
 
@@ -200,12 +203,7 @@ namespace BMS_project.Controllers.SuperAdminController
                 var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (int.TryParse(userIdStr, out int adminId))
                 {
-                    _context.SystemLogs.Add(new SystemLog
-                    {
-                        User_ID = adminId,
-                        Remark = $"Created User: {dto.Username}",
-                        DateTime = DateTime.Now
-                    });
+                    await _systemLogService.LogAsync(adminId, "Create User", $"Created User: {dto.Username}", "User", user.User_ID);
                 }
 
                 await _context.SaveChangesAsync();
@@ -269,12 +267,7 @@ namespace BMS_project.Controllers.SuperAdminController
                 var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (int.TryParse(userIdStr, out int adminId))
                 {
-                    _context.SystemLogs.Add(new SystemLog
-                    {
-                        User_ID = adminId,
-                        Remark = $"Updated User: {dto.Username}",
-                        DateTime = DateTime.Now
-                    });
+                    await _systemLogService.LogAsync(adminId, "Update User", $"Updated User: {dto.Username}", "User", user.User_ID);
                 }
 
                 await _context.SaveChangesAsync();
@@ -331,12 +324,7 @@ namespace BMS_project.Controllers.SuperAdminController
                 var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (int.TryParse(userIdStr, out int adminId))
                 {
-                    _context.SystemLogs.Add(new SystemLog
-                    {
-                        User_ID = adminId,
-                        Remark = $"Resigned/Archived User: {login.Username}",
-                        DateTime = DateTime.Now
-                    });
+                    await _systemLogService.LogAsync(adminId, "Archive User", $"Resigned/Archived User: {login.Username}", "User", login.User_ID);
                 }
 
                 await _context.SaveChangesAsync();
@@ -391,12 +379,7 @@ namespace BMS_project.Controllers.SuperAdminController
                         // Log for each user
                         if (adminId > 0)
                         {
-                            _context.SystemLogs.Add(new SystemLog
-                            {
-                                User_ID = adminId,
-                                Remark = $"Re-elected User: {l.Username}",
-                                DateTime = DateTime.Now
-                            });
+                            await _systemLogService.LogAsync(adminId, "Restore User", $"Re-elected User: {l.Username}", "User", l.User.User_ID);
                         }
                     }
                 }

@@ -1,6 +1,7 @@
-﻿using BMS_project.Data;
+using BMS_project.Data;
 using BMS_project.Models;
 using BMS_project.ViewModels;
+using BMS_project.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -8,6 +9,8 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Security.Claims; // Added for Logging
+using System;
 
 namespace BMS_project.Controllers
 {
@@ -16,11 +19,30 @@ namespace BMS_project.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly ISystemLogService _systemLogService;
 
-        public FederationPresidentController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
+        public FederationPresidentController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment, ISystemLogService systemLogService)
         {
             _context = context;
             _webHostEnvironment = webHostEnvironment;
+            _systemLogService = systemLogService;
+        }
+
+        private int? GetCurrentUserId()
+        {
+            // 1. Try Claims
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim != null && int.TryParse(claim.Value, out int id)) return id;
+
+            // 2. Fallback: DB Lookup
+            var username = User.Identity?.Name;
+            if (!string.IsNullOrEmpty(username))
+            {
+                // Sync lookup is fine for this helper scope
+                var login = _context.Login.FirstOrDefault(l => l.Username == username);
+                return login?.User_ID;
+            }
+            return null;
         }
 
         public async Task<IActionResult> Dashboard()
@@ -236,6 +258,13 @@ namespace BMS_project.Controllers
                 };
                 _context.ProjectLogs.Add(log);
 
+                // LOGGING (System Log)
+                int? userId = GetCurrentUserId();
+                if (userId.HasValue)
+                {
+                    await _systemLogService.LogAsync(userId.Value, "Approve/Reject Project", $"Project {project.Project_Title} Status Updated to {newStatus}", "Project", project.Project_ID);
+                }
+
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
@@ -328,7 +357,7 @@ namespace BMS_project.Controllers
         // Accept form post and create or update a budget record (add allotment to existing barangay budget)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult AddBarangayBudget(int BarangayId, decimal Allotment)
+        public async Task<IActionResult> AddBarangayBudget(int BarangayId, decimal Allotment)
         {
             if (Allotment <= 0)
             {
@@ -336,7 +365,7 @@ namespace BMS_project.Controllers
                 return RedirectToAction("Budget");
             }
 
-            var barangay = _context.barangays.FirstOrDefault(b => b.Barangay_ID == BarangayId);
+            var barangay = await _context.barangays.FirstOrDefaultAsync(b => b.Barangay_ID == BarangayId);
             if (barangay == null)
             {
                 TempData["ErrorMessage"] = "Selected barangay not found.";
@@ -345,7 +374,7 @@ namespace BMS_project.Controllers
 
             // Find existing budget for the barangay
             // If you expect multiple budget rows per barangay (history), adjust logic accordingly.
-            var existingBudget = _context.Budgets.FirstOrDefault(b => b.Barangay_ID == BarangayId);
+            var existingBudget = await _context.Budgets.FirstOrDefaultAsync(b => b.Barangay_ID == BarangayId);
 
             if (existingBudget != null)
             {
@@ -369,7 +398,14 @@ namespace BMS_project.Controllers
                 _context.Budgets.Add(budget);
             }
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
+
+            // LOGGING
+            int? userId = GetCurrentUserId();
+            if (userId.HasValue)
+            {
+                await _systemLogService.LogAsync(userId.Value, "Add Budget", $"Added {Allotment:C} Budget to {barangay.Barangay_Name}", "Budget", existingBudget?.Budget_ID ?? 0); // Use 0 or fetch last added ID if strict
+            }
 
             TempData["SuccessMessage"] = "Budget updated successfully.";
             return RedirectToAction("Budget");

@@ -35,6 +35,7 @@
                     <tr>
                         <th class="py-3">Log ID</th>
                         <th class="py-3">User</th>
+                        <th class="py-3">Action</th>
                         <th class="py-3">Activity</th>
                         <th class="py-3">Date & Time</th>
                     </tr>
@@ -53,6 +54,7 @@
                                         <span class="text-muted">Unknown</span>
                                     }
                                 </td>
+                                <td>@item.Action</td>
                                 <td>@item.Remark</td>
                                 <td>@item.DateTime.ToString("MMM dd, yyyy hh:mm tt")</td>
                             </tr>
@@ -61,7 +63,7 @@
                     else
                     {
                         <tr>
-                            <td colspan="4" class="text-center py-3 text-muted">
+                            <td colspan="5" class="text-center py-3 text-muted">
                                 No logs available.
                             </td>
                         </tr>

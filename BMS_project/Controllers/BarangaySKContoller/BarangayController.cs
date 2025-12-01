@@ -1,16 +1,18 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BMS_project.Data;
 using BMS_project.Models;
 using BMS_project.ViewModels;
+using BMS_project.Services;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.Threading.Tasks;
 using System;
 using System.IO;
-using System.Collections.Generic; // added for List<T>
-        
+using System.Collections.Generic;
+using System.Security.Claims; // Added for Logging
+
 namespace BMS_project.Controllers
 {
     [Authorize(Roles = "BarangaySk")]
@@ -19,12 +21,14 @@ namespace BMS_project.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly ILogger<BarangaySkController> _logger;
+        private readonly ISystemLogService _systemLogService;
 
-        public BarangaySkController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment, ILogger<BarangaySkController> logger)
+        public BarangaySkController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment, ILogger<BarangaySkController> logger, ISystemLogService systemLogService)
         {
             _context = context;
             _webHostEnvironment = webHostEnvironment;
             _logger = logger;
+            _systemLogService = systemLogService;
         }
 
         // Helper: read Barangay_ID from claims (same pattern used elsewhere)
@@ -32,6 +36,22 @@ namespace BMS_project.Controllers
         {
             var claim = User.Claims.FirstOrDefault(c => c.Type == "Barangay_ID");
             return claim != null && int.TryParse(claim.Value, out int id) ? id : (int?)null;
+        }
+
+        private int? GetCurrentUserId()
+        {
+            // 1. Try Claims
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim != null && int.TryParse(claim.Value, out int id)) return id;
+
+            // 2. Fallback: DB Lookup
+            var username = User.Identity?.Name;
+            if (!string.IsNullOrEmpty(username))
+            {
+                var login = _context.Login.FirstOrDefault(l => l.Username == username);
+                return login?.User_ID;
+            }
+            return null;
         }
 
         [HttpPost]
@@ -100,6 +120,9 @@ namespace BMS_project.Controllers
 
                 _context.FileUploads.Add(fileUpload);
                 await _context.SaveChangesAsync();
+
+                // LOGGING
+                await _systemLogService.LogAsync(user.User.User_ID, "Upload Document", $"Uploaded Document: {DocumentName} for Project ID {ProjectId}", "FileUpload", fileUpload.File_ID);
 
                 TempData["SuccessMessage"] = "Document uploaded successfully!";
                 _logger.LogInformation("File uploaded: {FilePath} by user {Username}", filePath, username);
@@ -258,6 +281,9 @@ namespace BMS_project.Controllers
                     Remarks = "Project created and submitted for approval."
                 };
                 _context.ProjectLogs.Add(log);
+
+                // LOGGING (System Log)
+                await _systemLogService.LogAsync(user.User_ID, "Create Project", $"Created Project: {project.Project_Title}", "Project", project.Project_ID);
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
@@ -479,6 +505,14 @@ namespace BMS_project.Controllers
 
             // Soft delete
             project.IsArchived = true;
+
+            // LOGGING
+            int? userId = GetCurrentUserId();
+            if (userId.HasValue)
+            {
+                await _systemLogService.LogAsync(userId.Value, "Delete/Archive Project", $"Archived Project ID {id}: {project.Project_Title}", "Project", id);
+            }
+
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Project archived successfully!";
@@ -498,6 +532,13 @@ namespace BMS_project.Controllers
                 foreach (var p in projectsToRestore)
                 {
                     p.IsArchived = false;
+                }
+
+                // LOGGING
+                int? userId = GetCurrentUserId();
+                if (userId.HasValue)
+                {
+                    await _systemLogService.LogAsync(userId.Value, "Restore Project", $"Restored {projectsToRestore.Count} Projects", "Project", null);
                 }
 
                 await _context.SaveChangesAsync();

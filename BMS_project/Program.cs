@@ -1,4 +1,5 @@
 ﻿using BMS_project.Data;
+using BMS_project.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddSession(); // Add Session
 builder.Services.AddHttpContextAccessor(); // Add HttpContextAccessor
+builder.Services.AddScoped<ISystemLogService, SystemLogService>();
 
 //  Configure Cookie Authentication (only once)
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

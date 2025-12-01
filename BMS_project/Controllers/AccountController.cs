@@ -1,5 +1,6 @@
 ﻿using BMS_project.Data;
 using BMS_project.Models;
+using BMS_project.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
@@ -11,10 +12,12 @@ using System.Text.RegularExpressions;
 public class AccountController : Controller
 {
     private readonly ApplicationDbContext _context;
+    private readonly ISystemLogService _systemLogService;
 
-    public AccountController(ApplicationDbContext context)
+    public AccountController(ApplicationDbContext context, ISystemLogService systemLogService)
     {
         _context = context;
+        _systemLogService = systemLogService;
     }
 
     [HttpGet]
@@ -189,13 +192,7 @@ public class AccountController : Controller
         {
             try 
             {
-                _context.SystemLogs.Add(new SystemLog 
-                { 
-                    User_ID = user.User_ID.Value, 
-                    Remark = "User Logged In", 
-                    DateTime = DateTime.Now 
-                });
-                await _context.SaveChangesAsync();
+                await _systemLogService.LogAsync(user.User_ID.Value, "Login", "User Logged In");
             }
             catch { /* Ignore logging errors */ }
         }
@@ -220,13 +217,7 @@ public class AccountController : Controller
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (int.TryParse(userIdStr, out int userId) && userId > 0)
             {
-                _context.SystemLogs.Add(new SystemLog
-                {
-                    User_ID = userId,
-                    Remark = "User Logged Out",
-                    DateTime = DateTime.Now
-                });
-                await _context.SaveChangesAsync();
+                await _systemLogService.LogAsync(userId, "Logout", "User Logged Out");
             }
         }
         catch { }

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using BMS_project.Data;
 using BMS_project.ViewModels;
 using BMS_project.Models;
+using BMS_project.Services;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,10 +17,12 @@ namespace BMS_project.Controllers.SuperAdminController
     public class SuperAdminController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ISystemLogService _systemLogService;
 
-        public SuperAdminController(ApplicationDbContext context)
+        public SuperAdminController(ApplicationDbContext context, ISystemLogService systemLogService)
         {
             _context = context;
+            _systemLogService = systemLogService;
         }
 
         public IActionResult BackupMaintenance()
@@ -44,7 +47,7 @@ namespace BMS_project.Controllers.SuperAdminController
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult SetNewTerm(string TermName, DateTime StartDate, DateTime EndDate)
+        public async Task<IActionResult> SetNewTerm(string TermName, DateTime StartDate, DateTime EndDate)
         {
             if (string.IsNullOrWhiteSpace(TermName))
             {
@@ -55,7 +58,7 @@ namespace BMS_project.Controllers.SuperAdminController
             try
             {
                 // Deactivate all existing terms
-                var existingTerms = _context.KabataanTermPeriods.Where(t => t.IsActive).ToList();
+                var existingTerms = await _context.KabataanTermPeriods.Where(t => t.IsActive).ToListAsync();
                 foreach (var term in existingTerms)
                 {
                     term.IsActive = false;
@@ -71,20 +74,14 @@ namespace BMS_project.Controllers.SuperAdminController
                 };
 
                 _context.KabataanTermPeriods.Add(newTerm);
+                await _context.SaveChangesAsync();
 
                 // Log
                 var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (int.TryParse(userIdStr, out int userId))
                 {
-                    _context.SystemLogs.Add(new SystemLog 
-                    { 
-                        User_ID = userId, 
-                        Remark = $"Set New Term: {TermName}", 
-                        DateTime = DateTime.Now 
-                    });
+                    await _systemLogService.LogAsync(userId, "Set Term", $"Set New Term: {TermName}", "KabataanTermPeriod", newTerm.Term_ID);
                 }
-
-                _context.SaveChanges();
 
                 TempData["SuccessMessage"] = "New Term Period set successfully.";
             }
@@ -115,7 +112,7 @@ namespace BMS_project.Controllers.SuperAdminController
 
             if (!string.IsNullOrWhiteSpace(search))
             {
-                query = query.Where(s => s.Remark.Contains(search) || 
+                query = query.Where(s => (s.Remark != null && s.Remark.Contains(search)) || 
                                          (s.User != null && (s.User.First_Name.Contains(search) || s.User.Last_Name.Contains(search))) ||
                                          (s.User != null && s.User.Login != null && s.User.Login.Username.Contains(search)));
             }
@@ -176,7 +173,7 @@ namespace BMS_project.Controllers.SuperAdminController
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult AddBarangay(string BarangayName)
+        public async Task<IActionResult> AddBarangay(string BarangayName)
         {
             if (string.IsNullOrWhiteSpace(BarangayName))
             {
@@ -185,8 +182,8 @@ namespace BMS_project.Controllers.SuperAdminController
             }
 
             // prevent duplicates (simple check)
-            var exists = _context.barangays
-                .Any(b => b.Barangay_Name.ToLower() == BarangayName.Trim().ToLower());
+            var exists = await _context.barangays
+                .AnyAsync(b => b.Barangay_Name.ToLower() == BarangayName.Trim().ToLower());
 
             if (exists)
             {
@@ -200,20 +197,14 @@ namespace BMS_project.Controllers.SuperAdminController
             };
 
             _context.barangays.Add(barangay);
+            await _context.SaveChangesAsync();
 
             // Log
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (int.TryParse(userIdStr, out int userId))
             {
-                _context.SystemLogs.Add(new SystemLog
-                {
-                    User_ID = userId,
-                    Remark = $"Added Barangay: {BarangayName.Trim()}",
-                    DateTime = DateTime.Now
-                });
+                await _systemLogService.LogAsync(userId, "Add Barangay", $"Added Barangay: {BarangayName.Trim()}", "Barangay", barangay.Barangay_ID);
             }
-
-            _context.SaveChanges();
 
             TempData["SuccessMessage"] = "Barangay added successfully.";
             return RedirectToAction("Barangay");

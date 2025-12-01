@@ -1,19 +1,25 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using BMS_project.Data;
 using BMS_project.Models;
+using BMS_project.Services;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Security.Claims;
+using System.Collections.Generic;
 
 namespace BMS_project.Controllers
 {
     public class YouthController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ISystemLogService _systemLogService;
 
-        public YouthController(ApplicationDbContext context)
+        public YouthController(ApplicationDbContext context, ISystemLogService systemLogService)
         {
             _context = context;
+            _systemLogService = systemLogService;
         }
 
         // Helper to get Barangay_ID from claims
@@ -21,6 +27,13 @@ namespace BMS_project.Controllers
         {
             var claim = User.Claims.FirstOrDefault(c => c.Type == "Barangay_ID");
             return claim != null && int.TryParse(claim.Value, out int id) ? id : (int?)null;
+        }
+
+        private int? GetCurrentUserId()
+        {
+             var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+             if (claim != null && int.TryParse(claim.Value, out int id)) return id;
+             return null;
         }
 
         // ✅ Show the YouthProfiles page
@@ -51,7 +64,7 @@ namespace BMS_project.Controllers
         // ✅ Add a new youth member (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Add(YouthMember member)
+        public async Task<IActionResult> Add(YouthMember member)
         {
             // 1. Automation: Assign Barangay_ID from logged-in user claims
             var barangayId = GetBarangayIdFromClaims();
@@ -89,7 +102,14 @@ namespace BMS_project.Controllers
             if (ModelState.IsValid)
             {
                 _context.YouthMembers.Add(member);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
+
+                // LOGGING
+                var userId = GetCurrentUserId();
+                if (userId.HasValue)
+                {
+                    await _systemLogService.LogAsync(userId.Value, "Add Youth", $"Added Youth: {member.FirstName} {member.LastName}", "YouthMember", member.Member_ID);
+                }
 
                 TempData["SuccessMessage"] = "Youth member added successfully!";
                 return RedirectToAction("YouthProfiles", "BarangaySk");
@@ -111,9 +131,9 @@ namespace BMS_project.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(YouthMember member)
+        public async Task<IActionResult> Edit(YouthMember member)
         {
-            var existing = _context.YouthMembers.Find(member.Member_ID);
+            var existing = await _context.YouthMembers.FindAsync(member.Member_ID);
             if (existing == null)
             {
                 TempData["ErrorMessage"] = "Member not found.";
@@ -133,16 +153,24 @@ namespace BMS_project.Controllers
                 calculatedAge--;
             existing.Age = calculatedAge;
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
+
+            // LOGGING
+            var userId = GetCurrentUserId();
+            if (userId.HasValue)
+            {
+                await _systemLogService.LogAsync(userId.Value, "Update Youth", $"Updated Youth: {existing.FirstName} {existing.LastName}", "YouthMember", existing.Member_ID);
+            }
+
             TempData["SuccessMessage"] = "Member updated successfully!";
             return RedirectToAction("YouthProfiles", "BarangaySk");
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Archive(int Member_ID)
+        public async Task<IActionResult> Archive(int Member_ID)
         {
-            var member = _context.YouthMembers.Find(Member_ID);
+            var member = await _context.YouthMembers.FindAsync(Member_ID);
             if (member == null)
             {
                 TempData["ErrorMessage"] = "Member not found.";
@@ -150,23 +178,39 @@ namespace BMS_project.Controllers
             }
 
             member.IsArchived = true;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
+
+            // LOGGING
+            var userId = GetCurrentUserId();
+            if (userId.HasValue)
+            {
+                await _systemLogService.LogAsync(userId.Value, "Archive Youth", $"Archived Youth: {member.FirstName} {member.LastName}", "YouthMember", member.Member_ID);
+            }
+
             TempData["SuccessMessage"] = "Member archived successfully!";
             return RedirectToAction("YouthProfiles", "BarangaySk");
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult RestoreSelected(int[] selectedIds)
+        public async Task<IActionResult> RestoreSelected(int[] selectedIds)
         {
             if (selectedIds != null && selectedIds.Length > 0)
             {
-                var members = _context.YouthMembers.Where(m => selectedIds.Contains(m.Member_ID)).ToList();
+                var members = await _context.YouthMembers.Where(m => selectedIds.Contains(m.Member_ID)).ToListAsync();
                 foreach (var m in members)
                 {
                     m.IsArchived = false;
                 }
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
+
+                // LOGGING
+                var userId = GetCurrentUserId();
+                if (userId.HasValue)
+                {
+                    await _systemLogService.LogAsync(userId.Value, "Restore Youth", $"Restored {members.Count} Youth Members", "YouthMember", null);
+                }
+
                 TempData["SuccessMessage"] = "Selected members restored successfully!";
             }
             else

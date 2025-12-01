@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 01, 2025 at 04:39 PM
+-- Generation Time: Dec 01, 2025 at 05:18 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -122,7 +122,7 @@ INSERT INTO `budget` (`budget_id`, `Barangay_ID`, `budget`, `disbursed`, `balanc
 (1, 7, 1050000.00, 0.00, 1050000.00),
 (2, 17, 50000000.00, 0.00, 50000000.00),
 (3, 16, 1000000.00, 50000.00, 950000.00),
-(4, 5, 2000000.00, 1250050.00, 749950.00),
+(4, 5, 2000000.00, 1350050.00, 649950.00),
 (5, 2, 5000000.00, 0.00, 5000000.00);
 
 -- --------------------------------------------------------
@@ -191,7 +191,8 @@ INSERT INTO `kabataan_service_record` (`Record_ID`, `User_ID`, `Term_ID`, `Role_
 (16, 11, 4, 3, 'Active', NULL),
 (17, 6, 5, 3, 'Active', NULL),
 (18, 7, 5, 2, 'Active', NULL),
-(19, 9, 5, 3, 'Active', NULL);
+(19, 9, 5, 3, 'Resigned', '2025-12-01'),
+(20, 9, 5, 3, 'Active', NULL);
 
 -- --------------------------------------------------------
 
@@ -273,7 +274,7 @@ INSERT INTO `project` (`Project_ID`, `User_ID`, `Project_Title`, `Project_Descri
 (4, 9, 'Prefinal', 'Pre Finals', '2025-11-30', 'Approved', '2025-12-01', '2025-12-06', 0),
 (10, 9, 'Sample', 'Sample', '2025-11-30', 'Approved', '2025-12-01', '2025-12-07', 0),
 (11, 9, 'Sample', 'asdsadsadsad', '2025-11-30', 'Approved', '2025-12-01', '2025-12-07', 0),
-(12, 9, 'Sampleasdsda', 'asdsdasadsadsda', '2025-11-30', 'Pending', '2025-12-01', '2025-12-07', 0);
+(12, 9, 'Sampleasdsda', 'asdsdasadsadsda', '2025-11-30', 'Approved', '2025-12-01', '2025-12-07', 0);
 
 -- --------------------------------------------------------
 
@@ -299,7 +300,7 @@ INSERT INTO `project_allocation` (`Allocation_ID`, `Budget_ID`, `Project_ID`, `A
 (4, 4, 4, 100000.00),
 (5, 4, 10, 1000000.00),
 (6, 4, 11, 50.00),
-(7, 4, 12, 1000000.00);
+(7, 4, 12, 100000.00);
 
 -- --------------------------------------------------------
 
@@ -342,7 +343,9 @@ INSERT INTO `project_log` (`Log_ID`, `Project_ID`, `User_ID`, `Status`, `Changed
 (19, 11, 9, 'Pending', '2025-12-01 12:53:37', 'Project status updated to Pending by Federation President'),
 (20, 4, 9, 'Approved', '2025-12-01 12:54:07', 'Project status updated to Approved by Federation President'),
 (21, 11, 9, 'Pending', '2025-12-01 12:54:43', 'Project status updated to Pending by Federation President'),
-(22, 11, 9, 'Approved', '2025-12-01 12:54:57', 'Project status updated to Approved by Federation President');
+(22, 11, 9, 'Approved', '2025-12-01 12:54:57', 'Project status updated to Approved by Federation President'),
+(23, 12, 9, 'Pending', '2025-12-01 23:58:44', 'Project status updated to Pending by Federation President'),
+(24, 12, 9, 'Approved', '2025-12-01 23:58:51', 'Project status updated to Approved by Federation President');
 
 -- --------------------------------------------------------
 
@@ -374,9 +377,30 @@ INSERT INTO `role` (`Role_ID`, `Role_Name`, `Has_Term_Limit`) VALUES
 CREATE TABLE `system_log` (
   `SysLog_id` int(11) NOT NULL,
   `User_ID` int(11) NOT NULL,
-  `Remark` varchar(225) NOT NULL,
+  `Action` varchar(50) NOT NULL,
+  `Table_Name` varchar(50) DEFAULT NULL,
+  `Record_ID` int(11) DEFAULT NULL,
+  `Remark` text DEFAULT NULL,
   `DateTime` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `system_log`
+--
+
+INSERT INTO `system_log` (`SysLog_id`, `User_ID`, `Action`, `Table_Name`, `Record_ID`, `Remark`, `DateTime`) VALUES
+(1, 5, '', NULL, NULL, 'User Logged In', '2025-12-01 23:52:51'),
+(2, 5, '', NULL, NULL, 'User Logged In', '2025-12-01 23:56:38'),
+(3, 5, '', NULL, NULL, 'Resigned/Archived User: SK0004', '2025-12-01 23:57:06'),
+(4, 5, '', NULL, NULL, 'Re-elected User: SK0004', '2025-12-01 23:57:21'),
+(5, 6, '', NULL, NULL, 'User Logged In', '2025-12-01 23:57:33'),
+(6, 7, '', NULL, NULL, 'User Logged In', '2025-12-01 23:58:18'),
+(7, 5, '', NULL, NULL, 'User Logged In', '2025-12-01 23:59:43'),
+(8, 5, '', NULL, NULL, 'User Logged In', '2025-12-02 00:05:38'),
+(9, 9, '', NULL, NULL, 'User Logged In', '2025-12-02 00:05:55'),
+(10, 5, '', NULL, NULL, 'User Logged In', '2025-12-02 00:06:14'),
+(11, 9, '', NULL, NULL, 'User Logged In', '2025-12-02 00:09:19'),
+(12, 5, '', NULL, NULL, 'User Logged In', '2025-12-02 00:10:39');
 
 -- --------------------------------------------------------
 
@@ -430,7 +454,8 @@ CREATE TABLE `youth_member` (
 
 INSERT INTO `youth_member` (`Member_ID`, `Barangay_ID`, `First_Name`, `Last_Name`, `Age`, `Gender`, `sitio`, `Birthday`, `IsArchived`) VALUES
 (4, 5, 'kurt', 'asd', 14, 'Male', 'Kanluran', '2011-06-09', 0),
-(5, 16, 'Brent Paulo', 'Bolanos', 21, 'Male', 'Kanluran', '2004-06-07', 1);
+(5, 16, 'Brent Paulo', 'Bolanos', 21, 'Male', 'Kanluran', '2004-06-07', 0),
+(6, 5, 'Zyris', 'Ortaleza', 20, 'Female', 'adsadsadsa', '2005-05-02', 0);
 
 -- --------------------------------------------------------
 
@@ -575,7 +600,7 @@ ALTER TABLE `file_upload`
 -- AUTO_INCREMENT for table `kabataan_service_record`
 --
 ALTER TABLE `kabataan_service_record`
-  MODIFY `Record_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `Record_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `kabataan_term_period`
@@ -605,7 +630,7 @@ ALTER TABLE `project_allocation`
 -- AUTO_INCREMENT for table `project_log`
 --
 ALTER TABLE `project_log`
-  MODIFY `Log_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `Log_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `role`
@@ -617,7 +642,7 @@ ALTER TABLE `role`
 -- AUTO_INCREMENT for table `system_log`
 --
 ALTER TABLE `system_log`
-  MODIFY `SysLog_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `SysLog_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `user`
@@ -629,7 +654,7 @@ ALTER TABLE `user`
 -- AUTO_INCREMENT for table `youth_member`
 --
 ALTER TABLE `youth_member`
-  MODIFY `Member_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `Member_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- Constraints for dumped tables
