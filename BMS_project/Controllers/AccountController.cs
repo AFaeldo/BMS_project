@@ -55,7 +55,7 @@ public class AccountController : Controller
         // Check if Archived
         if (user.User != null && user.User.IsArchived)
         {
-            ViewBag.Error = "Account is archived or resigned.";
+            ViewBag.Error = "Invalid username or password.";
             return View();
         }
 
@@ -115,7 +115,7 @@ public class AccountController : Controller
                     _context.KabataanServiceRecords.Update(activeRecord);
                     await _context.SaveChangesAsync();
 
-                    ViewBag.Error = "Your term has expired. Account is now archived.";
+                    ViewBag.Error = "Invalid username or password.";
                     return View();
                 }
             }
