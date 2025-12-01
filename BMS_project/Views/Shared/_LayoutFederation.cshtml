@@ -35,10 +35,25 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a asp-controller="FederationPresident" asp-action="ProjectApprovals"
-                       class="nav-link @(ViewData["Title"]?.ToString() == "Project Approvals" ? "active" : "")">
+                    <span class="nav-link fw-bold">
                         <i class="bi bi-check2-square me-2"></i> Project Approvals
-                    </a>
+                    </span>
+
+                    <ul class="nav flex-column ms-4">
+                        <li class="nav-item">
+                            <a asp-controller="FederationPresident" asp-action="ProjectApprovals"
+                               class="nav-link @(ViewData["Title"]?.ToString() == "Project Approvals" ? "active" : "")">
+                                Project Approvals
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewData["Title"]?.ToString() == "Projects" ? "active" : "")"
+                               asp-controller="FederationPresident" asp-action="Projects">
+                                Projects (Ongoing / Rejected)
+                            </a>
+                        </li>
+                    </ul>
                 </li>
                 <li class="nav-item">
                     <a asp-controller="FederationPresident" asp-action="Budget"
