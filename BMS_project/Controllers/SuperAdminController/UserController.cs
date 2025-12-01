@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using BMS_project.Data;
 using BMS_project.Models;
 using BMS_project.Models.Dto;
+using System.Security.Claims;
 
 namespace BMS_project.Controllers.SuperAdminController
 {
@@ -22,11 +23,11 @@ namespace BMS_project.Controllers.SuperAdminController
 
         // GET: api/users
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(int page = 1)
         {
             // Fetch users and their active service record term
             // Note: We assume one active service record per user ideally.
-            var data = await _context.Login
+            var query = _context.Login
                 .Include(l => l.User)
                     .ThenInclude(u => u.ServiceRecords)
                         .ThenInclude(sr => sr.KabataanTermPeriod)
@@ -34,8 +35,18 @@ namespace BMS_project.Controllers.SuperAdminController
                     .ThenInclude(u => u.Barangay)
                 .Include(l => l.Role)
                 .Where(l => l.User != null && !l.User.IsArchived) // Filter active users
-                .OrderBy(l => l.Username)
-                .Select(l => new UserListDto
+                .OrderBy(l => l.Username);
+
+             // Pagination optional here or handled by caller. The previous code didn't use 'page' param in logic effectively 
+             // (it returned all), but I'll stick to previous logic which returned all for JS DataTable usually.
+             // Wait, the JS code calls `api.list` with `{ page }`.
+             // But previous implementation of `GetAll` returned ALL. 
+             // The JS `renderRows` handles the data. 
+             // Actually, the `SuperAdminController` `Barangay` method had pagination server side.
+             // This API controller `GetAll` previously returned `Ok(data)` (List). 
+             // I will keep it returning List as per previous implementation for now.
+
+            var data = await query.Select(l => new UserListDto
                 {
                     Id = l.Id,
                     Username = l.Username,
@@ -185,6 +196,18 @@ namespace BMS_project.Controllers.SuperAdminController
                 };
                 _context.KabataanServiceRecords.Add(serviceRecord);
 
+                // LOGGING
+                var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (int.TryParse(userIdStr, out int adminId))
+                {
+                    _context.SystemLogs.Add(new SystemLog
+                    {
+                        User_ID = adminId,
+                        Remark = $"Created User: {dto.Username}",
+                        DateTime = DateTime.Now
+                    });
+                }
+
                 await _context.SaveChangesAsync();
 
                 await tx.CommitAsync();
@@ -241,12 +264,21 @@ namespace BMS_project.Controllers.SuperAdminController
                 }
 
                 _context.Login.Update(login);
+
+                // LOGGING
+                var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (int.TryParse(userIdStr, out int adminId))
+                {
+                    _context.SystemLogs.Add(new SystemLog
+                    {
+                        User_ID = adminId,
+                        Remark = $"Updated User: {dto.Username}",
+                        DateTime = DateTime.Now
+                    });
+                }
+
                 await _context.SaveChangesAsync();
                 
-                // We do not update ServiceRecord on simple Edit, unless Role changed? 
-                // For now, keeping it simple. If role changes, logic might be needed, 
-                // but requirement didn't specify editing past history.
-
                 await tx.CommitAsync();
                 return Ok(new { success = true });
             }
@@ -263,6 +295,7 @@ namespace BMS_project.Controllers.SuperAdminController
         {
             var login = await _context.Login
                 .Include(l => l.User)
+                .Include(l => l.Role)
                 .FirstOrDefaultAsync(l => l.Id == id);
 
             if (login == null || login.User == null) return NotFound();
@@ -272,7 +305,6 @@ namespace BMS_project.Controllers.SuperAdminController
             {
                  return BadRequest("Super Admin cannot be archived/resigned.");
             }
-             // Also check Role_ID directly if needed (usually 1)
             if (login.Role_ID == 1) return BadRequest("Super Admin cannot be archived.");
 
 
@@ -293,6 +325,18 @@ namespace BMS_project.Controllers.SuperAdminController
                     activeRecord.Status = "Resigned";
                     activeRecord.Actual_End_Date = DateTime.Now;
                     _context.KabataanServiceRecords.Update(activeRecord);
+                }
+
+                // LOGGING
+                var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (int.TryParse(userIdStr, out int adminId))
+                {
+                    _context.SystemLogs.Add(new SystemLog
+                    {
+                        User_ID = adminId,
+                        Remark = $"Resigned/Archived User: {login.Username}",
+                        DateTime = DateTime.Now
+                    });
                 }
 
                 await _context.SaveChangesAsync();
@@ -324,6 +368,9 @@ namespace BMS_project.Controllers.SuperAdminController
             await using var tx = await _context.Database.BeginTransactionAsync();
             try
             {
+                var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                int.TryParse(userIdStr, out int adminId);
+
                 foreach (var l in logins)
                 {
                     if (l.User != null)
@@ -340,6 +387,17 @@ namespace BMS_project.Controllers.SuperAdminController
                             Status = "Active"
                         };
                         _context.KabataanServiceRecords.Add(newRecord);
+
+                        // Log for each user
+                        if (adminId > 0)
+                        {
+                            _context.SystemLogs.Add(new SystemLog
+                            {
+                                User_ID = adminId,
+                                Remark = $"Re-elected User: {l.Username}",
+                                DateTime = DateTime.Now
+                            });
+                        }
                     }
                 }
 

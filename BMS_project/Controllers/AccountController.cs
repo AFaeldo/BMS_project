@@ -162,7 +162,8 @@ public class AccountController : Controller
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.Role, roleKey)
+            new Claim(ClaimTypes.Role, roleKey),
+            new Claim(ClaimTypes.NameIdentifier, (user.User_ID ?? 0).ToString()) // Handle nullable int
         };
 
         // Add Barangay_ID claim if it exists
@@ -183,6 +184,23 @@ public class AccountController : Controller
             HttpContext.Session.SetString("BarangayName", user.User.Barangay.Barangay_Name);
         }
 
+        // LOGGING
+        if (user.User_ID.HasValue)
+        {
+            try 
+            {
+                _context.SystemLogs.Add(new SystemLog 
+                { 
+                    User_ID = user.User_ID.Value, 
+                    Remark = "User Logged In", 
+                    DateTime = DateTime.Now 
+                });
+                await _context.SaveChangesAsync();
+            }
+            catch { /* Ignore logging errors */ }
+        }
+
+
         // Redirect based on role
         return roleKey switch
         {
@@ -196,6 +214,23 @@ public class AccountController : Controller
     [HttpGet]
     public async Task<IActionResult> Logout()
     {
+        // Log Logout
+        try
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(userIdStr, out int userId) && userId > 0)
+            {
+                _context.SystemLogs.Add(new SystemLog
+                {
+                    User_ID = userId,
+                    Remark = "User Logged Out",
+                    DateTime = DateTime.Now
+                });
+                await _context.SaveChangesAsync();
+            }
+        }
+        catch { }
+
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         return RedirectToAction("Login", "Account");
     }

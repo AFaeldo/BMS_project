@@ -21,6 +21,7 @@ namespace BMS_project.Data
         public DbSet<FileUpload> FileUploads { get; set; }
         public DbSet<KabataanTermPeriod> KabataanTermPeriods { get; set; }
         public DbSet<KabataanServiceRecord> KabataanServiceRecords { get; set; }
+        public DbSet<SystemLog> SystemLogs { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -35,6 +36,13 @@ namespace BMS_project.Data
             modelBuilder.Entity<User>().ToTable("user").HasKey(u => u.User_ID); // Changed to "user"
             modelBuilder.Entity<KabataanTermPeriod>().ToTable("kabataan_term_period").HasKey(t => t.Term_ID);
             modelBuilder.Entity<KabataanServiceRecord>().ToTable("kabataan_service_record").HasKey(r => r.Record_ID);
+            modelBuilder.Entity<SystemLog>().ToTable("system_log").HasKey(s => s.SysLog_id);
+
+            modelBuilder.Entity<SystemLog>()
+                .HasOne(s => s.User)
+                .WithMany() // Or WithMany(u => u.SystemLogs) if added to User
+                .HasForeignKey(s => s.User_ID)
+                .HasConstraintName("fk_User_Id"); // Match constraint name from SQL dump
 
 
             // --- Login -> Role (existing) ---

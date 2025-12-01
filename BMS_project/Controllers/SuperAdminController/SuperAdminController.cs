@@ -1,11 +1,14 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using BMS_project.Data;
 using BMS_project.ViewModels;
 using BMS_project.Models;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Security.Claims;
 
 namespace BMS_project.Controllers.SuperAdminController
 {
@@ -68,6 +71,19 @@ namespace BMS_project.Controllers.SuperAdminController
                 };
 
                 _context.KabataanTermPeriods.Add(newTerm);
+
+                // Log
+                var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (int.TryParse(userIdStr, out int userId))
+                {
+                    _context.SystemLogs.Add(new SystemLog 
+                    { 
+                        User_ID = userId, 
+                        Remark = $"Set New Term: {TermName}", 
+                        DateTime = DateTime.Now 
+                    });
+                }
+
                 _context.SaveChanges();
 
                 TempData["SuccessMessage"] = "New Term Period set successfully.";
@@ -86,10 +102,36 @@ namespace BMS_project.Controllers.SuperAdminController
             return View();
         }
 
-        public IActionResult SystemLogs()
+        public async Task<IActionResult> SystemLogs(int page = 1, string search = "")
         {
             ViewData["Title"] = "System Logs";
-            return View();
+            const int pageSize = 10;
+
+            // Include User and Login to display Username/Name
+            var query = _context.SystemLogs
+                .Include(s => s.User)
+                .ThenInclude(u => u.Login)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(s => s.Remark.Contains(search) || 
+                                         (s.User != null && (s.User.First_Name.Contains(search) || s.User.Last_Name.Contains(search))) ||
+                                         (s.User != null && s.User.Login != null && s.User.Login.Username.Contains(search)));
+            }
+
+            int totalItems = await query.CountAsync();
+            
+            var logs = await query.OrderByDescending(s => s.DateTime)
+                                  .Skip((page - 1) * pageSize)
+                                  .Take(pageSize)
+                                  .ToListAsync();
+
+            ViewBag.Page = page;
+            ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            ViewBag.Search = search;
+
+            return View(logs);
         }
 
         public IActionResult Settings()
@@ -158,6 +200,19 @@ namespace BMS_project.Controllers.SuperAdminController
             };
 
             _context.barangays.Add(barangay);
+
+            // Log
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(userIdStr, out int userId))
+            {
+                _context.SystemLogs.Add(new SystemLog
+                {
+                    User_ID = userId,
+                    Remark = $"Added Barangay: {BarangayName.Trim()}",
+                    DateTime = DateTime.Now
+                });
+            }
+
             _context.SaveChanges();
 
             TempData["SuccessMessage"] = "Barangay added successfully.";
