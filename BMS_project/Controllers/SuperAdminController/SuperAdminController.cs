@@ -18,11 +18,13 @@ namespace BMS_project.Controllers.SuperAdminController
     {
         private readonly ApplicationDbContext _context;
         private readonly ISystemLogService _systemLogService;
+        private readonly ITermService _termService;
 
-        public SuperAdminController(ApplicationDbContext context, ISystemLogService systemLogService)
+        public SuperAdminController(ApplicationDbContext context, ISystemLogService systemLogService, ITermService termService)
         {
             _context = context;
             _systemLogService = systemLogService;
+            _termService = termService;
         }
 
         public IActionResult BackupMaintenance()
@@ -52,45 +54,31 @@ namespace BMS_project.Controllers.SuperAdminController
             if (string.IsNullOrWhiteSpace(TermName))
             {
                 TempData["ErrorMessage"] = "Term Name is required.";
-                return RedirectToAction("Dashboard");
+                return Redirect("/SuperAdmin/Dashboard");
             }
 
             try
             {
-                // Deactivate all existing terms
-                var existingTerms = await _context.KabataanTermPeriods.Where(t => t.IsActive).ToListAsync();
-                foreach (var term in existingTerms)
-                {
-                    term.IsActive = false;
-                }
-
-                // Create new term
-                var newTerm = new KabataanTermPeriod
-                {
-                    Term_Name = TermName,
-                    Start_Date = StartDate,
-                    Official_End_Date = EndDate,
-                    IsActive = true
-                };
-
-                _context.KabataanTermPeriods.Add(newTerm);
-                await _context.SaveChangesAsync();
-
-                // Log
                 var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (int.TryParse(userIdStr, out int userId))
-                {
-                    await _systemLogService.LogAsync(userId, "Set Term", $"Set New Term: {TermName}", "KabataanTermPeriod", newTerm.Term_ID);
-                }
+                int userId = int.TryParse(userIdStr, out int parsedId) ? parsedId : 0;
 
-                TempData["SuccessMessage"] = "New Term Period set successfully.";
+                var result = await _termService.CreateTermAsync(TermName, StartDate, EndDate, userId);
+
+                if (result.IsSuccess)
+                {
+                    TempData["DashboardSuccessMessage"] = result.Message;
+                }
+                else
+                {
+                    TempData["DashboardErrorMessage"] = result.Message;
+                }
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Error setting new term: " + ex.Message;
+                TempData["DashboardErrorMessage"] = "Error setting new term: " + ex.Message;
             }
 
-            return RedirectToAction("Dashboard");
+            return Redirect("/SuperAdmin/Dashboard");
         }
 
         public IActionResult ManageUsers()

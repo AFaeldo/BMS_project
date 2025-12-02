@@ -10,6 +10,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddSession(); // Add Session
 builder.Services.AddHttpContextAccessor(); // Add HttpContextAccessor
 builder.Services.AddScoped<ISystemLogService, SystemLogService>();
+builder.Services.AddScoped<ITermService, TermService>();
 
 //  Configure Cookie Authentication (only once)
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

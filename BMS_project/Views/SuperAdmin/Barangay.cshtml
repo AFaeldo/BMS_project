@@ -12,9 +12,9 @@
     </div>
 
     <!-- MESSAGES -->
-    @if (TempData["SuccessMessage"] != null)
+    @if (TempData["DashboardSuccessMessage"] != null)
     {
-        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+        <div class="alert alert-success">@TempData["DashboardSuccessMessage"]</div>
     }
     else if (TempData["ErrorMessage"] != null)
     {
