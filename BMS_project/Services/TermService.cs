@@ -18,67 +18,90 @@ namespace BMS_project.Services
             _systemLogService = systemLogService;
         }
 
-        public async Task<(bool IsSuccess, string Message)> CanCreateNewTermAsync(DateTime startDate, DateTime endDate)
+        public async Task<(bool IsSuccess, string Message)> ValidateDuration(DateTime startDate, DateTime endDate)
         {
-            // 1. Duration Validation (Strictly 3 years)
-            // We accept exactly 3 years (Same date 3 years later) or 3 years minus 1 day.
-            var threeYearsLater = startDate.AddYears(3);
-            bool isExactThreeYears = endDate.Date == threeYearsLater.Date;
-            bool isThreeYearsMinusOneDay = endDate.Date == threeYearsLater.AddDays(-1).Date;
+            // Duration Validation (Approximate 3 years)
+            // Allow a buffer of +/- 60 days around the 3-year mark
+            var expectedDuration = TimeSpan.FromDays(365 * 3);
+            var actualDuration = endDate - startDate;
+            var diffDays = Math.Abs((expectedDuration - actualDuration).TotalDays);
 
-            if (!isExactThreeYears && !isThreeYearsMinusOneDay)
+            if (diffDays > 60)
             {
-                return (false, "The term duration must be strictly 3 years.");
+                return (false, $"The term duration must be approximately 3 years. You entered a duration of {actualDuration.TotalDays / 365.0:N1} years.");
             }
-
-            // 2. Overlap / Active Check
-            // Requirement: "Prevent creating a new term if the current term has not yet reached its Official_End_Date or if IsActive is still true."
-
-            // Check if there is any Active term
-            var activeTerm = await _context.KabataanTermPeriods.FirstOrDefaultAsync(t => t.IsActive);
-            if (activeTerm != null)
-            {
-                return (false, "Cannot create a new term because there is still an active term.");
-            }
-
-            // Check if the most recent term has reached its end date
-            var latestTerm = await _context.KabataanTermPeriods
-                                           .OrderByDescending(t => t.Official_End_Date)
-                                           .FirstOrDefaultAsync();
-
-            if (latestTerm != null && DateTime.Now < latestTerm.Official_End_Date)
-            {
-                 return (false, $"Cannot create a new term. The current term officially ends on {latestTerm.Official_End_Date:MMM dd, yyyy}.");
-            }
-
             return (true, "Valid");
         }
 
-        public async Task<(bool IsSuccess, string Message)> CreateTermAsync(string termName, DateTime startDate, DateTime endDate, int userId)
+        public async Task<(bool IsSuccess, string Message)> CreateTermAsync(string termName, DateTime startDate, DateTime endDate, int userId, bool isActive = false)
         {
-            // Validate first
-            var validation = await CanCreateNewTermAsync(startDate, endDate);
-            if (!validation.IsSuccess)
+            var validation = await ValidateDuration(startDate, endDate);
+            if (!validation.IsSuccess) return (false, validation.Message);
+
+            if (isActive)
             {
-                return (false, validation.Message);
+                // If strictly trying to set active immediately, check for existing
+                var activeTerm = await _context.KabataanTermPeriods.FirstOrDefaultAsync(t => t.IsActive);
+                if (activeTerm != null) return (false, "Cannot set as active because there is already an active term.");
             }
 
-            // Create new term
             var newTerm = new KabataanTermPeriod
             {
                 Term_Name = termName,
                 Start_Date = startDate,
                 Official_End_Date = endDate,
-                IsActive = true
+                IsActive = isActive
             };
 
             _context.KabataanTermPeriods.Add(newTerm);
             await _context.SaveChangesAsync();
 
-            // Log the action
-            await _systemLogService.LogAsync(userId, "Set Term", $"Set New Term: {termName}", "KabataanTermPeriod", newTerm.Term_ID);
+            await _systemLogService.LogAsync(userId, "Add Term", $"Added New Term: {termName}", "KabataanTermPeriod", newTerm.Term_ID);
 
-            return (true, "New Term Period set successfully.");
+            return (true, "Term added successfully.");
+        }
+
+        public async Task<(bool IsSuccess, string Message)> ActivateTermAsync(int termId, int userId)
+        {
+            var termToActivate = await _context.KabataanTermPeriods.FindAsync(termId);
+            if (termToActivate == null) return (false, "Term not found.");
+
+            if (termToActivate.IsActive) return (true, "Term is already active.");
+
+            // Deactivate all other terms
+            var activeTerms = await _context.KabataanTermPeriods.Where(t => t.IsActive).ToListAsync();
+            foreach (var t in activeTerms)
+            {
+                t.IsActive = false;
+            }
+
+            termToActivate.IsActive = true;
+            await _context.SaveChangesAsync();
+
+            await _systemLogService.LogAsync(userId, "Activate Term", $"Activated Term: {termToActivate.Term_Name}", "KabataanTermPeriod", termId);
+
+            return (true, "Term activated successfully.");
+        }
+
+        public async Task<(bool IsSuccess, string Message)> UpdateTermAsync(int termId, string termName, DateTime startDate, DateTime endDate, int userId)
+        {
+            var term = await _context.KabataanTermPeriods.FindAsync(termId);
+            if (term == null) return (false, "Term not found.");
+
+            if (!term.IsActive) return (false, "Only the active term can be edited.");
+
+            var validation = await ValidateDuration(startDate, endDate);
+            if (!validation.IsSuccess) return (false, validation.Message);
+
+            term.Term_Name = termName;
+            term.Start_Date = startDate;
+            term.Official_End_Date = endDate;
+
+            await _context.SaveChangesAsync();
+
+            await _systemLogService.LogAsync(userId, "Update Term", $"Updated Active Term: {termName}", "KabataanTermPeriod", termId);
+
+            return (true, "Term updated successfully.");
         }
     }
 }

@@ -18,13 +18,16 @@ namespace BMS_project.Models
         [ForeignKey("User_ID")]
         public User User { get; set; }
 
+        [Column("Term_ID")]
+        public int? Term_ID { get; set; }
+
         [Required]
         [Column("Project_Title")]
         [StringLength(255)]
-        public string Project_Title { get; set; }
+        public string Project_Title { get; set; } = string.Empty;
 
         [Column("Project_Description")]
-        public string Project_Description { get; set; }
+        public string Project_Description { get; set; } = string.Empty;
 
         [Column("Estimated_Cost")]
         public decimal Estimated_Cost { get; set; }
@@ -45,8 +48,8 @@ namespace BMS_project.Models
         public bool IsArchived { get; set; } = false;
 
         // Navigation properties
-        public ICollection<ProjectAllocation> Allocations { get; set; }
-        public ICollection<ProjectLog> Logs { get; set; }
-        public ICollection<FileUpload> Files { get; set; }
+        public ICollection<ProjectAllocation> Allocations { get; set; } = new List<ProjectAllocation>();
+        public ICollection<ProjectLog> Logs { get; set; } = new List<ProjectLog>();
+        public ICollection<FileUpload> Files { get; set; } = new List<FileUpload>();
     }
 }

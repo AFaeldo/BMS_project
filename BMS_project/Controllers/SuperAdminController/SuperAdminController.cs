@@ -45,7 +45,8 @@ namespace BMS_project.Controllers.SuperAdminController
                 TotalBarangays = _context.barangays?.Count() ?? 0,
                 TotalUsers = _context.Users?.Count() ?? 0,
                 CurrentTerm = activeTerm?.Term_Name ?? "No Active Term",
-                FederationFundAmount = fedFund?.Total_Amount ?? 0
+                FederationFundAmount = fedFund?.Total_Amount ?? 0,
+                AllTerms = _context.KabataanTermPeriods.OrderByDescending(t => t.Start_Date).ToList()
             };
 
             ViewData["Title"] = "Dashboard";
@@ -54,12 +55,94 @@ namespace BMS_project.Controllers.SuperAdminController
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SetNewTerm(string TermName, DateTime StartDate, DateTime EndDate)
+        public async Task<IActionResult> SetActiveTerm(int id)
+        {
+            try
+            {
+                var term = await _context.KabataanTermPeriods.FindAsync(id);
+                if (term == null)
+                {
+                    TempData["DashboardErrorMessage"] = "Term not found.";
+                    return RedirectToAction(nameof(Dashboard));
+                }
+
+                // Set all terms to inactive
+                var allTerms = await _context.KabataanTermPeriods.ToListAsync();
+                foreach (var t in allTerms)
+                {
+                    t.IsActive = false;
+                }
+
+                // Set selected term to active
+                term.IsActive = true;
+                
+                // Log action
+                var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (int.TryParse(userIdStr, out int userId))
+                {
+                     await _systemLogService.LogAsync(userId, "Set Active Term", $"Set Active Term to: {term.Term_Name}", "Term", term.Term_ID);
+                }
+
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Term '{term.Term_Name}' is now active.";
+            }
+            catch (Exception ex)
+            {
+                TempData["DashboardErrorMessage"] = "Error setting active term: " + ex.Message;
+            }
+
+            return RedirectToAction(nameof(Dashboard));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditTerm(int Term_ID, string TermName, DateTime StartDate, DateTime EndDate)
+        {
+            try
+            {
+                var term = await _context.KabataanTermPeriods.FindAsync(Term_ID);
+                if (term == null)
+                {
+                    TempData["DashboardErrorMessage"] = "Term not found.";
+                    return RedirectToAction(nameof(Dashboard));
+                }
+
+                if (!term.IsActive)
+                {
+                    TempData["DashboardErrorMessage"] = "Only active terms can be edited.";
+                    return RedirectToAction(nameof(Dashboard));
+                }
+
+                term.Term_Name = TermName;
+                term.Start_Date = StartDate;
+                term.Official_End_Date = EndDate;
+
+                // Log action
+                var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (int.TryParse(userIdStr, out int userId))
+                {
+                     await _systemLogService.LogAsync(userId, "Edit Term", $"Updated Term: {term.Term_Name}", "Term", term.Term_ID);
+                }
+
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Term updated successfully.";
+            }
+            catch (Exception ex)
+            {
+                TempData["DashboardErrorMessage"] = "Error updating term: " + ex.Message;
+            }
+
+            return RedirectToAction(nameof(Dashboard));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddTerm(string TermName, DateTime StartDate, DateTime EndDate)
         {
             if (string.IsNullOrWhiteSpace(TermName))
             {
-                TempData["ErrorMessage"] = "Term Name is required.";
-                return Redirect("/SuperAdmin/Dashboard");
+                TempData["DashboardErrorMessage"] = "Term Name is required.";
+                return RedirectToAction("Dashboard", "SuperAdmin");
             }
 
             try
@@ -67,11 +150,12 @@ namespace BMS_project.Controllers.SuperAdminController
                 var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 int userId = int.TryParse(userIdStr, out int parsedId) ? parsedId : 0;
 
-                var result = await _termService.CreateTermAsync(TermName, StartDate, EndDate, userId);
+                // Add inactive by default
+                var result = await _termService.CreateTermAsync(TermName, StartDate, EndDate, userId, isActive: false);
 
                 if (result.IsSuccess)
                 {
-                    TempData["DashboardSuccessMessage"] = result.Message;
+                    TempData["SuccessMessage"] = result.Message;
                 }
                 else
                 {
@@ -80,10 +164,66 @@ namespace BMS_project.Controllers.SuperAdminController
             }
             catch (Exception ex)
             {
-                TempData["DashboardErrorMessage"] = "Error setting new term: " + ex.Message;
+                TempData["DashboardErrorMessage"] = "Error adding term: " + ex.Message;
             }
 
-            return Redirect("/SuperAdmin/Dashboard");
+            return RedirectToAction("Dashboard", "SuperAdmin");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ActivateTerm(int termId)
+        {
+            try
+            {
+                var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                int userId = int.TryParse(userIdStr, out int parsedId) ? parsedId : 0;
+
+                var result = await _termService.ActivateTermAsync(termId, userId);
+
+                if (result.IsSuccess)
+                {
+                    TempData["SuccessMessage"] = result.Message;
+                }
+                else
+                {
+                    TempData["DashboardErrorMessage"] = result.Message;
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["DashboardErrorMessage"] = "Error activating term: " + ex.Message;
+            }
+
+            return RedirectToAction("Dashboard", "SuperAdmin");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateActiveTerm(int termId, string TermName, DateTime StartDate, DateTime EndDate)
+        {
+            try
+            {
+                var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                int userId = int.TryParse(userIdStr, out int parsedId) ? parsedId : 0;
+
+                var result = await _termService.UpdateTermAsync(termId, TermName, StartDate, EndDate, userId);
+
+                if (result.IsSuccess)
+                {
+                    TempData["SuccessMessage"] = result.Message;
+                }
+                else
+                {
+                    TempData["DashboardErrorMessage"] = result.Message;
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["DashboardErrorMessage"] = "Error updating term: " + ex.Message;
+            }
+
+            return RedirectToAction("Dashboard", "SuperAdmin");
         }
 
         public IActionResult ManageUsers()

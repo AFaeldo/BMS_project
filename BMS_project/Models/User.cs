@@ -12,13 +12,13 @@ namespace BMS_project.Models
         public int User_ID { get; set; }
 
         [Column("First_Name")]
-        public string First_Name { get; set; }
+        public string First_Name { get; set; } = string.Empty;
 
         [Column("Last_Name")]
-        public string Last_Name { get; set; }
+        public string Last_Name { get; set; } = string.Empty;
 
         [Column("Email")]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         [Column("Barangay_ID")]
         public int? Barangay_ID { get; set; }         // FK
@@ -33,7 +33,7 @@ namespace BMS_project.Models
 
         public Login Login { get; set; }              // optional 1:1 nav prop
 
-        public ICollection<KabataanServiceRecord> ServiceRecords { get; set; }
+        public ICollection<KabataanServiceRecord> ServiceRecords { get; set; } = new List<KabataanServiceRecord>();
 
         [Column("IsArchived")]
         public bool IsArchived { get; set; } = false;

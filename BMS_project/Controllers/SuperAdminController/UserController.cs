@@ -40,14 +40,6 @@ namespace BMS_project.Controllers.SuperAdminController
                 .Where(l => l.User != null && !l.User.IsArchived) // Filter active users
                 .OrderBy(l => l.Username);
 
-             // Pagination optional here or handled by caller. The previous code didn't use 'page' param in logic effectively 
-             // (it returned all), but I'll stick to previous logic which returned all for JS DataTable usually.
-             // Wait, the JS code calls `api.list` with `{ page }`.
-             // But previous implementation of `GetAll` returned ALL. 
-             // The JS `renderRows` handles the data. 
-             // Actually, the `SuperAdminController` `Barangay` method had pagination server side.
-             // This API controller `GetAll` previously returned `Ok(data)` (List). 
-             // I will keep it returning List as per previous implementation for now.
 
             var data = await query.Select(l => new UserListDto
                 {

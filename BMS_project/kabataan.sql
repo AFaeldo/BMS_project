@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 03, 2025 at 02:04 AM
+-- Generation Time: Dec 03, 2025 at 02:54 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -114,13 +114,6 @@ CREATE TABLE `budget` (
   `balance` decimal(10,2) NOT NULL,
   `Term_ID` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `budget`
---
-
-INSERT INTO `budget` (`budget_id`, `Barangay_ID`, `budget`, `disbursed`, `balance`, `Term_ID`) VALUES
-(6, 6, 1500000.00, 0.00, 1500000.00, NULL);
 
 -- --------------------------------------------------------
 
@@ -274,6 +267,7 @@ INSERT INTO `login` (`id`, `username`, `password`, `Role_ID`, `User_ID`) VALUES
 CREATE TABLE `project` (
   `Project_ID` int(11) NOT NULL,
   `User_ID` int(11) NOT NULL,
+  `Term_ID` int(11) DEFAULT NULL,
   `Project_Title` varchar(255) NOT NULL,
   `Project_Description` text DEFAULT NULL,
   `Estimated_Cost` decimal(18,2) NOT NULL DEFAULT 0.00,
@@ -430,7 +424,8 @@ INSERT INTO `system_log` (`SysLog_id`, `User_ID`, `Action`, `Table_Name`, `Recor
 (44, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 07:32:16'),
 (45, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 08:19:49'),
 (46, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 08:43:40'),
-(47, 7, 'Add Budget', 'Budget', 0, 'Added XDR1,500,000.00 Budget to Bayanan II', '2025-12-03 09:03:02');
+(47, 7, 'Add Budget', 'Budget', 0, 'Added XDR1,500,000.00 Budget to Bayanan II', '2025-12-03 09:03:02'),
+(48, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 09:09:07');
 
 -- --------------------------------------------------------
 
@@ -559,7 +554,8 @@ ALTER TABLE `login`
 --
 ALTER TABLE `project`
   ADD PRIMARY KEY (`Project_ID`),
-  ADD KEY `User_ID` (`User_ID`);
+  ADD KEY `User_ID` (`User_ID`),
+  ADD KEY `fk_project_term` (`Term_ID`);
 
 --
 -- Indexes for table `project_allocation`
@@ -685,7 +681,7 @@ ALTER TABLE `role`
 -- AUTO_INCREMENT for table `system_log`
 --
 ALTER TABLE `system_log`
-  MODIFY `SysLog_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
+  MODIFY `SysLog_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
 
 --
 -- AUTO_INCREMENT for table `user`
@@ -741,6 +737,7 @@ ALTER TABLE `login`
 -- Constraints for table `project`
 --
 ALTER TABLE `project`
+  ADD CONSTRAINT `fk_project_term` FOREIGN KEY (`Term_ID`) REFERENCES `kabataan_term_period` (`Term_ID`) ON UPDATE CASCADE,
   ADD CONSTRAINT `project_ibfk_1` FOREIGN KEY (`User_ID`) REFERENCES `user` (`User_ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
