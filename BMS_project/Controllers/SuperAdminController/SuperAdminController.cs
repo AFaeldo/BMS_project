@@ -145,6 +145,13 @@ namespace BMS_project.Controllers.SuperAdminController
                 return RedirectToAction("Dashboard", "SuperAdmin");
             }
 
+            // New Validation: StartDate cannot be in the past
+            if (StartDate.Date < DateTime.Today.Date)
+            {
+                TempData["DashboardErrorMessage"] = "Term Start Date cannot be earlier than today's date.";
+                return RedirectToAction("Dashboard", "SuperAdmin");
+            }
+
             try
             {
                 var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
