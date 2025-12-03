@@ -71,12 +71,18 @@
             </div>
         </div>
 
-        <!-- RIGHT SIDE: Sex Chart -->
+        <!-- RIGHT SIDE: Sex Chart and Project Status Chart -->
         <div class="col-md-4">
-            <div class="card shadow-sm border-0 h-100">
+            <div class="card shadow-sm border-0 h-50 mb-3">
                 <div class="card-header bg-white fw-bold text-dark">Sex Distribution</div>
                 <div class="card-body d-flex align-items-center justify-content-center">
-                    <canvas id="sexChart" style="max-height: 300px;"></canvas>
+                    <canvas id="sexChart" style="max-height: 200px;"></canvas>
+                </div>
+            </div>
+            <div class="card shadow-sm border-0 h-50">
+                <div class="card-header bg-white fw-bold text-dark">Project Status Distribution</div>
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    <canvas id="projectStatusChart" style="max-height: 200px;"></canvas>
                 </div>
             </div>
         </div>
@@ -106,6 +112,38 @@
     </div>
 </div>
 
+<!-- COMPLIANCE ALERT MODAL -->
+@if (ViewBag.OverdueCompliance != null)
+{
+    <div class="modal fade" id="complianceAlertModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 border-start border-danger border-5">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title fw-bold text-danger">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i> Compliance Alert
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="fw-semibold">The following requirements are overdue or due today:</p>
+                    <ul class="list-group list-group-flush">
+                        @foreach (var item in ViewBag.OverdueCompliance)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center text-danger">
+                                <span>@item.Title</span>
+                                <span class="badge bg-danger rounded-pill">@item.Due_Date.ToString("MMM dd, yyyy")</span>
+                            </li>
+                        }
+                    </ul>
+                    <div class="mt-3 text-end">
+                        <a href="@Url.Action("Compliance", "BarangaySk")" class="btn btn-sm btn-primary">Go to Compliance Page</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @section Scripts {
     <!-- Load Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -114,6 +152,14 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            
+            // Show Compliance Alert Modal if data exists
+            var complianceModalEl = document.getElementById('complianceAlertModal');
+            if (complianceModalEl) {
+                var modal = new bootstrap.Modal(complianceModalEl);
+                modal.show();
+            }
+
             // ===============================
             // FULL CALENDAR SETUP
             // ===============================
@@ -145,6 +191,28 @@
                     datasets: [{
                         data: sexData,
                         backgroundColor: ['#4e73df', '#e83e8c', '#36b9cc'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // PROJECT STATUS CHART
+            const projectStatusData = @Html.Raw(Model.ProjectStatusData);
+            
+            new Chart(document.getElementById('projectStatusChart'), {
+                type: 'pie',
+                data: {
+                    labels: ['Approved', 'Ongoing', 'Pending'],
+                    datasets: [{
+                        data: projectStatusData,
+                        backgroundColor: ['#198754', '#0dcaf0', '#ffc107'], // Success (Green), Info (Cyan), Warning (Yellow)
                         borderWidth: 1
                     }]
                 },

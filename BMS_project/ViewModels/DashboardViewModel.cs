@@ -25,6 +25,7 @@ namespace BMS_project.ViewModels
         public string AgeDistributionData { get; set; } // JSON
         public string SitioDistributionLabels { get; set; } // JSON
         public string SitioDistributionData { get; set; } // JSON
+        public string ProjectStatusData { get; set; } // JSON for Project Status Pie Chart
 
         // Calendar Data
         public string CalendarEvents { get; set; } // JSON List of objects { title, start, end }

@@ -474,7 +474,11 @@ namespace BMS_project.Controllers
             vm.SitioDistributionLabels = Newtonsoft.Json.JsonConvert.SerializeObject(sitioData.Select(d => d.Sitio).ToArray());
             vm.SitioDistributionData = Newtonsoft.Json.JsonConvert.SerializeObject(sitioData.Select(d => d.Count).ToArray());
 
-            // 5. Calendar Events (Approved Projects - Filtered by Term)
+            // 5. Project Status Pie Chart
+            var projectStatusData = new[] { vm.TotalApprovedProjects, vm.TotalOngoingProjects, vm.TotalPendingProjects };
+            vm.ProjectStatusData = Newtonsoft.Json.JsonConvert.SerializeObject(projectStatusData);
+
+            // 6. Calendar Events (Approved Projects - Filtered by Term)
             var calendarEvents = projects
                 .Where(p => p.Project_Status == "Approved" || p.Project_Status == "Completed")
                 .Select(p => new 
@@ -487,6 +491,21 @@ namespace BMS_project.Controllers
                 .ToList();
 
             vm.CalendarEvents = Newtonsoft.Json.JsonConvert.SerializeObject(calendarEvents);
+
+            // 7. Compliance Alert System
+            // Check for overdue and not submitted compliance items for this Barangay
+            var overdueCompliance = await _context.Compliances
+                .Where(c => c.Barangay_ID == barangayId.Value && 
+                            !c.IsArchived && 
+                            c.Status == "Not Submitted" && 
+                            c.Due_Date <= DateTime.Today)
+                .Select(c => new { c.Title, c.Due_Date })
+                .ToListAsync();
+
+            if (overdueCompliance.Any())
+            {
+                ViewBag.OverdueCompliance = overdueCompliance;
+            }
 
             return View(vm);
         }
