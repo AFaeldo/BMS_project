@@ -182,6 +182,16 @@ body {
         vertical-align: middle;
         color: #333;
     }
+
+/* Ensure text in modal bodies and card bodies is dark */
+.modal-body, .card-body {
+    color: #333; 
+}
+
+/* Also ensure form labels in modals are dark, if not already */
+.modal-body label {
+    color: #333;
+}
 .form-label {
     color: #000 !important;
 }

@@ -151,6 +151,7 @@ namespace BMS_project.Controllers
             // Fetch Compliances for the View Model
             var compliances = await _context.Compliances
                 .Include(c => c.Barangay)
+                .Where(c => !c.IsArchived)
                 .OrderByDescending(c => c.Due_Date)
                 .ToListAsync();
 

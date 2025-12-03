@@ -48,6 +48,7 @@ namespace BMS_project.Controllers
             // Crucial: Use .Include(c => c.Barangay) to display Barangay Name
             var compliances = await _context.Compliances
                 .Include(c => c.Barangay)
+                .Where(c => !c.IsArchived)
                 .OrderByDescending(c => c.Due_Date)
                 .ToListAsync();
 
@@ -80,6 +81,59 @@ namespace BMS_project.Controllers
             // Assuming this is loaded into a modal, typically strictly a PartialView.
             // If it's a full page acting as a modal content or just a partial.
             return PartialView("_CreateComplianceModal", model);
+        }
+
+        // GET: Compliance/Details/5
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var compliance = await _context.Compliances
+                .Include(c => c.Barangay)
+                .FirstOrDefaultAsync(m => m.Compliance_ID == id);
+
+            if (compliance == null)
+            {
+                return NotFound();
+            }
+
+            return View(compliance);
+        }
+
+        // POST: Compliance/Archive/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Archive(int id)
+        {
+            var compliance = await _context.Compliances.FindAsync(id);
+            if (compliance == null)
+            {
+                return NotFound();
+            }
+
+            compliance.IsArchived = true;
+            _context.Compliances.Update(compliance);
+            await _context.SaveChangesAsync();
+
+            // Log
+            var userId = GetCurrentUserId();
+            if (userId.HasValue)
+            {
+                await _systemLogService.LogAsync(userId.Value, "Archive Compliance", $"Archived requirement: {compliance.Title}", "Compliance", compliance.Compliance_ID);
+            }
+
+            TempData["SuccessMessage"] = "Compliance record archived successfully.";
+
+            // Redirect based on role or referer?
+            // Defaulting to Federation President view as per context
+            if (User.IsInRole("FederationPresident"))
+            {
+                return RedirectToAction("ComplianceMonitoring", "FederationPresident");
+            }
+            return RedirectToAction(nameof(Index));
         }
 
         // 3. Create(CreateComplianceViewModel model) (POST)

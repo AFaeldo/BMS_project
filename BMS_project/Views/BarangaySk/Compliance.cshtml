@@ -42,42 +42,24 @@
                                     <td>@item.Type</td>
                                     <td>@item.DueDate.ToShortDateString()</td>
                                     <td>
-                                        @if (item.Status == "Compliant")
+                                        @if (item.Date_Submitted.HasValue)
                                         {
-                                            <span class="badge bg-success">Compliant</span>
-                                        }
-                                        else if (item.Status == "Pending")
-                                        {
-                                            <span class="badge bg-warning text-dark">Pending Review</span>
-                                        }
-                                        else if (item.Status == "Non-Compliant" || item.Status == "Rejected")
-                                        {
-                                            <span class="badge bg-danger">@item.Status</span>
+                                            <span class="badge bg-success">Submitted</span>
                                         }
                                         else
                                         {
-                                            <span class="badge bg-secondary">Not Submitted</span>
+                                            <span class="badge bg-danger">Not Submitted</span>
                                         }
                                     </td>
                                     <td>@(item.Date_Submitted.HasValue ? item.Date_Submitted.Value.ToShortDateString() : "-")</td>
                                     <td class="text-center">
-                                        @if (item.SubmissionFileId.HasValue)
-                                        {
-                                            <a asp-controller="BarangaySk" asp-action="DownloadFile" asp-route-id="@item.SubmissionFileId" class="btn btn-sm btn-info me-1" target="_blank">
-                                                View Submission
-                                            </a>
-                                        }
-
-                                        @if (item.Status != "Compliant")
-                                        {
-                                            <button class="btn btn-sm btn-primary btn-upload" 
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#uploadModal"
-                                                    data-id="@item.Compliance_ID"
-                                                    data-title="@item.Title">
-                                                @(item.SubmissionFileId.HasValue ? "Resubmit" : "Submit")
-                                            </button>
-                                        }
+                                        <button class="btn btn-sm btn-primary btn-upload" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#uploadModal"
+                                                data-id="@item.Compliance_ID"
+                                                data-title="@item.Title">
+                                            @(item.Date_Submitted.HasValue ? "Resubmit" : "Submit")
+                                        </button>
                                     </td>
                                 </tr>
                             }

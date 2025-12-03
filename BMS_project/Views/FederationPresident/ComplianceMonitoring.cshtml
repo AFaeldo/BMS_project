@@ -8,7 +8,7 @@
 
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <div id="successAlert" class="alert alert-success alert-dismissible fade show" role="alert">
             @TempData["SuccessMessage"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -52,13 +52,14 @@
                             <th>Type</th>
                             <th>Status</th>
                             <th>Due Date</th>
+                            <th class="text-center">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         @if (!Model.Any())
                         {
                             <tr>
-                                <td colspan="5" class="text-center">No records found</td>
+                                <td colspan="6" class="text-center">No records found</td>
                             </tr>
                         }
                         else
@@ -69,8 +70,35 @@
                                     <td>@item.Barangay.Barangay_Name</td>
                                     <td>@item.Title</td>
                                     <td>@item.Type</td>
-                                    <td>@item.Status</td>
+                                    <td>
+                                        @if (item.Date_Submitted.HasValue)
+                                        {
+                                            <span class="badge bg-success">Submitted</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Not Submitted</span>
+                                        }
+                                    </td>
                                     <td>@item.Due_Date.ToShortDateString()</td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-sm btn-info me-1" 
+                                                data-title="@item.Title"
+                                                data-barangay="@item.Barangay.Barangay_Name"
+                                                data-type="@item.Type"
+                                                data-status="@item.Status"
+                                                data-duedate="@item.Due_Date.ToShortDateString()"
+                                                data-submitted="@(item.Date_Submitted.HasValue ? item.Date_Submitted.Value.ToString("MMM dd, yyyy hh:mm tt") : "-")"
+                                                data-archived="@(item.IsArchived ? "Yes" : "No")"
+                                                data-fileid="@item.File_ID"
+                                                data-id="@item.Compliance_ID"
+                                                onclick="openDetailsModal(this)">
+                                            View
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-danger" onclick="confirmArchive(@item.Compliance_ID)">
+                                            Archive
+                                        </button>
+                                    </td>
                                 </tr>
                             }
                         }
@@ -137,6 +165,171 @@
     </div>
 </div>
 
+<!-- MODAL FOR VIEW COMPLIANCE DETAILS -->
+<div class="modal fade" id="viewComplianceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0 rounded-3">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Compliance Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <h5 class="fw-bold text-primary" id="modalDetailsTitle"></h5>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="small text-muted text-uppercase">Barangay</label>
+                        <p class="fw-bold" id="modalDetailsBarangay"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small text-muted text-uppercase">Type</label>
+                        <p class="fw-bold" id="modalDetailsType"></p>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="small text-muted text-uppercase">Status</label>
+                        <p>
+                            <span class="badge" id="modalDetailsStatus"></span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small text-muted text-uppercase">Due Date</label>
+                        <p class="fw-bold" id="modalDetailsDueDate"></p>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="small text-muted text-uppercase">Date Submitted</label>
+                        <p class="fw-bold" id="modalDetailsSubmitted"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small text-muted text-uppercase">Archived</label>
+                        <p class="fw-bold" id="modalDetailsArchived"></p>
+                    </div>
+                </div>
+
+                <div id="modalDetailsFileContainer" style="display:none;">
+                    <div class="alert alert-light border">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <i class="bi bi-file-earmark-pdf text-danger me-2"></i>
+                                <strong>Submitted Document</strong>
+                            </div>
+                            <a href="#" id="modalDetailsDownloadLink" class="btn btn-sm btn-outline-primary" target="_blank">
+                                Download
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div id="modalDetailsNoFile" class="alert alert-secondary text-center py-2">
+                    <small>No document submitted yet.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ARCHIVE CONFIRMATION MODAL -->
+<div class="modal fade" id="archiveConfirmationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Confirm Archive</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to archive this record?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="archiveForm" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">Archive</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script>
+        function confirmArchive(id) {
+            var form = document.getElementById('archiveForm');
+            form.action = '/Compliance/Archive/' + id;
+            var modal = new bootstrap.Modal(document.getElementById('archiveConfirmationModal'));
+            modal.show();
+        }
+
+        function openDetailsModal(btn) {
+            // Get data from button
+            var title = btn.getAttribute('data-title');
+            var barangay = btn.getAttribute('data-barangay');
+            var type = btn.getAttribute('data-type');
+            var status = btn.getAttribute('data-status');
+            var duedate = btn.getAttribute('data-duedate');
+            var submitted = btn.getAttribute('data-submitted');
+            var archived = btn.getAttribute('data-archived');
+            var fileId = btn.getAttribute('data-fileid');
+            var id = btn.getAttribute('data-id');
+
+            // Set text content
+            document.getElementById('modalDetailsTitle').innerText = title;
+            document.getElementById('modalDetailsBarangay').innerText = barangay;
+            document.getElementById('modalDetailsType').innerText = type;
+            document.getElementById('modalDetailsDueDate').innerText = duedate;
+            document.getElementById('modalDetailsSubmitted').innerText = submitted;
+            document.getElementById('modalDetailsArchived').innerText = archived;
+
+            // Handle Status Badge Color
+            var statusBadge = document.getElementById('modalDetailsStatus');
+            statusBadge.className = 'badge'; // Reset classes
+            
+            // Check if submitted date exists (it is passed as "-" if null in the data attribute)
+            if (submitted && submitted !== "-") {
+                statusBadge.innerText = "Submitted";
+                statusBadge.classList.add('bg-success');
+            } else {
+                statusBadge.innerText = "Not Submitted";
+                statusBadge.classList.add('bg-danger');
+            }
+
+            // Handle File Download
+            var fileContainer = document.getElementById('modalDetailsFileContainer');
+            var noFileContainer = document.getElementById('modalDetailsNoFile');
+            var downloadLink = document.getElementById('modalDetailsDownloadLink');
+
+            if (fileId) {
+                fileContainer.style.display = 'block';
+                noFileContainer.style.display = 'none';
+                downloadLink.href = '/Compliance/Download?fileId=' + fileId;
+            } else {
+                fileContainer.style.display = 'none';
+                noFileContainer.style.display = 'block';
+            }
+
+            // Show Modal
+            var modal = new bootstrap.Modal(document.getElementById('viewComplianceModal'));
+            modal.show();
+        }
+
+        // Auto-dismiss success alert
+        document.addEventListener('DOMContentLoaded', function () {
+            var successAlert = document.getElementById('successAlert');
+            if (successAlert) {
+                setTimeout(function () {
+                    var bsAlert = new bootstrap.Alert(successAlert);
+                    bsAlert.close(); // Correct method to close and remove alert
+                }, 2000); 
+            }
+        });
+    </script>
 }
