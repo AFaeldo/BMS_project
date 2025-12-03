@@ -1,0 +1,83 @@
+@model IEnumerable<BMS_project.Models.Announcement>
+
+@{
+    ViewData["Title"] = "Manage Announcements";
+    Layout = "~/Views/Shared/_LayoutSuperAdmin.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Manage Announcements</h2>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i> Create New
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Title</th>
+                            <th>Message Preview</th>
+                            <th>Status</th>
+                            <th>Date Created</th>
+                            <th>Created By</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold">@item.Title</td>
+                                <td>
+                                    @if (item.Message.Length > 50)
+                                    {
+                                        @item.Message.Substring(0, 50) <span class="text-muted">...</span>
+                                    }
+                                    else
+                                    {
+                                        @item.Message
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.IsActive)
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    }
+                                </td>
+                                <td>@item.Date_Created.ToString("MMM dd, yyyy hh:mm tt")</td>
+                                <td>@(item.User != null ? $"{item.User.First_Name} {item.User.Last_Name}" : "Unknown")</td>
+                                <td class="text-center">
+                                    <a asp-action="Edit" asp-route-id="@item.Announcement_ID" class="btn btn-sm btn-warning text-white me-1">
+                                        <i class="bi bi-pencil-square"></i> Edit
+                                    </a>
+                                    <form asp-action="Delete" asp-route-id="@item.Announcement_ID" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this announcement?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

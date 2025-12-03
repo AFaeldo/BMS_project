@@ -48,6 +48,13 @@
                 </li>
 
                 <li class="nav-item">
+                    <a asp-controller="Announcement" asp-action="Index"
+                       class="nav-link @(ViewData["Title"]?.ToString() == "Manage Announcements" ? "active" : "")">
+                        <i class="bi bi-megaphone me-2"></i> Announcements
+                    </a>
+                </li>
+
+                <li class="nav-item">
                     <a asp-controller="SuperAdmin" asp-action="SystemLogs"
                        class="nav-link @(ViewData["Title"]?.ToString() == "System Logs" ? "active" : "")">
                         <i class="bi bi-journal-text me-2"></i> System Logs

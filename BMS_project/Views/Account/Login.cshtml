@@ -41,8 +41,36 @@
     </form>
 </div>
 
+<!-- ANNOUNCEMENT MODAL -->
+@if (ViewBag.Announcement != null)
+{
+    var ann = ViewBag.Announcement as BMS_project.Models.Announcement;
+    <div class="modal fade" id="announcementModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header bg-primary text-white rounded-top-4">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-megaphone-fill me-2"></i> @ann?.Title
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="fs-5" style="white-space: pre-wrap;">@ann?.Message</p>
+                    <div class="text-end text-muted mt-3">
+                        <small>Posted on: @ann?.Date_Created.ToString("MMM dd, yyyy")</small>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-primary px-4 rounded-pill" data-bs-dismiss="modal">Got it!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @section Scripts {
     <script>
+        // Toggle Password
         const togglePassword = document.getElementById("togglePassword");
         const passwordInput = document.getElementById("passwordInput");
 
@@ -51,6 +79,15 @@
             passwordInput.setAttribute("type", type);
             this.classList.toggle("bi-eye");
             this.classList.toggle("bi-eye-slash");
+        });
+
+        // Show Announcement Modal Automatically
+        document.addEventListener('DOMContentLoaded', function() {
+            var announcementModalEl = document.getElementById('announcementModal');
+            if (announcementModalEl) {
+                var modal = new bootstrap.Modal(announcementModalEl);
+                modal.show();
+            }
         });
     </script>
 }

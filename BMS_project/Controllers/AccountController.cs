@@ -21,8 +21,19 @@ public class AccountController : Controller
     }
 
     [HttpGet]
-    public IActionResult Login()
+    public async Task<IActionResult> Login()
     {
+        // Fetch latest active announcement
+        var announcement = await _context.Announcements
+            .Where(a => a.IsActive)
+            .OrderByDescending(a => a.Date_Created)
+            .FirstOrDefaultAsync();
+
+        if (announcement != null)
+        {
+            ViewBag.Announcement = announcement;
+        }
+
         return View();
     }
 

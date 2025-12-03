@@ -25,6 +25,7 @@ namespace BMS_project.Data
         public DbSet<FederationFund> FederationFunds { get; set; }
         public DbSet<Compliance> Compliances { get; set; }
         public DbSet<Sitio> Sitios { get; set; }
+        public DbSet<Announcement> Announcements { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -43,6 +44,13 @@ namespace BMS_project.Data
             modelBuilder.Entity<FederationFund>().ToTable("federation_fund").HasKey(f => f.Fund_ID);
             modelBuilder.Entity<Compliance>().ToTable("compliance").HasKey(c => c.Compliance_ID);
             modelBuilder.Entity<Sitio>().ToTable("sitio").HasKey(s => s.Sitio_ID);
+            modelBuilder.Entity<Announcement>().ToTable("announcement").HasKey(a => a.Announcement_ID);
+
+            modelBuilder.Entity<Announcement>()
+                .HasOne(a => a.User)
+                .WithMany()
+                .HasForeignKey(a => a.User_ID)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Sitio>()
                 .HasOne(s => s.Barangay)
