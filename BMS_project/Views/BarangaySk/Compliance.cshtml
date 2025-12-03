@@ -1,0 +1,137 @@
+@model IEnumerable<BMS_project.ViewModels.ComplianceViewModel>
+@{
+    Layout = "~/Views/Shared/_BarangayLayout.cshtml";
+    ViewData["Title"] = "Compliance";
+}
+
+<div class="container-fluid">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h2 class="fw-bold">Compliance Requirements</h2>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0 fw-bold">Required Documents</h5>
+        </div>
+        <div class="card-body">
+            @if (!Model.Any())
+            {
+                <div class="text-center py-4">
+                    <p class="text-muted mb-0">No compliance requirements found.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Title</th>
+                                <th>Type</th>
+                                <th>Due Date</th>
+                                <th>Status</th>
+                                <th>Submission Date</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@item.Title</td>
+                                    <td>@item.Type</td>
+                                    <td>@item.DueDate.ToShortDateString()</td>
+                                    <td>
+                                        @if (item.Status == "Compliant")
+                                        {
+                                            <span class="badge bg-success">Compliant</span>
+                                        }
+                                        else if (item.Status == "Pending")
+                                        {
+                                            <span class="badge bg-warning text-dark">Pending Review</span>
+                                        }
+                                        else if (item.Status == "Non-Compliant" || item.Status == "Rejected")
+                                        {
+                                            <span class="badge bg-danger">@item.Status</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Not Submitted</span>
+                                        }
+                                    </td>
+                                    <td>@(item.Date_Submitted.HasValue ? item.Date_Submitted.Value.ToShortDateString() : "-")</td>
+                                    <td class="text-center">
+                                        @if (item.SubmissionFileId.HasValue)
+                                        {
+                                            <a asp-controller="BarangaySk" asp-action="DownloadFile" asp-route-id="@item.SubmissionFileId" class="btn btn-sm btn-info me-1" target="_blank">
+                                                View Submission
+                                            </a>
+                                        }
+
+                                        @if (item.Status != "Compliant")
+                                        {
+                                            <button class="btn btn-sm btn-primary btn-upload" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#uploadModal"
+                                                    data-id="@item.Compliance_ID"
+                                                    data-title="@item.Title">
+                                                @(item.SubmissionFileId.HasValue ? "Resubmit" : "Submit")
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form asp-action="SubmitCompliance" method="post" enctype="multipart/form-data" class="modal-content">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="ComplianceId" id="modalComplianceId" />
+            
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Submit Compliance Document</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Requirement</label>
+                    <input type="text" class="form-control-plaintext" id="modalTitle" readonly />
+                </div>
+                
+                <div class="mb-3">
+                    <label for="SubmissionFile" class="form-label fw-bold">Upload PDF</label>
+                    <input type="file" name="SubmissionFile" class="form-control" accept="application/pdf" required />
+                    <div class="form-text">Please upload a PDF file (Max 25MB).</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Pass data to modal
+        document.addEventListener("click", function (e) {
+            if (e.target.closest(".btn-upload")) {
+                let btn = e.target.closest(".btn-upload");
+                let id = btn.getAttribute("data-id");
+                let title = btn.getAttribute("data-title");
+                
+                document.getElementById("modalComplianceId").value = id;
+                document.getElementById("modalTitle").value = title;
+            }
+        });
+    </script>
+}

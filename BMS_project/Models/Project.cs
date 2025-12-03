@@ -50,6 +50,5 @@ namespace BMS_project.Models
         // Navigation properties
         public ICollection<ProjectAllocation> Allocations { get; set; } = new List<ProjectAllocation>();
         public ICollection<ProjectLog> Logs { get; set; } = new List<ProjectLog>();
-        public ICollection<FileUpload> Files { get; set; } = new List<FileUpload>();
     }
 }

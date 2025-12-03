@@ -55,7 +55,6 @@
                     <tr>
                         <th>Project Title</th>
                         <th>Barangay</th>
-                        <th>Document</th>
                         <th>Alloted Budget</th>
                         <th>Date Submitted</th>
                         <th>Status</th>
@@ -71,18 +70,6 @@
                             <tr>
                                 <td>@item.Title</td>
                                 <td>@item.Barangay</td>
-                                <td>
-                                    @if (item.DocumentId.HasValue)
-                                    {
-                                        <a asp-action="DownloadFile" asp-route-id="@item.DocumentId" target="_blank" class="btn btn-outline-primary btn-sm">
-                                            <i class="bi bi-file-earmark-pdf"></i> View
-                                        </a>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted small">No Doc</span>
-                                    }
-                                </td>
                                 <td>@item.Amount.ToString("C", new System.Globalization.CultureInfo("en-PH"))</td>
                                 <td>@(item.Date.HasValue ? item.Date.Value.ToString("yyyy-MM-dd") : "-")</td>
                                 <td>@item.Status</td>
@@ -93,8 +80,7 @@
                                             data-budget="@item.Amount.ToString("C", new System.Globalization.CultureInfo("en-PH"))"
                                             data-date="@(item.Date.HasValue ? item.Date.Value.ToString("yyyy-MM-dd") : "-")"
                                             data-status="@item.Status"
-                                            data-desc="@item.Description"
-                                            data-doc="@(item.DocumentId.HasValue ? Url.Action("DownloadFile", new { id = item.DocumentId }) : "")">
+                                            data-desc="@item.Description">
                                         <i class="bi bi-eye"></i>
                                     </button>
                                     <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal"
@@ -203,11 +189,6 @@
                     <label class="fw-semibold">Reason (if rejected):</label>
                     <textarea id="vReason" class="form-control" readonly></textarea>
                 </div>
-
-                <div class="mt-3">
-                    <label class="fw-semibold">Attached Document:</label><br />
-                    <a id="vDoc" href="#" target="_blank" class="btn btn-outline-primary">Open PDF</a>
-                </div>
             </div>
 
             <div class="modal-footer">
@@ -289,17 +270,6 @@
         document.getElementById('vStatus').value = b.getAttribute('data-status');
         document.getElementById('vDesc').value = b.getAttribute('data-desc');
         document.getElementById('vReason').value = b.getAttribute('data-reason') || "—";
-        
-        const docPath = b.getAttribute('data-doc');
-        const docBtn = document.getElementById('vDoc');
-        if (docPath) {
-            docBtn.href = docPath;
-            docBtn.classList.remove('d-none');
-            docBtn.textContent = "Open PDF";
-        } else {
-            docBtn.href = "#";
-            docBtn.classList.add('d-none');
-        }
     });
 
     // EDIT MODAL

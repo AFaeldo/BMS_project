@@ -23,6 +23,7 @@ namespace BMS_project.Data
         public DbSet<KabataanServiceRecord> KabataanServiceRecords { get; set; }
         public DbSet<SystemLog> SystemLogs { get; set; }
         public DbSet<FederationFund> FederationFunds { get; set; }
+        public DbSet<Compliance> Compliances { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -39,6 +40,7 @@ namespace BMS_project.Data
             modelBuilder.Entity<KabataanServiceRecord>().ToTable("kabataan_service_record").HasKey(r => r.Record_ID);
             modelBuilder.Entity<SystemLog>().ToTable("system_log").HasKey(s => s.SysLog_id);
             modelBuilder.Entity<FederationFund>().ToTable("federation_fund").HasKey(f => f.Fund_ID);
+            modelBuilder.Entity<Compliance>().ToTable("compliance").HasKey(c => c.Compliance_ID);
 
             modelBuilder.Entity<SystemLog>()
                 .HasOne(s => s.User)
@@ -141,12 +143,6 @@ namespace BMS_project.Data
             modelBuilder.Entity<FileUpload>()
                 .ToTable("file_upload")
                 .HasKey(f => f.File_ID);
-
-            modelBuilder.Entity<FileUpload>()
-                .HasOne(f => f.Project)
-                .WithMany(p => p.Files)
-                .HasForeignKey(f => f.Project_ID)
-                .OnDelete(DeleteBehavior.Cascade); // file_upload_ibfk_1
 
             modelBuilder.Entity<FileUpload>()
                 .HasOne(f => f.User)

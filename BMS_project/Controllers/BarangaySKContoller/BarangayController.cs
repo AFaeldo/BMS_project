@@ -102,17 +102,16 @@ namespace BMS_project.Controllers
 
                 // 5. Database Insert
                 var username = User.Identity?.Name;
-                var user = await _context.Login.Include(l => l.User).FirstOrDefaultAsync(l => l.Username == username);
+                var loginRecord = await _context.Login.Include(l => l.User).FirstOrDefaultAsync(l => l.Username == username);
                 
-                if (user?.User == null)
+                if (loginRecord?.User == null)
                 {
                     throw new Exception("User not found or not associated with a profile.");
                 }
 
                 var fileUpload = new FileUpload
                 {
-                    Project_ID = ProjectId,
-                    User_ID = user.User.User_ID,
+                    User_ID = loginRecord.User.User_ID,
                     File_Name = DocumentName,
                     File = "UploadedFiles/" + uniqueFileName, // Store relative path
                     Timestamp = DateTime.Now
@@ -122,7 +121,7 @@ namespace BMS_project.Controllers
                 await _context.SaveChangesAsync();
 
                 // LOGGING
-                await _systemLogService.LogAsync(user.User.User_ID, "Upload Document", $"Uploaded Document: {DocumentName} for Project ID {ProjectId}", "FileUpload", fileUpload.File_ID);
+                await _systemLogService.LogAsync(loginRecord.User.User_ID, "Upload Document", $"Uploaded Document: {DocumentName} for Project ID {ProjectId}", "FileUpload", fileUpload.File_ID);
 
                 TempData["SuccessMessage"] = "Document uploaded successfully!";
                 _logger.LogInformation("File uploaded: {FilePath} by user {Username}", filePath, username);
@@ -143,192 +142,205 @@ namespace BMS_project.Controllers
             return View();
         }
 
-        // POST: Create Project
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [RequestSizeLimit(100 * 1024 * 1024)] // 100 MB
-        [RequestFormLimits(MultipartBodyLengthLimit = 100 * 1024 * 1024)] // 100 MB
-        public async Task<IActionResult> CreateProject(ProjectCreationViewModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                var errors = string.Join("; ", ModelState.Values
-                                        .SelectMany(v => v.Errors)
-                                        .Select(e => e.ErrorMessage));
-                TempData["ErrorMessage"] = "Validation failed: " + errors;
-                return RedirectToAction(nameof(Projects));
-            }
-
-                if (model.UploadedFile == null || model.UploadedFile.Length == 0)
-            {
-                TempData["ErrorMessage"] = "Please upload a project document (PDF).";
-                return RedirectToAction(nameof(Projects));
-            }
-
-            var ext = Path.GetExtension(model.UploadedFile.FileName).ToLowerInvariant();
-            if (ext != ".pdf" || model.UploadedFile.ContentType != "application/pdf")
-            {
-                TempData["ErrorMessage"] = "Only PDF files are allowed.";
-                return RedirectToAction(nameof(Projects));
-            }
-
-            var username = User.Identity?.Name;
-            var login = await _context.Login
-                .Include(l => l.User)
-                .FirstOrDefaultAsync(l => l.Username == username);
-
-            if (login == null || login.User == null)
-            {
-                TempData["ErrorMessage"] = "User not found.";
-                return RedirectToAction(nameof(Projects));
-            }
-
-            var user = login.User;
-            if (user.Barangay_ID == null)
-            {
-                TempData["ErrorMessage"] = "User is not assigned to a Barangay.";
-                return RedirectToAction(nameof(Projects));
-            }
-
-            var budget = await _context.Budgets
-                .FirstOrDefaultAsync(b => b.Barangay_ID == user.Barangay_ID);
-
-            if (budget == null)
-            {
-                TempData["ErrorMessage"] = "No budget found for this Barangay.";
-                return RedirectToAction(nameof(Projects));
-            }
-
-            // PART C Logic: Barangay SK - Create Project Validation
-            // Validation: Project Cost cannot exceed BarangayBudget.Balance
-            if (model.Allocated_Amount > budget.balance)
-            {
-                TempData["ErrorMessage"] = $"Barangay funds insufficient. You are trying to allocate {model.Allocated_Amount:C}, but the available balance is {budget.balance:C}.";
-                return RedirectToAction(nameof(Projects));
-            }
-
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            string? savedFilePath = null;
-            bool transactionCommitted = false;
-
-            try
-            {
-                _logger.LogInformation("Starting project creation transaction for user {UserId}", user.User_ID);
-
-                var project = new Project
+                // POST: Create Project
+                [HttpPost]
+                [ValidateAntiForgeryToken]
+                [RequestSizeLimit(100 * 1024 * 1024)] // 100 MB
+                [RequestFormLimits(MultipartBodyLengthLimit = 100 * 1024 * 1024)] // 100 MB
+                public async Task<IActionResult> CreateProject(ProjectCreationViewModel model)
                 {
-                    User_ID = user.User_ID,
-                    Project_Title = model.Project_Title,
-                    Project_Description = model.Project_Description,
-                    Date_Submitted = DateTime.Now,
-                    Project_Status = "Pending",
-                    Start_Date = model.Start_Date,
-                    End_Date = model.End_Date
-                };
-
-                _context.Projects.Add(project);
-                await _context.SaveChangesAsync();
-
-                var allocation = new ProjectAllocation
-                {
-                    Budget_ID = budget.Budget_ID,
-                    Project_ID = project.Project_ID,
-                    Amount_Allocated = model.Allocated_Amount
-                };
-                _context.ProjectAllocations.Add(allocation);
-
-                // Save file to webroot UploadedFiles
-                var baseFolder = !string.IsNullOrEmpty(_webHostEnvironment.WebRootPath)
-                    ? _webHostEnvironment.WebRootPath
-                    : _webHostEnvironment.ContentRootPath;
-
-                string uploadFolder = Path.Combine(baseFolder, "UploadedFiles");
-                if (!Directory.Exists(uploadFolder))
-                {
-                    Directory.CreateDirectory(uploadFolder);
-                    _logger.LogInformation("Created upload directory: {UploadFolder}", uploadFolder);
-                }
-
-                string safeDocName = string.IsNullOrWhiteSpace(model.DocumentName)
-                    ? "Document"
-                    : Path.GetFileNameWithoutExtension(model.DocumentName);
-
-                safeDocName = string.Join("_", safeDocName.Split(Path.GetInvalidFileNameChars()));
-
-                var extension2 = Path.GetExtension(model.UploadedFile.FileName).ToLowerInvariant();
-                string uniqueFileName = $"{safeDocName}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid().ToString("N").Substring(0, 6)}{extension2}";
-                savedFilePath = Path.Combine(uploadFolder, uniqueFileName);
-
-                using (var stream = new FileStream(savedFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
-                {
-                    await model.UploadedFile.CopyToAsync(stream);
-                }
-
-                var fileUpload = new FileUpload
-                {
-                    Project_ID = project.Project_ID,
-                    User_ID = user.User_ID,
-                    File_Name = model.DocumentName,
-                    File = "/UploadedFiles/" + uniqueFileName,
-                    Timestamp = DateTime.Now
-                };
-                _context.FileUploads.Add(fileUpload);
-
-                var log = new ProjectLog
-                {
-                    Project_ID = project.Project_ID,
-                    User_ID = user.User_ID,
-                    Status = "Pending",
-                    Changed_On = DateTime.Now,
-                    Remarks = "Project created and submitted for approval."
-                };
-                _context.ProjectLogs.Add(log);
-
-                // LOGGING (System Log)
-                await _systemLogService.LogAsync(user.User_ID, "Create Project", $"Created Project: {project.Project_Title}", "Project", project.Project_ID);
-
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-                transactionCommitted = true;
-
-                _logger.LogInformation("Transaction committed for project {ProjectId}", project.Project_ID);
-                TempData["SuccessMessage"] = "Project submitted successfully!";
-                return RedirectToAction(nameof(Projects));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "ERROR in CreateProject");
-                if (!transactionCommitted)
-                {
-                    try
+                    if (!ModelState.IsValid)
                     {
-                        await transaction.RollbackAsync();
-                        _logger.LogInformation("Transaction rolled back.");
+                        var errors = string.Join("; ", ModelState.Values
+                                                .SelectMany(v => v.Errors)
+                                                .Select(e => e.ErrorMessage));
+                        TempData["ErrorMessage"] = "Validation failed: " + errors;
+                        return RedirectToAction(nameof(Projects));
                     }
-                    catch (Exception rbEx)
+        
+                    if (model.UploadedFile == null || model.UploadedFile.Length == 0)
                     {
-                        _logger.LogError(rbEx, "Rollback failed");
+                        TempData["ErrorMessage"] = "Please upload a project document (PDF).";
+                        return RedirectToAction(nameof(Projects));
+                    }
+        
+                    var ext = Path.GetExtension(model.UploadedFile.FileName).ToLowerInvariant();
+                    if (ext != ".pdf" || model.UploadedFile.ContentType != "application/pdf")
+                    {
+                        TempData["ErrorMessage"] = "Only PDF files are allowed.";
+                        return RedirectToAction(nameof(Projects));
+                    }
+        
+                    var username = User.Identity?.Name;
+                    var loginRecord = await _context.Login
+                        .Include(l => l.User)
+                        .FirstOrDefaultAsync(l => l.Username == username);
+        
+                    if (loginRecord == null || loginRecord.User == null)
+                    {
+                        TempData["ErrorMessage"] = "User not found.";
+                        return RedirectToAction(nameof(Projects));
+                    }
+        
+                    var user = loginRecord.User;
+                    if (user.Barangay_ID == null)
+                    {
+                        TempData["ErrorMessage"] = "User is not assigned to a Barangay.";
+                        return RedirectToAction(nameof(Projects));
+                    }
+        
+                    var budget = await _context.Budgets
+                        .FirstOrDefaultAsync(b => b.Barangay_ID == user.Barangay_ID);
+        
+                    if (budget == null)
+                    {
+                        TempData["ErrorMessage"] = "No budget found for this Barangay.";
+                        return RedirectToAction(nameof(Projects));
+                    }
+        
+                    // PART C Logic: Barangay SK - Create Project Validation
+                    // Validation: Project Cost cannot exceed BarangayBudget.Balance
+                    if (model.Allocated_Amount > budget.balance)
+                    {
+                        TempData["ErrorMessage"] = $"Barangay funds insufficient. You are trying to allocate {model.Allocated_Amount:C}, but the available balance is {budget.balance:C}.";
+                        return RedirectToAction(nameof(Projects));
+                    }
+        
+                    // Use Execution Strategy for retries
+                    var strategy = _context.Database.CreateExecutionStrategy();
+        
+                    await strategy.ExecuteAsync(async () =>
+                    {
+                        using var transaction = await _context.Database.BeginTransactionAsync();
+                        string? savedFilePath = null;
+                        bool transactionCommitted = false;
+        
+                        try
+                        {
+                            _logger.LogInformation("Starting project creation transaction for user {UserId}", user.User_ID);
+        
+                            var project = new Project
+                            {
+                                User_ID = user.User_ID,
+                                Project_Title = model.Project_Title,
+                                Project_Description = model.Project_Description,
+                                Date_Submitted = DateTime.Now,
+                                Project_Status = "Pending",
+                                Start_Date = model.Start_Date,
+                                End_Date = model.End_Date,
+                                Term_ID = budget.Term_ID // Ensure project is linked to the active term
+                            };
+        
+                            _context.Projects.Add(project);
+                            await _context.SaveChangesAsync();
+        
+                            var allocation = new ProjectAllocation
+                            {
+                                Budget_ID = budget.Budget_ID,
+                                Project_ID = project.Project_ID,
+                                Amount_Allocated = model.Allocated_Amount
+                            };
+                            _context.ProjectAllocations.Add(allocation);
+        
+                            // Save file to webroot UploadedFiles
+                            var baseFolder = !string.IsNullOrEmpty(_webHostEnvironment.WebRootPath)
+                                ? _webHostEnvironment.WebRootPath
+                                : _webHostEnvironment.ContentRootPath;
+        
+                            string uploadFolder = Path.Combine(baseFolder, "UploadedFiles");
+                            if (!Directory.Exists(uploadFolder))
+                            {
+                                Directory.CreateDirectory(uploadFolder);
+                                _logger.LogInformation("Created upload directory: {UploadFolder}", uploadFolder);
+                            }
+        
+                            string safeDocName = string.IsNullOrWhiteSpace(model.DocumentName)
+                                ? "Document"
+                                : Path.GetFileNameWithoutExtension(model.DocumentName);
+        
+                            safeDocName = string.Join("_", safeDocName.Split(Path.GetInvalidFileNameChars()));
+        
+                            var extension2 = Path.GetExtension(model.UploadedFile.FileName).ToLowerInvariant();
+                            string uniqueFileName = $"{safeDocName}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid().ToString("N").Substring(0, 6)}{extension2}";
+                            savedFilePath = Path.Combine(uploadFolder, uniqueFileName);
+        
+                            using (var stream = new FileStream(savedFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
+                            {
+                                await model.UploadedFile.CopyToAsync(stream);
+                            }
+        
+                            var fileUpload = new FileUpload
+                            {
+                                User_ID = user.User_ID,
+                                File_Name = model.DocumentName,
+                                File = "/UploadedFiles/" + uniqueFileName,
+                                Timestamp = DateTime.Now
+                            };
+                            _context.FileUploads.Add(fileUpload);
+        
+                            var log = new ProjectLog
+                            {
+                                Project_ID = project.Project_ID,
+                                User_ID = user.User_ID,
+                                Status = "Pending",
+                                Changed_On = DateTime.Now,
+                                Remarks = "Project created and submitted for approval."
+                            };
+                            _context.ProjectLogs.Add(log);
+        
+                            // LOGGING (System Log)
+                            await _systemLogService.LogAsync(user.User_ID, "Create Project", $"Created Project: {project.Project_Title}", "Project", project.Project_ID);
+        
+                            await _context.SaveChangesAsync();
+                            await transaction.CommitAsync();
+                            transactionCommitted = true;
+        
+                            _logger.LogInformation("Transaction committed for project {ProjectId}", project.Project_ID);
+                            TempData["SuccessMessage"] = "Project submitted successfully!";
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "ERROR in CreateProject");
+                            if (!transactionCommitted)
+                            {
+                                try
+                                {
+                                    await transaction.RollbackAsync();
+                                    _logger.LogInformation("Transaction rolled back.");
+                                }
+                                catch (Exception rbEx)
+                                {
+                                    _logger.LogError(rbEx, "Rollback failed");
+                                }
+                            }
+        
+                            if (savedFilePath != null && System.IO.File.Exists(savedFilePath))
+                            {
+                                try
+                                {
+                                    System.IO.File.Delete(savedFilePath);
+                                    _logger.LogInformation("Cleaned up orphaned file {Path}", savedFilePath);
+                                }
+                                catch (Exception cleanupEx)
+                                {
+                                    _logger.LogWarning(cleanupEx, "Failed to delete orphaned file");
+                                }
+                            }
+        
+                            throw; // Re-throw to be caught by strategy or outer handler
+                        }
+                    });
+        
+                    if (TempData["SuccessMessage"] != null)
+                    {
+                        return RedirectToAction(nameof(Projects));
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = "An error occurred while creating the project.";
+                        return RedirectToAction(nameof(Projects));
                     }
                 }
-
-                if (savedFilePath != null && System.IO.File.Exists(savedFilePath))
-                {
-                    try
-                    {
-                        System.IO.File.Delete(savedFilePath);
-                        _logger.LogInformation("Cleaned up orphaned file {Path}", savedFilePath);
-                    }
-                    catch (Exception cleanupEx)
-                    {
-                        _logger.LogWarning(cleanupEx, "Failed to delete orphaned file");
-                    }
-                }
-
-                TempData["ErrorMessage"] = "An error occurred: " + ex.Message;
-                return RedirectToAction(nameof(Projects));
-            }
-        }
-
         // Download File Action
         public async Task<IActionResult> DownloadFile(int id)
         {
@@ -440,19 +452,23 @@ namespace BMS_project.Controllers
             ViewData["Title"] = "Project History";
 
             var username = User.Identity?.Name;
-            var login = await _context.Login
+            var loginRecord = await _context.Login
                 .Include(l => l.User)
                 .FirstOrDefaultAsync(l => l.Username == username);
 
-            if (login == null || login.User == null || login.User.Barangay_ID == null)
+            if (loginRecord == null || loginRecord.User == null || loginRecord.User.Barangay_ID == null)
             {
                 return RedirectToAction("Login", "Account");
             }
 
+            // Extract the User object explicitly
+            BMS_project.Models.User userModel = loginRecord.User; 
+            int currentUserId = userModel.User_ID; // Access User_ID from the explicit User model
+
             var projects = await _context.Projects
                 .Include(p => p.User)
                 .Include(p => p.Allocations)
-                .Where(p => p.User.Barangay_ID == login.User.Barangay_ID && p.Project_Status != "Pending")
+                .Where(p => p.User_ID == currentUserId && p.Project_Status != "Pending")
                 .OrderByDescending(p => p.Date_Submitted)
                 .Select(p => new ProjectListViewModel
                 {
@@ -475,17 +491,21 @@ namespace BMS_project.Controllers
             ViewData["Title"] = "Project Management";
 
             var username = User.Identity?.Name;
-            var login = await _context.Login
+            var loginRecord = await _context.Login
                 .Include(l => l.User)
                 .FirstOrDefaultAsync(l => l.Username == username);
 
-            if (login == null || login.User == null)
+            if (loginRecord == null || loginRecord.User == null)
             {
                 return RedirectToAction("Login", "Account");
             }
 
+            // Extract the User object explicitly
+            BMS_project.Models.User userModel = loginRecord.User; 
+            int currentUserId = userModel.User_ID; // Access User_ID from the explicit User model
+
             var projects = await _context.Projects
-                .Where(p => p.User_ID == login.User.User_ID && !p.IsArchived)
+                .Where(p => p.User_ID == currentUserId && !p.IsArchived)
                 .Include(p => p.Allocations)
                 .OrderByDescending(p => p.Date_Submitted)
                 .Select(p => new ProjectListViewModel
@@ -501,7 +521,7 @@ namespace BMS_project.Controllers
                 .ToListAsync();
 
             var archivedProjects = await _context.Projects
-                .Where(p => p.User_ID == login.User.User_ID && p.IsArchived)
+                .Where(p => p.User_ID == currentUserId && p.IsArchived)
                 .Select(p => new ProjectListViewModel
                 {
                     Project_ID = p.Project_ID,
@@ -576,6 +596,120 @@ namespace BMS_project.Controllers
             }
 
             return RedirectToAction(nameof(Projects));
+        }
+
+        public async Task<IActionResult> Compliance()
+        {
+            ViewData["Title"] = "Compliance";
+
+            var barangayId = GetBarangayIdFromClaims();
+            if (!barangayId.HasValue)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var compliances = await _context.Compliances
+                .Include(c => c.SubmissionFile)
+                .Where(c => c.Barangay_ID == barangayId.Value && !c.IsArchived)
+                .Select(c => new ComplianceViewModel
+                {
+                    Compliance_ID = c.Compliance_ID,
+                    Title = c.Title,
+                    Type = c.Type,
+                    DueDate = c.Due_Date,
+                    Status = c.Status,
+                    Date_Submitted = c.Date_Submitted,
+                    SubmissionFilePath = c.SubmissionFile != null ? c.SubmissionFile.File : null,
+                    SubmissionFileId = c.File_ID
+                })
+                .OrderByDescending(c => c.DueDate)
+                .ToListAsync();
+
+            return View(compliances);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitCompliance(int ComplianceId, IFormFile SubmissionFile)
+        {
+            if (SubmissionFile == null || SubmissionFile.Length == 0)
+            {
+                TempData["ErrorMessage"] = "Please select a file to upload.";
+                return RedirectToAction(nameof(Compliance));
+            }
+
+            var ext = Path.GetExtension(SubmissionFile.FileName).ToLowerInvariant();
+            if (ext != ".pdf" || SubmissionFile.ContentType != "application/pdf")
+            {
+                TempData["ErrorMessage"] = "Only PDF files are allowed.";
+                return RedirectToAction(nameof(Compliance));
+            }
+
+            try
+            {
+                var barangayId = GetBarangayIdFromClaims();
+                if (!barangayId.HasValue) return Unauthorized();
+
+                var compliance = await _context.Compliances.FirstOrDefaultAsync(c => c.Compliance_ID == ComplianceId && c.Barangay_ID == barangayId.Value);
+                if (compliance == null)
+                {
+                    TempData["ErrorMessage"] = "Compliance requirement not found.";
+                    return RedirectToAction(nameof(Compliance));
+                }
+
+                var baseFolder = !string.IsNullOrEmpty(_webHostEnvironment.WebRootPath)
+                   ? _webHostEnvironment.WebRootPath
+                   : _webHostEnvironment.ContentRootPath;
+
+                string uploadFolder = Path.Combine(baseFolder, "UploadedFiles", "Submissions");
+                if (!Directory.Exists(uploadFolder))
+                {
+                    Directory.CreateDirectory(uploadFolder);
+                }
+
+                string uniqueFileName = $"{compliance.Compliance_ID}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid().ToString("N").Substring(0, 6)}.pdf";
+                string filePath = Path.Combine(uploadFolder, uniqueFileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await SubmissionFile.CopyToAsync(stream);
+                }
+
+                // Create FileUpload record
+                var userId = GetCurrentUserId();
+                var fileUpload = new FileUpload
+                {
+                    User_ID = userId,
+                    File_Name = SubmissionFile.FileName,
+                    File = "/UploadedFiles/Submissions/" + uniqueFileName,
+                    Timestamp = DateTime.Now
+                };
+                _context.FileUploads.Add(fileUpload);
+                await _context.SaveChangesAsync();
+
+                // Update Compliance
+                compliance.File_ID = fileUpload.File_ID;
+                compliance.Date_Submitted = DateTime.Now;
+                compliance.Status = "Pending"; // Or "Submitted", depending on workflow. "Pending" implies pending review.
+                
+                _context.Compliances.Update(compliance);
+
+                // Log
+                if (userId.HasValue)
+                {
+                     await _systemLogService.LogAsync(userId.Value, "Submit Compliance", $"Submitted compliance for: {compliance.Title}", "Compliance", compliance.Compliance_ID);
+                }
+
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Compliance submitted successfully!";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error submitting compliance");
+                TempData["ErrorMessage"] = "Error submitting compliance: " + ex.Message;
+            }
+
+            return RedirectToAction(nameof(Compliance));
         }
 
         public async Task<IActionResult> Budgets()

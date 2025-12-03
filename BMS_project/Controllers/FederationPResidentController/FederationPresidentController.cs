@@ -134,10 +134,27 @@ namespace BMS_project.Controllers
             return View(viewModel);
         }
 
-        public IActionResult ComplianceMonitoring()
+        public async Task<IActionResult> ComplianceMonitoring()
         {
             ViewData["Title"] = "Compliance Monitoring";
-            return View();
+
+            // Populate dropdown for Create Modal
+            ViewBag.Barangays = await _context.barangays
+                .OrderBy(b => b.Barangay_Name)
+                .Select(b => new SelectListItem
+                {
+                    Value = b.Barangay_ID.ToString(),
+                    Text = b.Barangay_Name
+                })
+                .ToListAsync();
+
+            // Fetch Compliances for the View Model
+            var compliances = await _context.Compliances
+                .Include(c => c.Barangay)
+                .OrderByDescending(c => c.Due_Date)
+                .ToListAsync();
+
+            return View(compliances);
         }
 
         public IActionResult ReportGeneration()
@@ -159,7 +176,6 @@ namespace BMS_project.Controllers
             var projects = await _context.Projects
                 .Include(p => p.User)
                 .ThenInclude(u => u.Barangay)
-                .Include(p => p.Files) // Include Files
                 .Include(p => p.Allocations) // Include Allocations
                 .Where(p => p.Project_Status == "Pending")
                 .OrderByDescending(p => p.Date_Submitted)
@@ -172,9 +188,7 @@ namespace BMS_project.Controllers
                     Status = p.Project_Status,
                     DateSubmitted = p.Date_Submitted ?? DateTime.Now,
                     // Fix: Populate Amount from Allocation
-                    Amount = p.Allocations.FirstOrDefault() != null ? p.Allocations.FirstOrDefault().Amount_Allocated : 0,
-                    DocumentPath = p.Files.FirstOrDefault() != null ? p.Files.FirstOrDefault().File : null,
-                    DocumentId = p.Files.FirstOrDefault() != null ? p.Files.FirstOrDefault().File_ID : null
+                    Amount = p.Allocations.FirstOrDefault() != null ? p.Allocations.FirstOrDefault().Amount_Allocated : 0
                 })
                 .ToListAsync();
 
@@ -189,7 +203,6 @@ namespace BMS_project.Controllers
                 .Include(p => p.User)
                 .ThenInclude(u => u.Barangay)
                 .Include(p => p.Allocations)
-                .Include(p => p.Files)
                 .Where(p => p.Project_Status != "Pending")
                 .OrderByDescending(p => p.Date_Submitted)
                 .Select(p => new ProjectApprovalListViewModel
@@ -200,9 +213,7 @@ namespace BMS_project.Controllers
                     Barangay = p.User.Barangay.Barangay_Name,
                     Status = p.Project_Status,
                     DateSubmitted = p.Date_Submitted ?? DateTime.Now,
-                    Amount = p.Allocations.FirstOrDefault() != null ? p.Allocations.FirstOrDefault().Amount_Allocated : 0,
-                    DocumentPath = p.Files.FirstOrDefault() != null ? p.Files.FirstOrDefault().File : null,
-                    DocumentId = p.Files.FirstOrDefault() != null ? p.Files.FirstOrDefault().File_ID : null
+                    Amount = p.Allocations.FirstOrDefault() != null ? p.Allocations.FirstOrDefault().Amount_Allocated : 0
                 })
                 .ToListAsync();
 

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using System.Security.Claims;
 using System.Collections.Generic;
 
-namespace BMS_project.Controllers
+namespace BMS_project.Controllers.BarangaySKContoller
 {
     public class YouthController : Controller
     {
@@ -26,7 +26,7 @@ namespace BMS_project.Controllers
         private int? GetBarangayIdFromClaims()
         {
             var claim = User.Claims.FirstOrDefault(c => c.Type == "Barangay_ID");
-            return claim != null && int.TryParse(claim.Value, out int id) ? id : (int?)null;
+            return claim != null && int.TryParse(claim.Value, out int id) ? id : null;
         }
 
         private int? GetCurrentUserId()

@@ -61,16 +61,7 @@
                                     </td>
                                     <td>@project.DateSubmitted.ToString("MMM dd, yyyy")</td>
                                     <td>
-                                        @if (project.DocumentId.HasValue)
-                                        {
-                                            <a asp-action="DownloadFile" asp-route-id="@project.DocumentId" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-file-earmark-pdf me-1"></i> View PDF
-                                            </a>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted small">No Document</span>
-                                        }
+                                        <span class="text-muted small">N/A</span>
                                     </td>
                                 </tr>
                             }

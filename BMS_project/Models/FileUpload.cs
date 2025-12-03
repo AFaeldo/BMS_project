@@ -20,17 +20,11 @@ namespace BMS_project.Models
         [Column("File")]
         public String File { get; set; } // This now stores the STRING path (e.g., "~/Uploads/myfile.pdf")
 
-        [Column("Project_ID")]
-        public int Project_ID { get; set; }
-
-        [ForeignKey("Project_ID")]
-        public Project Project { get; set; }
-
         [Column("User_ID")]
-        public int User_ID { get; set; }
+        public int? User_ID { get; set; }
 
         [ForeignKey("User_ID")]
-        public User User { get; set; }
+        public User? User { get; set; }
 
         [Column("Timestamp")]
         public DateTime? Timestamp { get; set; } = DateTime.Now;

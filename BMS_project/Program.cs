@@ -30,19 +30,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    try
-    {
-        db.Database.ExecuteSqlRaw("ALTER TABLE kabataan_term_period ADD COLUMN IsActive BIT(1) NOT NULL DEFAULT 0;");
-    }
-    catch
-    {
-        // Column likely exists or table missing (unlikely given dump)
-    }
-}
-
 // Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
 {

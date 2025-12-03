@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 03, 2025 at 04:41 AM
+-- Generation Time: Dec 03, 2025 at 04:22 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -125,6 +125,31 @@ INSERT INTO `budget` (`budget_id`, `Barangay_ID`, `budget`, `disbursed`, `balanc
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `compliance`
+--
+
+CREATE TABLE `compliance` (
+  `com_id` int(11) NOT NULL,
+  `Barangay_id` int(11) NOT NULL,
+  `File_ID` int(11) DEFAULT NULL,
+  `Title` varchar(255) NOT NULL,
+  `Type` varchar(255) NOT NULL,
+  `Status` varchar(50) NOT NULL,
+  `due_date` date NOT NULL,
+  `Date_Submitted` datetime DEFAULT NULL,
+  `IsArchived` tinyint(1) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `compliance`
+--
+
+INSERT INTO `compliance` (`com_id`, `Barangay_id`, `File_ID`, `Title`, `Type`, `Status`, `due_date`, `Date_Submitted`, `IsArchived`) VALUES
+(3, 7, NULL, 'Liga Reportasdasdasdsad', 'Proposal', 'Not Submitted', '2025-12-07', NULL, 0);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `federation_fund`
 --
 
@@ -154,7 +179,6 @@ CREATE TABLE `file_upload` (
   `File_ID` int(11) NOT NULL,
   `File_Name` varchar(255) NOT NULL,
   `File` varchar(255) NOT NULL,
-  `Project_ID` int(11) DEFAULT NULL,
   `User_ID` int(11) DEFAULT NULL,
   `Timestamp` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -163,15 +187,10 @@ CREATE TABLE `file_upload` (
 -- Dumping data for table `file_upload`
 --
 
-INSERT INTO `file_upload` (`File_ID`, `File_Name`, `File`, `Project_ID`, `User_ID`, `Timestamp`) VALUES
-(1, 'Proposal', '/UploadedFiles/Proposal_20251130053905.pdf', 1, 9, '2025-11-30 05:39:05'),
-(2, 'adssdadsasad', '/UploadedFiles/adssdadsasad_20251130055843.pdf', 2, 9, '2025-11-30 05:58:43'),
-(3, 'Proposal', '/UploadedFiles/Proposal_20251130061050.pdf', 3, 6, '2025-11-30 06:10:50'),
-(4, 'PrefinalExam', '/UploadedFiles/PrefinalExam_20251130110427.pdf', 4, 9, '2025-11-30 11:04:27'),
-(5, 'Sample', '/UploadedFiles/Sample_20251130162944_669bed.pdf', 10, 9, '2025-11-30 16:29:44'),
-(6, 'Sampledasf ', '/UploadedFiles/Sampledasf _20251130212219_802b38.pdf', 11, 9, '2025-11-30 21:22:19'),
-(7, 'Sampledasf ', '/UploadedFiles/Sampledasf _20251130234116_88a554.pdf', 12, 9, '2025-11-30 23:41:16'),
-(8, 'Sampledasf ', '/UploadedFiles/Sampledasf _20251203100351_aca1ce.pdf', 13, 9, '2025-12-03 10:03:51');
+INSERT INTO `file_upload` (`File_ID`, `File_Name`, `File`, `User_ID`, `Timestamp`) VALUES
+(9, 'LabExercise5.pdf', '/UploadedFiles/Instructions/LabExercise5_20251203224815.pdf', 7, '2025-12-03 22:48:15'),
+(10, 'LabExercise5.pdf', '/UploadedFiles/Instructions/LabExercise5_20251203225605.pdf', 7, '2025-12-03 22:56:05'),
+(11, 'Exercise 8.pdf', '/UploadedFiles/Instructions/Exercise 8_20251203225721.pdf', 7, '2025-12-03 22:57:21');
 
 -- --------------------------------------------------------
 
@@ -207,14 +226,16 @@ INSERT INTO `kabataan_service_record` (`Record_ID`, `User_ID`, `Term_ID`, `Role_
 (12, 6, 4, 3, 'Term Ended', NULL),
 (13, 7, 4, 2, 'Term Ended', NULL),
 (14, 9, 4, 3, 'Term Ended', NULL),
-(15, 10, 4, 3, 'Active', NULL),
+(15, 10, 4, 3, 'Term Ended', '2025-12-03'),
 (16, 11, 4, 3, 'Resigned', '2025-12-02'),
 (17, 6, 5, 3, 'Active', NULL),
 (18, 7, 5, 2, 'Resigned', '2025-12-02'),
 (19, 9, 5, 3, 'Resigned', '2025-12-01'),
-(20, 9, 5, 3, 'Active', NULL),
-(21, 7, 5, 2, 'Active', NULL),
-(22, 11, 5, 3, 'Active', NULL);
+(20, 9, 5, 3, 'Term Ended', '2025-12-03'),
+(21, 7, 5, 2, 'Term Ended', '2025-12-03'),
+(22, 11, 5, 3, 'Active', NULL),
+(23, 9, 6, 3, 'Active', NULL),
+(24, 7, 6, 2, 'Active', NULL);
 
 -- --------------------------------------------------------
 
@@ -240,7 +261,8 @@ INSERT INTO `kabataan_term_period` (`Term_ID`, `Term_Name`, `Start_Date`, `Offic
 (3, '2025-2028 Term', '2025-12-01', '2028-01-01', 0),
 (4, '2021-2024 Term', '2021-01-09', '2024-02-07', 0),
 (5, '2025-2028 Term', '2025-12-02', '2028-06-09', 0),
-(6, '2028-2031 Term', '2028-06-23', '2031-07-17', 1);
+(6, '2028-2031 Term', '2028-06-23', '2031-07-18', 1),
+(7, '2021-2024 Term', '2021-02-01', '2024-02-03', 0);
 
 -- --------------------------------------------------------
 
@@ -278,6 +300,7 @@ CREATE TABLE `project` (
   `Project_ID` int(11) NOT NULL,
   `User_ID` int(11) NOT NULL,
   `Term_ID` int(11) DEFAULT NULL,
+  `File_ID` int(11) NOT NULL,
   `Project_Title` varchar(255) NOT NULL,
   `Project_Description` text DEFAULT NULL,
   `Estimated_Cost` decimal(18,2) NOT NULL DEFAULT 0.00,
@@ -287,13 +310,6 @@ CREATE TABLE `project` (
   `End_Date` date NOT NULL,
   `IsArchived` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `project`
---
-
-INSERT INTO `project` (`Project_ID`, `User_ID`, `Term_ID`, `Project_Title`, `Project_Description`, `Estimated_Cost`, `Date_Submitted`, `Project_Status`, `Start_Date`, `End_Date`, `IsArchived`) VALUES
-(13, 9, NULL, 'Sampleasdsda', 'SDFSDFSDFFSDFDS', 0.00, '2025-12-03', 'Approved', '2025-12-01', '2025-12-07', 0);
 
 -- --------------------------------------------------------
 
@@ -307,13 +323,6 @@ CREATE TABLE `project_allocation` (
   `Project_ID` int(11) NOT NULL,
   `Amount_Allocated` decimal(10,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `project_allocation`
---
-
-INSERT INTO `project_allocation` (`Allocation_ID`, `Budget_ID`, `Project_ID`, `Amount_Allocated`) VALUES
-(1, 7, 13, 250.00);
 
 -- --------------------------------------------------------
 
@@ -358,9 +367,7 @@ INSERT INTO `project_log` (`Log_ID`, `Project_ID`, `User_ID`, `Status`, `Changed
 (21, 11, 9, 'Pending', '2025-12-01 12:54:43', 'Project status updated to Pending by Federation President'),
 (22, 11, 9, 'Approved', '2025-12-01 12:54:57', 'Project status updated to Approved by Federation President'),
 (23, 12, 9, 'Pending', '2025-12-01 23:58:44', 'Project status updated to Pending by Federation President'),
-(24, 12, 9, 'Approved', '2025-12-01 23:58:51', 'Project status updated to Approved by Federation President'),
-(25, 13, 9, 'Pending', '2025-12-03 10:03:51', 'Project created and submitted for approval.'),
-(26, 13, 9, 'Approved', '2025-12-03 10:05:20', 'Project status updated to Approved by Federation President');
+(24, 12, 9, 'Approved', '2025-12-01 23:58:51', 'Project status updated to Approved by Federation President');
 
 -- --------------------------------------------------------
 
@@ -479,7 +486,74 @@ INSERT INTO `system_log` (`SysLog_id`, `User_ID`, `Action`, `Table_Name`, `Recor
 (74, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 11:32:25'),
 (75, 5, 'Add Term', 'KabataanTermPeriod', 6, 'Added New Term: 2028-2031 Term', '2025-12-03 11:32:32'),
 (76, 5, 'Set Active Term', 'Term', 6, 'Set Active Term to: 2028-2031 Term', '2025-12-03 11:32:40'),
-(77, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 11:32:54');
+(77, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 11:32:54'),
+(78, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 11:46:11'),
+(79, 5, 'Set Active Term', 'Term', 5, 'Set Active Term to: 2025-2028 Term', '2025-12-03 11:46:26'),
+(80, 5, 'Set Active Term', 'Term', 6, 'Set Active Term to: 2028-2031 Term', '2025-12-03 11:46:29'),
+(81, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 11:46:49'),
+(82, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 11:49:07'),
+(83, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 11:49:48'),
+(84, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 11:53:50'),
+(85, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 11:54:03'),
+(86, 6, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 11:54:27'),
+(87, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 11:54:42'),
+(88, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 12:03:54'),
+(89, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 12:04:16'),
+(90, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 12:16:58'),
+(91, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 12:21:46'),
+(92, 5, 'Restore User', 'User', 9, 'Re-elected User: SK0004', '2025-12-03 12:21:51'),
+(93, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 12:22:16'),
+(94, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 18:52:40'),
+(95, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 19:06:48'),
+(96, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 19:17:18'),
+(97, 5, 'Restore User', 'User', 7, 'Re-elected User: SK0003', '2025-12-03 19:17:55'),
+(98, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 19:18:21'),
+(99, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 20:11:59'),
+(100, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 20:12:24'),
+(101, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 20:18:18'),
+(102, 5, 'Set Active Term', 'Term', 5, 'Set Active Term to: 2025-2028 Term', '2025-12-03 20:20:30'),
+(103, 5, 'Set Active Term', 'Term', 3, 'Set Active Term to: 2025-2028 Term', '2025-12-03 20:20:34'),
+(104, 5, 'Set Active Term', 'Term', 6, 'Set Active Term to: 2028-2031 Term', '2025-12-03 20:20:37'),
+(105, 5, 'Set Active Term', 'Term', 2, 'Set Active Term to: 2023-2026 SK Term', '2025-12-03 20:25:48'),
+(106, 5, 'Set Active Term', 'Term', 6, 'Set Active Term to: 2028-2031 Term', '2025-12-03 20:25:52'),
+(107, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 20:27:03'),
+(108, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 20:29:53'),
+(109, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 20:31:52'),
+(110, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 20:35:43'),
+(111, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 20:38:32'),
+(112, 5, 'Set Active Term', 'Term', 5, 'Set Active Term to: 2025-2028 Term', '2025-12-03 20:38:43'),
+(113, 5, 'Set Active Term', 'Term', 6, 'Set Active Term to: 2028-2031 Term', '2025-12-03 20:38:57'),
+(114, 5, 'Edit Term', 'Term', 6, 'Updated Term: 2028-2031 Term', '2025-12-03 20:39:20'),
+(115, 5, 'Add Term', 'KabataanTermPeriod', 7, 'Added New Term: 2021-2024 Term', '2025-12-03 20:39:56'),
+(116, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 20:40:43'),
+(117, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 20:41:10'),
+(118, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 20:42:24'),
+(119, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 20:45:13'),
+(120, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 20:45:45'),
+(121, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 20:52:08'),
+(122, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 20:58:28'),
+(123, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 21:27:36'),
+(124, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 21:34:03'),
+(125, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 21:40:21'),
+(126, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 21:40:37'),
+(127, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 21:52:15'),
+(128, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 21:52:32'),
+(129, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 21:52:42'),
+(130, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 22:00:56'),
+(131, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 22:06:08'),
+(132, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 22:10:36'),
+(133, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 22:17:42'),
+(134, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 22:26:07'),
+(135, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 22:47:27'),
+(136, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 22:47:39'),
+(137, 9, 'Archive Youth', 'YouthMember', 4, 'Archived Youth: kurt asd', '2025-12-03 22:47:44'),
+(138, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 22:47:58'),
+(139, 7, 'Create Compliance', NULL, NULL, 'Created new requirement: Liga Report', '2025-12-03 22:48:15'),
+(140, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 22:55:40'),
+(141, 7, 'Create Compliance', NULL, NULL, 'Created new requirement: Liga Report', '2025-12-03 22:56:05'),
+(142, 7, 'Create Compliance', NULL, NULL, 'Created new requirement: Liga Reportasdasdasdsad', '2025-12-03 22:57:21'),
+(143, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 23:18:00'),
+(144, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 23:21:31');
 
 -- --------------------------------------------------------
 
@@ -506,7 +580,7 @@ INSERT INTO `user` (`User_ID`, `First_Name`, `Last_Name`, `Email`, `Barangay_ID`
 (6, 'Brent', 'Dela Cruz', 'ifdhjbjkfhb@gmail.com', 16, 3, 0),
 (7, 'Juan', 'Dela Cruz', 'ifdhjbjkfhb@gmail.com', 19, 2, 0),
 (9, 'Juan', 'Dela Cruz', 'ifdhjbjkfhb@gmail.com', 5, 3, 0),
-(10, 'Jackolin', 'Jack', 'ralphjohnsales123@gmail.com', 13, 3, 0),
+(10, 'Jackolin', 'Jack', 'ralphjohnsales123@gmail.com', 13, 3, 1),
 (11, 'Zyris', 'Ortaleza', 'sklnjdb@gmail.com', 58, 3, 0);
 
 -- --------------------------------------------------------
@@ -532,20 +606,9 @@ CREATE TABLE `youth_member` (
 --
 
 INSERT INTO `youth_member` (`Member_ID`, `Barangay_ID`, `First_Name`, `Last_Name`, `Age`, `Gender`, `sitio`, `Birthday`, `IsArchived`) VALUES
-(4, 5, 'kurt', 'asd', 14, 'Male', 'Kanluran', '2011-06-09', 0),
+(4, 5, 'kurt', 'asd', 14, 'Male', 'Kanluran', '2011-06-09', 1),
 (5, 16, 'Brent Paulo', 'Bolanos', 21, 'Male', 'Kanluran', '2004-06-07', 0),
 (6, 5, 'Zyris', 'Ortaleza', 20, 'Female', 'adsadsadsa', '2005-05-02', 0);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `__efmigrationshistory`
---
-
-CREATE TABLE `__efmigrationshistory` (
-  `MigrationId` varchar(150) NOT NULL,
-  `ProductVersion` varchar(32) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Indexes for dumped tables
@@ -566,6 +629,14 @@ ALTER TABLE `budget`
   ADD KEY `fk_budget_term` (`Term_ID`);
 
 --
+-- Indexes for table `compliance`
+--
+ALTER TABLE `compliance`
+  ADD PRIMARY KEY (`com_id`),
+  ADD KEY `fk_barangay_id` (`Barangay_id`),
+  ADD KEY `fk_file_id` (`File_ID`);
+
+--
 -- Indexes for table `federation_fund`
 --
 ALTER TABLE `federation_fund`
@@ -577,7 +648,6 @@ ALTER TABLE `federation_fund`
 --
 ALTER TABLE `file_upload`
   ADD PRIMARY KEY (`File_ID`),
-  ADD KEY `Project_ID` (`Project_ID`),
   ADD KEY `User_ID` (`User_ID`);
 
 --
@@ -610,7 +680,8 @@ ALTER TABLE `login`
 ALTER TABLE `project`
   ADD PRIMARY KEY (`Project_ID`),
   ADD KEY `User_ID` (`User_ID`),
-  ADD KEY `fk_project_term` (`Term_ID`);
+  ADD KEY `fk_project_term` (`Term_ID`),
+  ADD KEY `fk_file_upload` (`File_ID`);
 
 --
 -- Indexes for table `project_allocation`
@@ -657,12 +728,6 @@ ALTER TABLE `youth_member`
   ADD KEY `youth_member_ibfk_1` (`Barangay_ID`);
 
 --
--- Indexes for table `__efmigrationshistory`
---
-ALTER TABLE `__efmigrationshistory`
-  ADD PRIMARY KEY (`MigrationId`);
-
---
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -679,6 +744,12 @@ ALTER TABLE `budget`
   MODIFY `budget_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
+-- AUTO_INCREMENT for table `compliance`
+--
+ALTER TABLE `compliance`
+  MODIFY `com_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT for table `federation_fund`
 --
 ALTER TABLE `federation_fund`
@@ -688,19 +759,19 @@ ALTER TABLE `federation_fund`
 -- AUTO_INCREMENT for table `file_upload`
 --
 ALTER TABLE `file_upload`
-  MODIFY `File_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `File_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `kabataan_service_record`
 --
 ALTER TABLE `kabataan_service_record`
-  MODIFY `Record_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `Record_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `kabataan_term_period`
 --
 ALTER TABLE `kabataan_term_period`
-  MODIFY `Term_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `Term_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `login`
@@ -712,7 +783,7 @@ ALTER TABLE `login`
 -- AUTO_INCREMENT for table `project`
 --
 ALTER TABLE `project`
-  MODIFY `Project_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `Project_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `project_allocation`
@@ -736,7 +807,7 @@ ALTER TABLE `role`
 -- AUTO_INCREMENT for table `system_log`
 --
 ALTER TABLE `system_log`
-  MODIFY `SysLog_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=78;
+  MODIFY `SysLog_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=145;
 
 --
 -- AUTO_INCREMENT for table `user`
@@ -762,6 +833,13 @@ ALTER TABLE `budget`
   ADD CONSTRAINT `fk_budget_term` FOREIGN KEY (`Term_ID`) REFERENCES `kabataan_term_period` (`Term_ID`) ON UPDATE CASCADE;
 
 --
+-- Constraints for table `compliance`
+--
+ALTER TABLE `compliance`
+  ADD CONSTRAINT `fk_barangay_id` FOREIGN KEY (`Barangay_id`) REFERENCES `barangay` (`Barangay_ID`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_file_id` FOREIGN KEY (`File_ID`) REFERENCES `file_upload` (`File_ID`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+--
 -- Constraints for table `federation_fund`
 --
 ALTER TABLE `federation_fund`
@@ -771,7 +849,6 @@ ALTER TABLE `federation_fund`
 -- Constraints for table `file_upload`
 --
 ALTER TABLE `file_upload`
-  ADD CONSTRAINT `file_upload_ibfk_1` FOREIGN KEY (`Project_ID`) REFERENCES `project` (`Project_ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `file_upload_ibfk_2` FOREIGN KEY (`User_ID`) REFERENCES `user` (`User_ID`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
@@ -793,6 +870,7 @@ ALTER TABLE `login`
 -- Constraints for table `project`
 --
 ALTER TABLE `project`
+  ADD CONSTRAINT `fk_file_upload` FOREIGN KEY (`File_ID`) REFERENCES `file_upload` (`File_ID`) ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_project_term` FOREIGN KEY (`Term_ID`) REFERENCES `kabataan_term_period` (`Term_ID`) ON UPDATE CASCADE,
   ADD CONSTRAINT `project_ibfk_1` FOREIGN KEY (`User_ID`) REFERENCES `user` (`User_ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
