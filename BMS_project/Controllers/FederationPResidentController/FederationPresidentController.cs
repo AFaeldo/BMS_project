@@ -56,23 +56,48 @@ namespace BMS_project.Controllers
             viewModel.TotalPendingProjects = await _context.Projects.CountAsync(p => p.Project_Status == "Pending");
 
             // Budget Totals
-            viewModel.TotalFederationBudget = await _context.Budgets.SumAsync(b => (decimal?)b.budget) ?? 0M;
+            var activeTerm = await _context.KabataanTermPeriods.FirstOrDefaultAsync(t => t.IsActive);
+            viewModel.TotalFederationBudget = activeTerm != null 
+                ? await _context.FederationFunds
+                    .Where(f => f.Term_ID == activeTerm.Term_ID)
+                    .Select(f => f.Total_Amount)
+                    .FirstOrDefaultAsync()
+                : 0M;
+
             viewModel.TotalDisbursed = await _context.Budgets.SumAsync(b => (decimal?)b.disbursed) ?? 0M;
             viewModel.TotalRemainingBalance = await _context.Budgets.SumAsync(b => (decimal?)b.balance) ?? 0M;
 
-            // Chart Data Preparation
-            var barangayExpenses = await _context.Budgets
-                .Include(b => b.Barangay)
-                .Select(b => new BarangayExpense
-                {
-                    BarangayName = b.Barangay.Barangay_Name,
-                    TotalDisbursed = b.disbursed
+            // Chart Data: Monthly Expenses per Barangay (Aggregated for Federation)
+            // Logic: Sum of 'Amount_Allocated' for all APPROVED projects, grouped by Month of Date_Submitted (Current Year)
+            
+            var currentYear = DateTime.Now.Year;
+            
+            var monthlyData = await _context.Projects
+                .Include(p => p.Allocations)
+                .Where(p => p.Project_Status == "Approved" && p.Date_Submitted.HasValue && p.Date_Submitted.Value.Year == currentYear)
+                .GroupBy(p => p.Date_Submitted.Value.Month)
+                .Select(g => new 
+                { 
+                    Month = g.Key, 
+                    Total = g.Sum(p => p.Allocations.Sum(a => a.Amount_Allocated)) 
                 })
                 .ToListAsync();
 
-            viewModel.BarangayExpenseList = barangayExpenses;
-            viewModel.ChartLabelsJson = JsonConvert.SerializeObject(barangayExpenses.Select(be => be.BarangayName).ToList());
-            viewModel.ChartDataJson = JsonConvert.SerializeObject(barangayExpenses.Select(be => be.TotalDisbursed).ToList());
+            // Prepare arrays for 12 months
+            var labels = new string[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+            var data = new decimal[12];
+
+            foreach (var item in monthlyData)
+            {
+                // Month is 1-based (1=Jan, 12=Dec), index is 0-based
+                if (item.Month >= 1 && item.Month <= 12)
+                {
+                    data[item.Month - 1] = item.Total;
+                }
+            }
+
+            viewModel.MonthlyExpensesLabelsJson = JsonConvert.SerializeObject(labels);
+            viewModel.MonthlyExpensesDataJson = JsonConvert.SerializeObject(data);
 
             return View(viewModel);
         }
@@ -372,42 +397,86 @@ namespace BMS_project.Controllers
                 return RedirectToAction("Budget");
             }
 
-            // Find existing budget for the barangay
-            // If you expect multiple budget rows per barangay (history), adjust logic accordingly.
-            var existingBudget = await _context.Budgets.FirstOrDefaultAsync(b => b.Barangay_ID == BarangayId);
-
-            if (existingBudget != null)
+            // 1. Get Active Term
+            var activeTerm = await _context.KabataanTermPeriods.FirstOrDefaultAsync(t => t.IsActive);
+            if (activeTerm == null)
             {
-                // Add the new allotment to the total allotment and increase balance by the same amount.
-                existingBudget.budget += Allotment;
-                existingBudget.balance += Allotment;
-
-                _context.Budgets.Update(existingBudget);
+                TempData["ErrorMessage"] = "No active term found. Cannot allocate budget.";
+                return RedirectToAction("Budget");
             }
-            else
+
+            // 2. Get Federation Fund for this term
+            var fedFund = await _context.FederationFunds.FirstOrDefaultAsync(f => f.Term_ID == activeTerm.Term_ID);
+            if (fedFund == null)
             {
-                // Create new budget record — disbursed starts at 0, balance = allotment
-                var budget = new Budget
+                TempData["ErrorMessage"] = "Federation Fund has not been set for this term by Super Admin.";
+                return RedirectToAction("Budget");
+            }
+
+            // 3. VALIDATION: Check Federation Limit
+            if (fedFund.Allocated_To_Barangays + Allotment > fedFund.Total_Amount)
+            {
+                var remaining = fedFund.Total_Amount - fedFund.Allocated_To_Barangays;
+                TempData["ErrorMessage"] = $"Insufficient Federation Funds. Only {remaining:C} is available for distribution.";
+                return RedirectToAction("Budget");
+            }
+
+            using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
                 {
-                    Barangay_ID = barangay.Barangay_ID,
-                    budget = Allotment,
-                    disbursed = 0m,
-                    balance = Allotment
-                };
+                    // 4. Update Federation Fund Tracker
+                    fedFund.Allocated_To_Barangays += Allotment;
+                    _context.FederationFunds.Update(fedFund);
 
-                _context.Budgets.Add(budget);
+                    // 5. Find existing budget for the barangay AND Term
+                    var existingBudget = await _context.Budgets
+                        .FirstOrDefaultAsync(b => b.Barangay_ID == BarangayId && b.Term_ID == activeTerm.Term_ID);
+
+                    // Fallback: Check for old budget without TermID if you want to migrate it, or just create new.
+                    // Decision: Create NEW record if TermID specific one doesn't exist to support clean slate per term.
+                    
+                    if (existingBudget != null)
+                    {
+                        existingBudget.budget += Allotment;
+                        existingBudget.balance += Allotment;
+                        _context.Budgets.Update(existingBudget);
+                    }
+                    else
+                    {
+                        var budget = new Budget
+                        {
+                            Barangay_ID = barangay.Barangay_ID,
+                            Term_ID = activeTerm.Term_ID, // Strictly set Term ID
+                            budget = Allotment,
+                            disbursed = 0m,
+                            balance = Allotment
+                        };
+                        _context.Budgets.Add(budget);
+                    }
+
+                    await _context.SaveChangesAsync();
+
+                    // LOGGING
+                    int? userId = GetCurrentUserId();
+                    if (userId.HasValue)
+                    {
+                        // Log against the Budget ID (might be new, need to save first which we did)
+                        // If new, we need to grab ID. Since we saved changes, the entity 'budget' or 'existingBudget' has the ID.
+                        // However, 'budget' variable scope is inside else block. Let's simplify logging ID or just log success.
+                        await _systemLogService.LogAsync(userId.Value, "Add Budget", $"Allocated {Allotment:C} to {barangay.Barangay_Name}", "Budget", 0); 
+                    }
+
+                    await transaction.CommitAsync();
+                    TempData["SuccessMessage"] = "Budget allocated successfully.";
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    TempData["ErrorMessage"] = "Error allocating budget: " + ex.Message;
+                }
             }
 
-            await _context.SaveChangesAsync();
-
-            // LOGGING
-            int? userId = GetCurrentUserId();
-            if (userId.HasValue)
-            {
-                await _systemLogService.LogAsync(userId.Value, "Add Budget", $"Added {Allotment:C} Budget to {barangay.Barangay_Name}", "Budget", existingBudget?.Budget_ID ?? 0); // Use 0 or fetch last added ID if strict
-            }
-
-            TempData["SuccessMessage"] = "Budget updated successfully.";
             return RedirectToAction("Budget");
         }
 

@@ -10,14 +10,8 @@ namespace BMS_project.ViewModels
         public decimal TotalDisbursed { get; set; }
         public decimal TotalRemainingBalance { get; set; }
 
-        public List<BarangayExpense> BarangayExpenseList { get; set; } = new List<BarangayExpense>();
-        public string ChartLabelsJson { get; set; }
-        public string ChartDataJson { get; set; }
-    }
-
-    public class BarangayExpense
-    {
-        public string BarangayName { get; set; }
-        public decimal TotalDisbursed { get; set; }
+        // Chart Data: Monthly Expenses
+        public string MonthlyExpensesLabelsJson { get; set; } // e.g. ["Jan", "Feb", "Mar", ...]
+        public string MonthlyExpensesDataJson { get; set; }   // e.g. [5000, 12000, 8500, ...]
     }
 }

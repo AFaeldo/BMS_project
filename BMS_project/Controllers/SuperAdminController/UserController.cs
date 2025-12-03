@@ -293,13 +293,21 @@ namespace BMS_project.Controllers.SuperAdminController
 
             if (login == null || login.User == null) return NotFound();
 
-            // Prevent archiving SuperAdmin
-            if (login.Role != null && (login.Role.Role_Name == "SuperAdmin" || login.Role.Role_Name == "Super Admin"))
+            // Role Restriction: This archiving action is only allowed for users with the "Barangay" role.
+            if (login.Role == null || !login.Role.Role_Name.Contains("Barangay", StringComparison.OrdinalIgnoreCase))
             {
-                 return BadRequest("Super Admin cannot be archived/resigned.");
+                return BadRequest("Only users with the 'Barangay' role can be archived.");
             }
-            if (login.Role_ID == 1) return BadRequest("Super Admin cannot be archived.");
 
+            // Constraint: A user cannot resign if they have any projects with status 'Pending' or 'Approved'.
+            var hasOngoingProjects = await _context.Projects.AnyAsync(p => 
+                p.User_ID == login.User_ID && 
+                (p.Project_Status == "Pending" || p.Project_Status == "Approved"));
+
+            if (hasOngoingProjects)
+            {
+                return BadRequest("Cannot resign while there are ongoing projects or proposals.");
+            }
 
             await using var tx = await _context.Database.BeginTransactionAsync();
             try 

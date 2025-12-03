@@ -45,13 +45,13 @@ else if (TempData["DashboardErrorMessage"] != null)
             </div>
         </div>
 
-        <!-- Youth Members -->
+        <!-- Federation Fund -->
         <div class="col-md-3">
             <div class="card shadow-sm border-0 rounded-3 text-center py-3">
                 <div class="card-body">
-                    <i class="fa-solid fa-hourglass-half fs-2 text-warning mb-2"></i>
-                    <h6 class="text-muted mb-1">Youth Members</h6>
-                    <h3 class="fw-bold mb-0">0</h3>
+                    <i class="fa-solid fa-sack-dollar fs-2 text-warning mb-2"></i>
+                    <h6 class="text-muted mb-1">Federation Fund</h6>
+                    <h3 class="fw-bold mb-0">@Model.FederationFundAmount.ToString("C", new System.Globalization.CultureInfo("en-PH"))</h3>
                 </div>
             </div>
         </div>
@@ -70,6 +70,7 @@ else if (TempData["DashboardErrorMessage"] != null)
 
     <!-- Recent Activities and System Logs -->
     <div class="row g-3">
+        <!-- Recent Activities (Left Column) -->
         <div class="col-lg-8">
             <div class="card shadow-sm border-0 rounded-3 h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
@@ -84,6 +85,7 @@ else if (TempData["DashboardErrorMessage"] != null)
             </div>
         </div>
 
+        <!-- System Control (Right Column) -->
         <div class="col-lg-4">
             <div class="card shadow-sm border-0 rounded-3 h-100">
                 <div class="card-header fw-bold">System Control</div>
@@ -93,6 +95,11 @@ else if (TempData["DashboardErrorMessage"] != null)
                         <button type="button" class="btn btn-primary btn-sm w-100 d-flex align-items-center justify-content-center"
                                 data-bs-toggle="modal" data-bs-target="#modalSetTerm">
                             <i class="bi bi-calendar-plus me-1"></i> Set New Term
+                        </button>
+
+                        <button type="button" class="btn btn-success btn-sm w-100 d-flex align-items-center justify-content-center"
+                                data-bs-toggle="modal" data-bs-target="#modalSetFund">
+                            <i class="bi bi-plus-circle-dotted me-1"></i> Add Federation Fund
                         </button>
 
                         <a asp-controller="SystemLogs" asp-action="Index"
@@ -115,6 +122,7 @@ else if (TempData["DashboardErrorMessage"] != null)
                 </div>
             </div>
         </div>
+    </div>
 
 
 <!-- MODAL: SET NEW TERM -->
@@ -148,6 +156,32 @@ else if (TempData["DashboardErrorMessage"] != null)
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
                 <button type="submit" class="btn btn-primary">Set Term</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: ADD FEDERATION FUND -->
+<div class="modal fade" id="modalSetFund" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form asp-controller="Funds" asp-action="SetTotalBudget" method="post" class="modal-content shadow-lg border-0 rounded-3">
+            @Html.AntiForgeryToken()
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-cash-stack"></i> Add Federation Fund</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <small><i class="bi bi-info-circle"></i> This amount will be added to the existing Federation Fund for the current term.</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Amount to Add (PHP)</label>
+                    <input type="number" step="0.01" name="amount" class="form-control" placeholder="0.00" required />
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-success">Add Funds</button>
             </div>
         </form>
     </div>

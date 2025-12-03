@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using System;
 using System.IO;
 using System.Collections.Generic;
-using System.Security.Claims; // Added for Logging
+using System.Security.Claims;
 
 namespace BMS_project.Controllers
 {
@@ -199,9 +199,11 @@ namespace BMS_project.Controllers
                 return RedirectToAction(nameof(Projects));
             }
 
+            // PART C Logic: Barangay SK - Create Project Validation
+            // Validation: Project Cost cannot exceed BarangayBudget.Balance
             if (model.Allocated_Amount > budget.balance)
             {
-                TempData["ErrorMessage"] = $"Insufficient funds. Available balance: {budget.balance:C}";
+                TempData["ErrorMessage"] = $"Barangay funds insufficient. You are trying to allocate {model.Allocated_Amount:C}, but the available balance is {budget.balance:C}.";
                 return RedirectToAction(nameof(Projects));
             }
 
@@ -592,6 +594,96 @@ namespace BMS_project.Controllers
         {
             TempData["SuccessMessage"] = "Profile saved successfully!";
             return RedirectToAction("Profile");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DecideOnCarryOver(int projectId, bool shouldContinue)
+        {
+            try
+            {
+                // 1. Get User & Barangay
+                var userId = GetCurrentUserId();
+                if (userId == null) return Unauthorized();
+                
+                var user = await _context.Users.FindAsync(userId);
+                if (user?.Barangay_ID == null) return BadRequest("User has no Barangay.");
+
+                // 2. Get Project
+                var project = await _context.Projects
+                    .Include(p => p.Allocations)
+                    .FirstOrDefaultAsync(p => p.Project_ID == projectId);
+
+                if (project == null) return NotFound("Project not found.");
+
+                // 3. Security: Ensure project belongs to user's barangay
+                var projectCreator = await _context.Users.FindAsync(project.User_ID);
+                if (projectCreator == null || projectCreator.Barangay_ID != user.Barangay_ID)
+                {
+                    return Forbid();
+                }
+
+                if (!shouldContinue)
+                {
+                    project.Project_Status = "Terminated";
+                    
+                    // Log
+                    await _systemLogService.LogAsync(user.User_ID, "Terminate Project", $"Terminated Project: {project.Project_Title}", "Project", project.Project_ID);
+                    
+                    await _context.SaveChangesAsync();
+                    return Ok(new { success = true, message = "Project terminated." });
+                }
+
+                // 4. Continue Logic
+                // Get Active Term
+                var activeTerm = await _context.KabataanTermPeriods.FirstOrDefaultAsync(t => t.IsActive);
+                if (activeTerm == null) return BadRequest("No active term found.");
+
+                // Get Active Budget (New Term's Budget)
+                // Priority: Budget for specific Term -> Fallback: Generic Budget (Term_ID is null)
+                var budget = await _context.Budgets
+                    .FirstOrDefaultAsync(b => b.Barangay_ID == user.Barangay_ID && b.Term_ID == activeTerm.Term_ID);
+
+                if (budget == null)
+                {
+                     budget = await _context.Budgets
+                        .FirstOrDefaultAsync(b => b.Barangay_ID == user.Barangay_ID && b.Term_ID == null);
+                }
+
+                if (budget == null) return BadRequest("No budget found for this term.");
+
+                // Check Funds
+                // Constraint: Check if current active Barangay Budget has enough balance for the project.Estimated_Cost
+                if (budget.balance < project.Estimated_Cost)
+                {
+                    return BadRequest("Insufficient funds in new term to continue this project.");
+                }
+
+                // Deduct and Update Status
+                budget.balance -= project.Estimated_Cost;
+                project.Project_Status = "Approved"; // Ensure status is Approved
+
+                // Create new Allocation Record
+                var allocation = new ProjectAllocation
+                {
+                    Budget_ID = budget.Budget_ID,
+                    Project_ID = project.Project_ID,
+                    Amount_Allocated = project.Estimated_Cost
+                };
+                _context.ProjectAllocations.Add(allocation);
+
+                // Log
+                await _systemLogService.LogAsync(user.User_ID, "Carry Over Project", $"Carried Over Project: {project.Project_Title} to Term {activeTerm.Term_Name}", "Project", project.Project_ID);
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new { success = true, message = "Project carried over successfully." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in DecideOnCarryOver");
+                return StatusCode(500, "An error occurred: " + ex.Message);
+            }
         }
     }
 }

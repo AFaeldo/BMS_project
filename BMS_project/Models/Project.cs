@@ -26,6 +26,9 @@ namespace BMS_project.Models
         [Column("Project_Description")]
         public string Project_Description { get; set; }
 
+        [Column("Estimated_Cost")]
+        public decimal Estimated_Cost { get; set; }
+
         [Column("Date_Submitted")]
         public DateTime? Date_Submitted { get; set; }
 

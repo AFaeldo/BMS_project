@@ -22,6 +22,7 @@ namespace BMS_project.Data
         public DbSet<KabataanTermPeriod> KabataanTermPeriods { get; set; }
         public DbSet<KabataanServiceRecord> KabataanServiceRecords { get; set; }
         public DbSet<SystemLog> SystemLogs { get; set; }
+        public DbSet<FederationFund> FederationFunds { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -37,6 +38,7 @@ namespace BMS_project.Data
             modelBuilder.Entity<KabataanTermPeriod>().ToTable("kabataan_term_period").HasKey(t => t.Term_ID);
             modelBuilder.Entity<KabataanServiceRecord>().ToTable("kabataan_service_record").HasKey(r => r.Record_ID);
             modelBuilder.Entity<SystemLog>().ToTable("system_log").HasKey(s => s.SysLog_id);
+            modelBuilder.Entity<FederationFund>().ToTable("federation_fund").HasKey(f => f.Fund_ID);
 
             modelBuilder.Entity<SystemLog>()
                 .HasOne(s => s.User)

@@ -36,11 +36,16 @@ namespace BMS_project.Controllers.SuperAdminController
         public IActionResult Dashboard()
         {
             var activeTerm = _context.KabataanTermPeriods.FirstOrDefault(t => t.IsActive);
+            var fedFund = activeTerm != null 
+                ? _context.FederationFunds.FirstOrDefault(f => f.Term_ID == activeTerm.Term_ID) 
+                : null;
+
             var vm = new DashboardViewModel
             {
                 TotalBarangays = _context.barangays?.Count() ?? 0,
                 TotalUsers = _context.Users?.Count() ?? 0,
-                CurrentTerm = activeTerm?.Term_Name ?? "No Active Term"
+                CurrentTerm = activeTerm?.Term_Name ?? "No Active Term",
+                FederationFundAmount = fedFund?.Total_Amount ?? 0
             };
 
             ViewData["Title"] = "Dashboard";

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 01, 2025 at 05:18 PM
+-- Generation Time: Dec 03, 2025 at 02:04 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -111,19 +111,37 @@ CREATE TABLE `budget` (
   `Barangay_ID` int(11) NOT NULL,
   `budget` decimal(10,2) NOT NULL,
   `disbursed` decimal(10,2) NOT NULL,
-  `balance` decimal(10,2) NOT NULL
+  `balance` decimal(10,2) NOT NULL,
+  `Term_ID` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `budget`
 --
 
-INSERT INTO `budget` (`budget_id`, `Barangay_ID`, `budget`, `disbursed`, `balance`) VALUES
-(1, 7, 1050000.00, 0.00, 1050000.00),
-(2, 17, 50000000.00, 0.00, 50000000.00),
-(3, 16, 1000000.00, 50000.00, 950000.00),
-(4, 5, 2000000.00, 1350050.00, 649950.00),
-(5, 2, 5000000.00, 0.00, 5000000.00);
+INSERT INTO `budget` (`budget_id`, `Barangay_ID`, `budget`, `disbursed`, `balance`, `Term_ID`) VALUES
+(6, 6, 1500000.00, 0.00, 1500000.00, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `federation_fund`
+--
+
+CREATE TABLE `federation_fund` (
+  `Fund_ID` int(11) NOT NULL,
+  `Term_ID` int(11) NOT NULL,
+  `Total_Amount` decimal(20,2) NOT NULL DEFAULT 0.00,
+  `Allocated_To_Barangays` decimal(20,2) NOT NULL DEFAULT 0.00,
+  `Created_At` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `federation_fund`
+--
+
+INSERT INTO `federation_fund` (`Fund_ID`, `Term_ID`, `Total_Amount`, `Allocated_To_Barangays`, `Created_At`) VALUES
+(1, 5, 1000000.00, 0.00, '2025-12-03 06:43:29');
 
 -- --------------------------------------------------------
 
@@ -188,11 +206,13 @@ INSERT INTO `kabataan_service_record` (`Record_ID`, `User_ID`, `Term_ID`, `Role_
 (13, 7, 4, 2, 'Term Ended', NULL),
 (14, 9, 4, 3, 'Term Ended', NULL),
 (15, 10, 4, 3, 'Active', NULL),
-(16, 11, 4, 3, 'Active', NULL),
+(16, 11, 4, 3, 'Resigned', '2025-12-02'),
 (17, 6, 5, 3, 'Active', NULL),
-(18, 7, 5, 2, 'Active', NULL),
+(18, 7, 5, 2, 'Resigned', '2025-12-02'),
 (19, 9, 5, 3, 'Resigned', '2025-12-01'),
-(20, 9, 5, 3, 'Active', NULL);
+(20, 9, 5, 3, 'Active', NULL),
+(21, 7, 5, 2, 'Active', NULL),
+(22, 11, 5, 3, 'Active', NULL);
 
 -- --------------------------------------------------------
 
@@ -256,25 +276,13 @@ CREATE TABLE `project` (
   `User_ID` int(11) NOT NULL,
   `Project_Title` varchar(255) NOT NULL,
   `Project_Description` text DEFAULT NULL,
+  `Estimated_Cost` decimal(18,2) NOT NULL DEFAULT 0.00,
   `Date_Submitted` date NOT NULL,
   `Project_Status` enum('Pending','Approved','Rejected','Completed') NOT NULL DEFAULT 'Pending',
   `Start_Date` date NOT NULL,
   `End_Date` date NOT NULL,
   `IsArchived` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `project`
---
-
-INSERT INTO `project` (`Project_ID`, `User_ID`, `Project_Title`, `Project_Description`, `Date_Submitted`, `Project_Status`, `Start_Date`, `End_Date`, `IsArchived`) VALUES
-(1, 9, 'Prefinal', 'sadsdasdas', '2025-11-30', 'Approved', '2025-11-30', '2025-12-07', 0),
-(2, 9, 'asdsadsa', 'sdasdasdsad', '2025-11-30', 'Approved', '2025-12-07', '2025-12-14', 0),
-(3, 6, 'dassadsad', 'asdasdasdsad', '2025-11-30', 'Approved', '2025-12-01', '2025-12-07', 0),
-(4, 9, 'Prefinal', 'Pre Finals', '2025-11-30', 'Approved', '2025-12-01', '2025-12-06', 0),
-(10, 9, 'Sample', 'Sample', '2025-11-30', 'Approved', '2025-12-01', '2025-12-07', 0),
-(11, 9, 'Sample', 'asdsadsadsad', '2025-11-30', 'Approved', '2025-12-01', '2025-12-07', 0),
-(12, 9, 'Sampleasdsda', 'asdsdasadsadsda', '2025-11-30', 'Approved', '2025-12-01', '2025-12-07', 0);
 
 -- --------------------------------------------------------
 
@@ -288,19 +296,6 @@ CREATE TABLE `project_allocation` (
   `Project_ID` int(11) NOT NULL,
   `Amount_Allocated` decimal(10,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `project_allocation`
---
-
-INSERT INTO `project_allocation` (`Allocation_ID`, `Budget_ID`, `Project_ID`, `Amount_Allocated`) VALUES
-(1, 4, 1, 100000.00),
-(2, 4, 2, 50000.00),
-(3, 3, 3, 50000.00),
-(4, 4, 4, 100000.00),
-(5, 4, 10, 1000000.00),
-(6, 4, 11, 50.00),
-(7, 4, 12, 100000.00);
 
 -- --------------------------------------------------------
 
@@ -400,7 +395,42 @@ INSERT INTO `system_log` (`SysLog_id`, `User_ID`, `Action`, `Table_Name`, `Recor
 (9, 9, '', NULL, NULL, 'User Logged In', '2025-12-02 00:05:55'),
 (10, 5, '', NULL, NULL, 'User Logged In', '2025-12-02 00:06:14'),
 (11, 9, '', NULL, NULL, 'User Logged In', '2025-12-02 00:09:19'),
-(12, 5, '', NULL, NULL, 'User Logged In', '2025-12-02 00:10:39');
+(12, 5, '', NULL, NULL, 'User Logged In', '2025-12-02 00:10:39'),
+(13, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-02 00:31:37'),
+(14, 9, 'Archive Youth', 'YouthMember', 4, 'Archived Youth: kurt asd', '2025-12-02 00:31:44'),
+(15, 9, 'Restore Youth', 'YouthMember', NULL, 'Restored 1 Youth Members', '2025-12-02 00:31:47'),
+(16, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-02 00:32:08'),
+(17, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-02 00:33:56'),
+(18, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-02 21:21:02'),
+(19, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-02 22:16:05'),
+(20, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-02 22:34:45'),
+(21, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-02 22:41:23'),
+(22, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-02 22:44:52'),
+(23, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-02 23:09:33'),
+(24, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-02 23:14:24'),
+(25, 5, 'Archive User', 'User', 7, 'Resigned/Archived User: SK0003', '2025-12-02 23:14:29'),
+(26, 5, 'Restore User', 'User', 7, 'Re-elected User: SK0003', '2025-12-02 23:14:35'),
+(27, 6, 'Login', NULL, NULL, 'User Logged In', '2025-12-02 23:29:08'),
+(28, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-02 23:29:28'),
+(29, 5, 'Archive User', 'User', 11, 'Resigned/Archived User: SK0006', '2025-12-02 23:31:43'),
+(30, 5, 'Restore User', 'User', 11, 'Re-elected User: SK0006', '2025-12-02 23:31:52'),
+(31, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 00:04:46'),
+(32, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 00:05:17'),
+(33, 6, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 00:06:37'),
+(34, 6, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 00:25:15'),
+(35, 6, 'Terminate Project', 'Project', 3, 'Terminated Project: dassadsad', '2025-12-03 00:25:22'),
+(36, 6, 'Carry Over Project', 'Project', 3, 'Carried Over Project: dassadsad to Term 2025-2028 Term', '2025-12-03 00:42:37'),
+(37, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 06:38:27'),
+(38, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 06:42:33'),
+(39, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 06:54:47'),
+(40, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 07:06:56'),
+(41, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 07:13:11'),
+(42, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 07:22:21'),
+(43, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 07:29:17'),
+(44, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 07:32:16'),
+(45, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 08:19:49'),
+(46, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 08:43:40'),
+(47, 7, 'Add Budget', 'Budget', 0, 'Added XDR1,500,000.00 Budget to Bayanan II', '2025-12-03 09:03:02');
 
 -- --------------------------------------------------------
 
@@ -484,6 +514,13 @@ ALTER TABLE `barangay`
 ALTER TABLE `budget`
   ADD PRIMARY KEY (`budget_id`),
   ADD KEY `fk_budget_barangay` (`Barangay_ID`);
+
+--
+-- Indexes for table `federation_fund`
+--
+ALTER TABLE `federation_fund`
+  ADD PRIMARY KEY (`Fund_ID`),
+  ADD KEY `Term_ID` (`Term_ID`);
 
 --
 -- Indexes for table `file_upload`
@@ -588,7 +625,13 @@ ALTER TABLE `barangay`
 -- AUTO_INCREMENT for table `budget`
 --
 ALTER TABLE `budget`
-  MODIFY `budget_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `budget_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `federation_fund`
+--
+ALTER TABLE `federation_fund`
+  MODIFY `Fund_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `file_upload`
@@ -600,7 +643,7 @@ ALTER TABLE `file_upload`
 -- AUTO_INCREMENT for table `kabataan_service_record`
 --
 ALTER TABLE `kabataan_service_record`
-  MODIFY `Record_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `Record_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `kabataan_term_period`
@@ -624,7 +667,7 @@ ALTER TABLE `project`
 -- AUTO_INCREMENT for table `project_allocation`
 --
 ALTER TABLE `project_allocation`
-  MODIFY `Allocation_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `Allocation_ID` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `project_log`
@@ -642,7 +685,7 @@ ALTER TABLE `role`
 -- AUTO_INCREMENT for table `system_log`
 --
 ALTER TABLE `system_log`
-  MODIFY `SysLog_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `SysLog_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
 
 --
 -- AUTO_INCREMENT for table `user`
@@ -665,6 +708,12 @@ ALTER TABLE `youth_member`
 --
 ALTER TABLE `budget`
   ADD CONSTRAINT `fk_budget_barangay` FOREIGN KEY (`Barangay_ID`) REFERENCES `barangay` (`Barangay_ID`) ON UPDATE CASCADE;
+
+--
+-- Constraints for table `federation_fund`
+--
+ALTER TABLE `federation_fund`
+  ADD CONSTRAINT `federation_fund_ibfk_1` FOREIGN KEY (`Term_ID`) REFERENCES `kabataan_term_period` (`Term_ID`);
 
 --
 -- Constraints for table `file_upload`
