@@ -226,7 +226,45 @@ namespace BMS_project.Controllers
                         try
                         {
                             _logger.LogInformation("Starting project creation transaction for user {UserId}", user.User_ID);
-        
+
+                            // 1. Save File FIRST to get File_ID
+                            var baseFolder = !string.IsNullOrEmpty(_webHostEnvironment.WebRootPath)
+                                ? _webHostEnvironment.WebRootPath
+                                : _webHostEnvironment.ContentRootPath;
+
+                            string uploadFolder = Path.Combine(baseFolder, "UploadedFiles");
+                            if (!Directory.Exists(uploadFolder))
+                            {
+                                Directory.CreateDirectory(uploadFolder);
+                                _logger.LogInformation("Created upload directory: {UploadFolder}", uploadFolder);
+                            }
+
+                            string safeDocName = string.IsNullOrWhiteSpace(model.DocumentName)
+                                ? "Document"
+                                : Path.GetFileNameWithoutExtension(model.DocumentName);
+
+                            safeDocName = string.Join("_", safeDocName.Split(Path.GetInvalidFileNameChars()));
+
+                            var extension2 = Path.GetExtension(model.UploadedFile.FileName).ToLowerInvariant();
+                            string uniqueFileName = $"{safeDocName}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid().ToString("N").Substring(0, 6)}{extension2}";
+                            savedFilePath = Path.Combine(uploadFolder, uniqueFileName);
+
+                            using (var stream = new FileStream(savedFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
+                            {
+                                await model.UploadedFile.CopyToAsync(stream);
+                            }
+
+                            var fileUpload = new FileUpload
+                            {
+                                User_ID = user.User_ID,
+                                File_Name = model.DocumentName,
+                                File = "/UploadedFiles/" + uniqueFileName,
+                                Timestamp = DateTime.Now
+                            };
+                            _context.FileUploads.Add(fileUpload);
+                            await _context.SaveChangesAsync(); // Save to generate File_ID
+
+                            // 2. Create Project with File_ID
                             var project = new Project
                             {
                                 User_ID = user.User_ID,
@@ -236,12 +274,14 @@ namespace BMS_project.Controllers
                                 Project_Status = "Pending",
                                 Start_Date = model.Start_Date,
                                 End_Date = model.End_Date,
-                                Term_ID = budget.Term_ID // Ensure project is linked to the active term
+                                Term_ID = budget.Term_ID,
+                                File_ID = fileUpload.File_ID // Assign generated File_ID
                             };
-        
+
                             _context.Projects.Add(project);
                             await _context.SaveChangesAsync();
-        
+
+                            // 3. Create Allocation
                             var allocation = new ProjectAllocation
                             {
                                 Budget_ID = budget.Budget_ID,
@@ -249,43 +289,8 @@ namespace BMS_project.Controllers
                                 Amount_Allocated = model.Allocated_Amount
                             };
                             _context.ProjectAllocations.Add(allocation);
-        
-                            // Save file to webroot UploadedFiles
-                            var baseFolder = !string.IsNullOrEmpty(_webHostEnvironment.WebRootPath)
-                                ? _webHostEnvironment.WebRootPath
-                                : _webHostEnvironment.ContentRootPath;
-        
-                            string uploadFolder = Path.Combine(baseFolder, "UploadedFiles");
-                            if (!Directory.Exists(uploadFolder))
-                            {
-                                Directory.CreateDirectory(uploadFolder);
-                                _logger.LogInformation("Created upload directory: {UploadFolder}", uploadFolder);
-                            }
-        
-                            string safeDocName = string.IsNullOrWhiteSpace(model.DocumentName)
-                                ? "Document"
-                                : Path.GetFileNameWithoutExtension(model.DocumentName);
-        
-                            safeDocName = string.Join("_", safeDocName.Split(Path.GetInvalidFileNameChars()));
-        
-                            var extension2 = Path.GetExtension(model.UploadedFile.FileName).ToLowerInvariant();
-                            string uniqueFileName = $"{safeDocName}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid().ToString("N").Substring(0, 6)}{extension2}";
-                            savedFilePath = Path.Combine(uploadFolder, uniqueFileName);
-        
-                            using (var stream = new FileStream(savedFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
-                            {
-                                await model.UploadedFile.CopyToAsync(stream);
-                            }
-        
-                            var fileUpload = new FileUpload
-                            {
-                                User_ID = user.User_ID,
-                                File_Name = model.DocumentName,
-                                File = "/UploadedFiles/" + uniqueFileName,
-                                Timestamp = DateTime.Now
-                            };
-                            _context.FileUploads.Add(fileUpload);
-        
+
+                            // 4. Create Log
                             var log = new ProjectLog
                             {
                                 Project_ID = project.Project_ID,
@@ -295,14 +300,14 @@ namespace BMS_project.Controllers
                                 Remarks = "Project created and submitted for approval."
                             };
                             _context.ProjectLogs.Add(log);
-        
+
                             // LOGGING (System Log)
                             await _systemLogService.LogAsync(user.User_ID, "Create Project", $"Created Project: {project.Project_Title}", "Project", project.Project_ID);
-        
+
                             await _context.SaveChangesAsync();
                             await transaction.CommitAsync();
                             transactionCommitted = true;
-        
+
                             _logger.LogInformation("Transaction committed for project {ProjectId}", project.Project_ID);
                             TempData["SuccessMessage"] = "Project submitted successfully!";
                         }
@@ -396,34 +401,94 @@ namespace BMS_project.Controllers
             return File(memory, contentType, downloadName);
         }
 
-        public async Task<IActionResult> Dashboard()
+        public async Task<IActionResult> Dashboard(int? termId)
         {
             ViewData["Title"] = "Dashboard";
 
             var barangayId = GetBarangayIdFromClaims();
+            var vm = new DashboardViewModel();
+
+            // Populate Term Dropdown
+            vm.AllTerms = await _context.KabataanTermPeriods.OrderByDescending(t => t.Start_Date).ToListAsync();
+
+            // Determine Selected Term (Default to Active)
+            var activeTerm = vm.AllTerms.FirstOrDefault(t => t.IsActive);
+            int targetTermId = termId ?? (activeTerm?.Term_ID ?? 0);
+            vm.SelectedTermId = targetTermId;
+            vm.CurrentTerm = vm.AllTerms.FirstOrDefault(t => t.Term_ID == targetTermId)?.Term_Name ?? "Unknown Term";
+
+            // Default values if no barangay
             if (!barangayId.HasValue)
             {
-                // If user is not associated with a barangay, return a default budget
-                return View(new Budget { budget = 0, disbursed = 0, balance = 0 });
+                return View(vm);
             }
 
-            // 1. Get Active Term
-            var activeTerm = await _context.KabataanTermPeriods
-                                            .FirstOrDefaultAsync(t => t.IsActive);
+            // 1. KPI Stats
+            // Youth (Currently showing All Active regardless of term, as Youth table has no Term_ID)
+            vm.TotalYouth = await _context.YouthMembers
+                .CountAsync(y => y.Barangay_ID == barangayId.Value && !y.IsArchived);
 
-            if (activeTerm == null)
-            {
-                // No active term, return a default budget
-                return View(new Budget { budget = 0, disbursed = 0, balance = 0 });
-            }
+            // Projects - Filtered by Selected Term
+            var projects = await _context.Projects
+                .Include(p => p.User)
+                .Where(p => p.User.Barangay_ID == barangayId.Value && !p.IsArchived && p.Term_ID == targetTermId)
+                .ToListAsync();
 
-            // 2. Filter Budget by Barangay_ID and Active Term_ID
-            var budget = await _context.Budgets
-                                        .FirstOrDefaultAsync(b => b.Barangay_ID == barangayId.Value &&
-                                                                b.Term_ID == activeTerm.Term_ID);
+            vm.TotalApprovedProjects = projects.Count(p => p.Project_Status == "Approved" || p.Project_Status == "Completed");
+            vm.TotalPendingProjects = projects.Count(p => p.Project_Status == "Pending");
+            
+            // Logic for "Ongoing": Approved projects that haven't ended yet OR simply "Approved" status if "Completed" is used for finished ones.
+            // Assuming "Approved" means active/ongoing and "Completed" means done.
+            vm.TotalOngoingProjects = projects.Count(p => p.Project_Status == "Approved");
 
-            // 3. Handle Null: If no budget found for the active term, pass a default one.
-            return View(budget ?? new Budget { budget = 0, disbursed = 0, balance = 0 });
+            // 2. Sex Distribution Chart (Youth - Current Snapshot)
+            var sexData = await _context.YouthMembers
+                .Where(y => y.Barangay_ID == barangayId.Value && !y.IsArchived)
+                .GroupBy(y => y.Sex)
+                .Select(g => new { Sex = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            var sexLabels = sexData.Select(d => d.Sex).ToArray();
+            var sexCounts = sexData.Select(d => d.Count).ToArray();
+            vm.SexDistributionLabels = Newtonsoft.Json.JsonConvert.SerializeObject(sexLabels);
+            vm.SexDistributionData = Newtonsoft.Json.JsonConvert.SerializeObject(sexCounts);
+
+            // 3. Age Distribution Chart (Youth - Current Snapshot)
+            var youthList = await _context.YouthMembers
+                .Where(y => y.Barangay_ID == barangayId.Value && !y.IsArchived)
+                .Select(y => y.Age)
+                .ToListAsync();
+
+            var ageGroups = youthList.GroupBy(a => a).OrderBy(g => g.Key);
+            vm.AgeDistributionLabels = Newtonsoft.Json.JsonConvert.SerializeObject(ageGroups.Select(g => g.Key.ToString()).ToArray());
+            vm.AgeDistributionData = Newtonsoft.Json.JsonConvert.SerializeObject(ageGroups.Select(g => g.Count()).ToArray());
+
+            // 4. Sitio Distribution Chart (Youth per Sitio - Current Snapshot)
+            var sitioData = await _context.YouthMembers
+                .Where(y => y.Barangay_ID == barangayId.Value && !y.IsArchived)
+                .Include(y => y.Sitio)
+                .GroupBy(y => y.Sitio != null ? y.Sitio.Sitio_Name : "Unassigned")
+                .Select(g => new { Sitio = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            vm.SitioDistributionLabels = Newtonsoft.Json.JsonConvert.SerializeObject(sitioData.Select(d => d.Sitio).ToArray());
+            vm.SitioDistributionData = Newtonsoft.Json.JsonConvert.SerializeObject(sitioData.Select(d => d.Count).ToArray());
+
+            // 5. Calendar Events (Approved Projects - Filtered by Term)
+            var calendarEvents = projects
+                .Where(p => p.Project_Status == "Approved" || p.Project_Status == "Completed")
+                .Select(p => new 
+                { 
+                    title = p.Project_Title, 
+                    start = p.Start_Date?.ToString("yyyy-MM-dd"), 
+                    end = p.End_Date?.AddDays(1).ToString("yyyy-MM-dd"), // FullCalendar exclusive end date
+                    color = p.Project_Status == "Approved" ? "#28a745" : "#6c757d" // Green for approved, Grey for completed
+                })
+                .ToList();
+
+            vm.CalendarEvents = Newtonsoft.Json.JsonConvert.SerializeObject(calendarEvents);
+
+            return View(vm);
         }
 
         public IActionResult Documents()
@@ -441,12 +506,27 @@ namespace BMS_project.Controllers
             if (barangayId.HasValue)
             {
                 var youthList = _context.YouthMembers
+                    .Include(y => y.Sitio) // Include Sitio navigation
                     .Where(y => y.Barangay_ID == barangayId.Value && !y.IsArchived)
                     .ToList();
 
                 ViewBag.ArchivedYouth = _context.YouthMembers
+                    .Include(y => y.Sitio)
                     .Where(y => y.Barangay_ID == barangayId.Value && y.IsArchived)
                     .ToList();
+
+                // Populate Dropdown List
+                var sitios = _context.Sitios
+                    .Where(s => s.Barangay_ID == barangayId.Value)
+                    .OrderBy(s => s.Sitio_Name)
+                    .Select(s => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem 
+                    { 
+                        Value = s.Sitio_ID.ToString(), 
+                        Text = s.Sitio_Name 
+                    })
+                    .ToList();
+
+                ViewBag.SitioList = sitios;
 
                 return View("~/Views/BarangaySk/YouthProfiles.cshtml", youthList);
             }
@@ -512,7 +592,12 @@ namespace BMS_project.Controllers
             BMS_project.Models.User userModel = loginRecord.User; 
             int currentUserId = userModel.User_ID; // Access User_ID from the explicit User model
 
-            var projects = await _context.Projects
+            // Get Active Term for filtering main project list
+            var activeTerm = await _context.KabataanTermPeriods.FirstOrDefaultAsync(t => t.IsActive);
+            int activeTermId = activeTerm?.Term_ID ?? 0; // Default to 0 if no active term
+
+            // Fetch ALL non-archived projects for the current user first
+            var allUserProjects = await _context.Projects
                 .Where(p => p.User_ID == currentUserId && !p.IsArchived)
                 .Include(p => p.Allocations)
                 .OrderByDescending(p => p.Date_Submitted)
@@ -524,9 +609,15 @@ namespace BMS_project.Controllers
                     Start_Date = p.Start_Date,
                     End_Date = p.End_Date,
                     Project_Status = p.Project_Status,
+                    Term_ID = p.Term_ID, // Ensure Term_ID is mapped
                     Allocated_Budget = p.Allocations.FirstOrDefault() != null ? p.Allocations.FirstOrDefault().Amount_Allocated : 0
                 })
                 .ToListAsync();
+
+            // 1. Projects for the Current Active Term (for the main list)
+            var projects = allUserProjects
+                .Where(p => p.Term_ID == activeTermId)
+                .ToList();
 
             var archivedProjects = await _context.Projects
                 .Where(p => p.User_ID == currentUserId && p.IsArchived)
@@ -543,7 +634,73 @@ namespace BMS_project.Controllers
 
             ViewBag.ArchivedProjects = archivedProjects;
 
+            // 2. Identify Carry-Over Candidates (from ALL user projects, excluding current term projects)
+            // Logic: Active Status (Approved/Ongoing) AND Belong to an Inactive/Old Term
+            var carryOverCandidates = allUserProjects
+                .Where(p => (p.Project_Status == "Approved" || p.Project_Status == "Ongoing") 
+                            && p.Term_ID != activeTermId 
+                            && p.Term_ID.HasValue)
+                .ToList();
+
+            ViewBag.CarryOverCandidates = carryOverCandidates;
+
             return View(projects);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditProject(int Project_ID, string Project_Status)
+        {
+            var project = await _context.Projects.FindAsync(Project_ID);
+            if (project == null)
+            {
+                TempData["ErrorMessage"] = "Project not found.";
+                return RedirectToAction(nameof(Projects));
+            }
+
+            // Rule: Cannot edit Pending projects (they are awaiting Fed approval)
+            if (project.Project_Status == "Pending")
+            {
+                TempData["ErrorMessage"] = "Pending projects cannot be edited. Please wait for approval.";
+                return RedirectToAction(nameof(Projects));
+            }
+
+            // Rule: Approved projects can be updated to Ongoing or Completed
+            // Rule: Ongoing projects can be updated to Completed
+            if (project.Project_Status == "Approved" || project.Project_Status == "Ongoing")
+            {
+                // Allow transitions:
+                // Approved -> Ongoing
+                // Approved -> Completed
+                // Ongoing -> Completed
+                
+                if (Project_Status == "Ongoing" || Project_Status == "Completed")
+                {
+                    // Optional: Prevent regression from Ongoing to Approved if desired, but basic logic allows switching
+                    project.Project_Status = Project_Status;
+                    
+                    // Log
+                    int? userId = GetCurrentUserId();
+                    if (userId.HasValue)
+                    {
+                        await _systemLogService.LogAsync(userId.Value, "Update Project", $"Updated Project {project.Project_Title} status to {Project_Status}", "Project", project.Project_ID);
+                    }
+
+                    await _context.SaveChangesAsync();
+                    TempData["SuccessMessage"] = $"Project marked as {Project_Status}.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Invalid status update.";
+                }
+            }
+            else
+            {
+                // If already completed or rejected
+                TempData["ErrorMessage"] = "This project status cannot be changed.";
+            }
+
+            return RedirectToAction(nameof(Projects));
         }
 
         [HttpPost]
@@ -780,52 +937,76 @@ namespace BMS_project.Controllers
             {
                 // 1. Get User & Barangay
                 var userId = GetCurrentUserId();
-                if (userId == null) return Unauthorized();
+                if (userId == null)
+                {
+                    TempData["ErrorMessage"] = "Unauthorized action.";
+                    return RedirectToAction(nameof(Projects));
+                }
                 
                 var user = await _context.Users.FindAsync(userId);
-                if (user?.Barangay_ID == null) return BadRequest("User has no Barangay.");
+                if (user?.Barangay_ID == null)
+                {
+                    TempData["ErrorMessage"] = "User is not assigned to a Barangay.";
+                    return RedirectToAction(nameof(Projects));
+                }
 
                 // 2. Get Project
                 var project = await _context.Projects
                     .Include(p => p.Allocations)
                     .FirstOrDefaultAsync(p => p.Project_ID == projectId);
 
-                if (project == null) return NotFound("Project not found.");
+                if (project == null)
+                {
+                    TempData["ErrorMessage"] = "Project not found.";
+                    return RedirectToAction(nameof(Projects));
+                }
 
                 // 3. Security: Ensure project belongs to user's barangay
                 var projectCreator = await _context.Users.FindAsync(project.User_ID);
                 if (projectCreator == null || projectCreator.Barangay_ID != user.Barangay_ID)
                 {
-                    return Forbid();
+                    TempData["ErrorMessage"] = "You are not authorized to decide on this project.";
+                    return RedirectToAction(nameof(Projects));
                 }
 
                 if (decision == "Terminate")
                 {
-                    project.Project_Status = "Terminated";
+                    project.Project_Status = "Rejected";
+                    project.IsArchived = true;
                     
                     // Log
-                    await _systemLogService.LogAsync(user.User_ID, "Terminate Project", $"Terminated Project: {project.Project_Title}", "Project", project.Project_ID);
+                    await _systemLogService.LogAsync(user.User_ID, "Terminate Project", $"Rejected and Archived Project: {project.Project_Title}", "Project", project.Project_ID);
                     
                     await _context.SaveChangesAsync();
-                    return Ok(new { success = true, message = "Project terminated." });
+                    TempData["SuccessMessage"] = "Project terminated and archived successfully.";
+                    return RedirectToAction(nameof(Projects));
                 }
                 else if (decision == "Continue")
                 {
                     // 4. Continue Logic
                     // Get Active Term
                     var activeTerm = await _context.KabataanTermPeriods.FirstOrDefaultAsync(t => t.IsActive);
-                    if (activeTerm == null) return BadRequest("No active term found.");
+                    if (activeTerm == null)
+                    {
+                        TempData["ErrorMessage"] = "No active term found. Cannot continue project.";
+                        return RedirectToAction(nameof(Projects));
+                    }
 
                     // Get Active Budget (New Term's Budget)
                     var budget = await _context.Budgets
                         .FirstOrDefaultAsync(b => b.Barangay_ID == user.Barangay_ID && b.Term_ID == activeTerm.Term_ID);
 
-                    if (budget == null) return BadRequest("No budget found for the new term. Please request allocation from Federation President.");
+                    if (budget == null)
+                    {
+                        TempData["ErrorMessage"] = "No budget found for the new term. Please request allocation from Federation President.";
+                        return RedirectToAction(nameof(Projects));
+                    }
 
                     // Check Funds
                     if (budget.balance < project.Estimated_Cost)
                     {
-                        return BadRequest("Insufficient funds in new term to continue this project.");
+                        TempData["ErrorMessage"] = "Insufficient funds in new term to continue this project.";
+                        return RedirectToAction(nameof(Projects));
                     }
 
                     // Deduct from New Term Budget
@@ -852,15 +1033,18 @@ namespace BMS_project.Controllers
                     await _systemLogService.LogAsync(user.User_ID, "Carry Over Project", $"Carried Over Project: {project.Project_Title} to Term {activeTerm.Term_Name}", "Project", project.Project_ID);
 
                     await _context.SaveChangesAsync();
-                    return Ok(new { success = true, message = "Project carried over successfully." });
+                    TempData["SuccessMessage"] = "Project carried over successfully.";
+                    return RedirectToAction(nameof(Projects));
                 }
 
-                return BadRequest("Invalid decision.");
+                TempData["ErrorMessage"] = "Invalid decision.";
+                return RedirectToAction(nameof(Projects));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in DecideOnCarryOver");
-                return StatusCode(500, "An error occurred: " + ex.Message);
+                TempData["ErrorMessage"] = "An error occurred: " + ex.Message;
+                return RedirectToAction(nameof(Projects));
             }
         }
     }

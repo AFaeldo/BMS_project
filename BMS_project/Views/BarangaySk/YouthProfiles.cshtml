@@ -1,4 +1,4 @@
-﻿@model IEnumerable<BMS_project.Models.YouthMember>
+@model IEnumerable<BMS_project.Models.YouthMember>
 
 @{
     Layout = "~/Views/Shared/_BarangayLayout.cshtml";
@@ -8,8 +8,11 @@
 <div class="container-fluid">
 
     <!-- PAGE HEADER -->
-    <div class="mb-4">
+    <div class="mb-4 d-flex justify-content-between align-items-center">
         <h2 class="fw-bold">Registered Youth Members</h2>
+        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#manageSitioModal">
+            <i class="bi bi-geo-alt-fill me-1"></i> Manage Sitios
+        </button>
     </div>
 
     <div class="col-12 text-end mb-3">
@@ -32,7 +35,7 @@
                         <th>First Name</th>
                         <th>Last Name</th>
                         <th>Age</th>
-                        <th>Gender</th>
+                        <th>Sex</th>
                         <th>Sitio</th>
                         <th>Birthdate</th>
                         <th>Action</th>
@@ -48,16 +51,16 @@
                                 <td>@y.FirstName</td>
                                 <td>@y.LastName</td>
                                 <td>@y.Age</td>
-                                <td>@y.Gender</td>
-                                <td>@y.Sitio</td>
+                                <td>@y.Sex</td>
+                                <td>@(y.Sitio != null ? y.Sitio.Sitio_Name : "N/A")</td>
                                 <td>@y.Birthday.ToString("yyyy-MM-dd")</td>
                                 <td>
                                     <button class="btn btn-sm btn-warning me-1 btn-edit"
                                             data-id="@y.Member_ID"
                                             data-firstname="@y.FirstName"
                                             data-lastname="@y.LastName"
-                                            data-gender="@y.Gender"
-                                            data-sitio="@y.Sitio"
+                                            data-sex="@y.Sex"
+                                            data-sitio-id="@y.Sitio_ID"
                                             data-birthdate="@y.Birthday.ToString("yyyy-MM-dd")"
                                             data-bs-toggle="modal" data-bs-target="#editYouthModal">
                                         <i class="bi bi-pencil-square"></i> Edit
@@ -118,19 +121,20 @@
                             <span class="text-danger">@Html.ValidationMessage("Age")</span>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Gender</label>
-                            <select name="Gender" class="form-select">
-                                <option value="">-- Select Gender --</option>
-                                <option value="Male" selected="@(ViewBag.NewYouth?.Gender == "Male")">Male</option>
-                                <option value="Female" selected="@(ViewBag.NewYouth?.Gender == "Female")">Female</option>
-                                <option value="Other" selected="@(ViewBag.NewYouth?.Gender == "Other")">Other</option>
+                            <label class="form-label fw-semibold">Sex</label>
+                            <select name="Sex" class="form-select">
+                                <option value="">-- Select Sex --</option>
+                                <option value="Male" selected="@(ViewBag.NewYouth?.Sex == "Male")">Male</option>
+                                <option value="Female" selected="@(ViewBag.NewYouth?.Sex == "Female")">Female</option>
                             </select>
-                            <span class="text-danger">@Html.ValidationMessage("Gender")</span>
+                            <span class="text-danger">@Html.ValidationMessage("Sex")</span>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Sitio</label>
-                            <input name="Sitio" class="form-control" placeholder="Enter sitio" value="@(ViewBag.NewYouth?.Sitio)" />
-                            <span class="text-danger">@Html.ValidationMessage("Sitio")</span>
+                            <select name="Sitio_ID" class="form-select" asp-items="ViewBag.SitioList">
+                                <option value="">-- Select Sitio --</option>
+                            </select>
+                            <span class="text-danger">@Html.ValidationMessage("Sitio_ID")</span>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Birthdate</label>
@@ -176,9 +180,9 @@
                             <input id="editLastName" name="LastName" class="form-control" />
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Gender</label>
-                            <select id="editGender" name="Gender" class="form-select">
-                                <option value="">-- Select Gender --</option>
+                            <label class="form-label fw-semibold">Sex</label>
+                            <select id="editSex" name="Sex" class="form-select">
+                                <option value="">-- Select Sex --</option>
                                 <option>Male</option>
                                 <option>Female</option>
                                 <option>Other</option>
@@ -186,7 +190,9 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Sitio</label>
-                            <input id="editSitio" name="Sitio" class="form-control" />
+                            <select id="editSitio_ID" name="Sitio_ID" class="form-select" asp-items="ViewBag.SitioList">
+                                <option value="">-- Select Sitio --</option>
+                            </select>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Birthdate</label>
@@ -203,6 +209,31 @@
                     </div>
                 </form>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Manage Sitio Modal -->
+<div class="modal fade" id="manageSitioModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow border-0 rounded-3">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="bi bi-geo-alt-fill"></i> Add New Sitio</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-controller="Youth" asp-action="AddSitio" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Sitio Name</label>
+                        <input type="text" name="SitioName" class="form-control" placeholder="Enter new Sitio name" required />
+                    </div>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save Sitio</button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -255,7 +286,7 @@
                                     <th>Select</th>
                                     <th>Name</th>
                                     <th>Age</th>
-                                    <th>Gender</th>
+                                    <th>Sex</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -271,7 +302,7 @@
                                                 </td>
                                                 <td>@item.FirstName @item.LastName</td>
                                                 <td>@item.Age</td>
-                                                <td>@item.Gender</td>
+                                                <td>@item.Sex</td>
                                             </tr>
                                         }
                                     }
@@ -310,8 +341,8 @@
                 document.getElementById('editMember_ID').value = btn.dataset.id;
                 document.getElementById('editFirstName').value = btn.dataset.firstname;
                 document.getElementById('editLastName').value = btn.dataset.lastname;
-                document.getElementById('editGender').value = btn.dataset.gender;
-                document.getElementById('editSitio').value = btn.dataset.sitio;
+                document.getElementById('editSex').value = btn.dataset.sex;
+                document.getElementById('editSitio_ID').value = btn.dataset.sitioId; // Use ID for dropdown
                 document.getElementById('editBirthdate').value = btn.dataset.birthdate;
             });
         });
@@ -347,6 +378,7 @@
                 }
             });
         }
+
     </script>
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");

@@ -21,6 +21,9 @@ namespace BMS_project.Models
         [Column("Term_ID")]
         public int? Term_ID { get; set; }
 
+        [Column("File_ID")]
+        public int File_ID { get; set; }
+
         [Required]
         [Column("Project_Title")]
         [StringLength(255)]

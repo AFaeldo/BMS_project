@@ -44,6 +44,16 @@ namespace BMS_project.Controllers
                 })
                 .ToListAsync();
 
+            // Populate ViewBag.DocumentTypes
+            ViewBag.DocumentTypes = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "Report", Text = "Report" },
+                new SelectListItem { Value = "Financial Statement", Text = "Financial Statement" },
+                new SelectListItem { Value = "Minutes of Meeting", Text = "Minutes of Meeting" },
+                new SelectListItem { Value = "Proposal", Text = "Proposal" },
+                new SelectListItem { Value = "Project Documentation", Text = "Project Documentation" }
+            };
+
             // Query _context.Compliances
             // Crucial: Use .Include(c => c.Barangay) to display Barangay Name
             var compliances = await _context.Compliances
@@ -70,10 +80,21 @@ namespace BMS_project.Controllers
                 })
                 .ToListAsync();
 
+            // Populate Document Types
+            var documentTypes = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "Report", Text = "Report" },
+                new SelectListItem { Value = "Financial Statement", Text = "Financial Statement" },
+                new SelectListItem { Value = "Minutes of Meeting", Text = "Minutes of Meeting" },
+                new SelectListItem { Value = "Proposal", Text = "Proposal" },
+                new SelectListItem { Value = "Project Documentation", Text = "Project Documentation" }
+            };
+
             // Pass list into CreateComplianceViewModel
             var model = new CreateComplianceViewModel
             {
                 BarangayList = barangays,
+                DocumentTypeList = documentTypes,
                 DueDate = DateTime.Today.AddDays(7) // Default to 1 week from now
             };
 
@@ -215,6 +236,15 @@ namespace BMS_project.Controllers
                     Text = b.Barangay_Name
                 })
                 .ToListAsync();
+
+            ViewBag.DocumentTypes = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "Report", Text = "Report" },
+                new SelectListItem { Value = "Financial Statement", Text = "Financial Statement" },
+                new SelectListItem { Value = "Minutes of Meeting", Text = "Minutes of Meeting" },
+                new SelectListItem { Value = "Proposal", Text = "Proposal" },
+                new SelectListItem { Value = "Project Documentation", Text = "Project Documentation" }
+            };
 
             // Return to the Federation view
             return View("~/Views/FederationPresident/ComplianceMonitoring.cshtml", await _context.Compliances.Include(c => c.Barangay).OrderByDescending(c => c.Due_Date).ToListAsync()); 

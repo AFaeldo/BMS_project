@@ -47,11 +47,20 @@ namespace BMS_project.Controllers.BarangaySKContoller
             if (barangayId.HasValue)
             {
                 var youthList = _context.YouthMembers
+                    .Include(y => y.Sitio)
                     .Where(y => y.Barangay_ID == barangayId.Value && !y.IsArchived)
                     .ToList();
                 
                 ViewBag.ArchivedYouth = _context.YouthMembers
+                    .Include(y => y.Sitio)
                     .Where(y => y.Barangay_ID == barangayId.Value && y.IsArchived)
+                    .ToList();
+
+                // Populate Dropdown
+                ViewBag.SitioList = _context.Sitios
+                    .Where(s => s.Barangay_ID == barangayId.Value)
+                    .OrderBy(s => s.Sitio_Name)
+                    .Select(s => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem { Value = s.Sitio_ID.ToString(), Text = s.Sitio_Name })
                     .ToList();
 
                 return View("~/Views/BarangaySk/YouthProfiles.cshtml", youthList);
@@ -82,6 +91,7 @@ namespace BMS_project.Controllers.BarangaySKContoller
 
             // Remove Barangay_ID from ModelState as it's set programmatically
             ModelState.Remove(nameof(member.Barangay_ID));
+            ModelState.Remove(nameof(member.Sitio)); // Remove navigation prop validation
 
             // 2. Validation: Age Logic
             // Calculate accurate age from birthday
@@ -119,7 +129,15 @@ namespace BMS_project.Controllers.BarangaySKContoller
 
             // Fix: Ensure the list is still filtered by Barangay even on error
             var errorYouthList = _context.YouthMembers
+                .Include(y => y.Sitio)
                 .Where(y => y.Barangay_ID == barangayId.Value && !y.IsArchived)
+                .ToList();
+                
+            // Repopulate Dropdown
+            ViewBag.SitioList = _context.Sitios
+                .Where(s => s.Barangay_ID == barangayId.Value)
+                .OrderBy(s => s.Sitio_Name)
+                .Select(s => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem { Value = s.Sitio_ID.ToString(), Text = s.Sitio_Name })
                 .ToList();
 
             // Pass the invalid model back to the view to repopulate the form
@@ -143,8 +161,8 @@ namespace BMS_project.Controllers.BarangaySKContoller
             // Update fields
             existing.FirstName = member.FirstName;
             existing.LastName = member.LastName;
-            existing.Gender = member.Gender;
-            existing.Sitio = member.Sitio;
+            existing.Sex = member.Sex;
+            existing.Sitio_ID = member.Sitio_ID; // Update ID
             existing.Birthday = member.Birthday;
             
             // Recalculate age
@@ -218,6 +236,50 @@ namespace BMS_project.Controllers.BarangaySKContoller
                 TempData["ErrorMessage"] = "No members selected.";
             }
             return RedirectToAction("YouthProfiles", "BarangaySk");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddSitio(string SitioName)
+        {
+            if (string.IsNullOrWhiteSpace(SitioName))
+            {
+                TempData["ErrorMessage"] = "Sitio Name is required.";
+                return RedirectToAction(nameof(YouthProfiles));
+            }
+
+            var barangayId = GetBarangayIdFromClaims();
+            if (barangayId == null)
+            {
+                TempData["ErrorMessage"] = "User is not assigned to a Barangay.";
+                return RedirectToAction(nameof(YouthProfiles));
+            }
+
+            var exists = await _context.Sitios.AnyAsync(s => s.Barangay_ID == barangayId && s.Sitio_Name == SitioName);
+            if (exists)
+            {
+                TempData["ErrorMessage"] = "Sitio already exists in this Barangay.";
+                return RedirectToAction(nameof(YouthProfiles));
+            }
+
+            var sitio = new Sitio
+            {
+                Sitio_Name = SitioName,
+                Barangay_ID = barangayId.Value
+            };
+
+            _context.Sitios.Add(sitio);
+            await _context.SaveChangesAsync();
+
+            // LOGGING
+            var userId = GetCurrentUserId();
+            if (userId.HasValue)
+            {
+                await _systemLogService.LogAsync(userId.Value, "Add Sitio", $"Added Sitio: {SitioName}", "Sitio", sitio.Sitio_ID);
+            }
+
+            TempData["SuccessMessage"] = "Sitio added successfully!";
+            return RedirectToAction(nameof(YouthProfiles));
         }
     }
 }

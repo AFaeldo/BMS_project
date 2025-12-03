@@ -23,6 +23,64 @@
         </div>
     }
 
+    @* -- CARRY-OVER SECTION -- *@
+    @{
+        var carryOver = ViewBag.CarryOverCandidates as List<BMS_project.ViewModels.ProjectListViewModel>;
+    }
+    @if (carryOver != null && carryOver.Any())
+    {
+        <div class="card shadow-sm border-0 mb-4 border-start border-warning border-5">
+            <div class="card-header bg-light">
+                <h5 class="fw-bold text-warning mb-0"><i class="bi bi-exclamation-circle-fill me-2"></i>Action Required: Projects from Previous Term</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">The following projects are still marked as <strong>Approved</strong> or <strong>Ongoing</strong> but belong to a previous term. Please decide whether to continue them (using current term's budget) or terminate them.</p>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead class="table-warning">
+                            <tr>
+                                <th>Project Title</th>
+                                <th>Description</th>
+                                <th>Previous Budget</th>
+                                <th>Status</th>
+                                <th class="text-center">Decision</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in carryOver)
+                            {
+                                <tr>
+                                    <td class="fw-bold">@item.Project_Title</td>
+                                    <td>@item.Project_Description</td>
+                                    <td>@item.Allocated_Budget.ToString("C", new System.Globalization.CultureInfo("en-PH"))</td>
+                                    <td><span class="badge bg-info text-dark">@item.Project_Status</span></td>
+                                    <td class="text-center">
+                                        <form method="post" asp-action="DecideOnCarryOver" class="d-flex justify-content-center gap-2">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="projectId" value="@item.Project_ID" />
+                                            
+                                            <button type="submit" name="decision" value="Continue" class="btn btn-sm btn-success" 
+                                                    title="Claim & Continue (Deduct from Current Budget)"
+                                                    onclick="return confirm('Are you sure? This will deduct the estimated cost from your CURRENT term budget.')">
+                                                <i class="bi bi-check-circle-fill me-1"></i> Claim
+                                            </button>
+                                            
+                                            <button type="submit" name="decision" value="Terminate" class="btn btn-sm btn-danger" 
+                                                    title="Terminate & Archive"
+                                                    onclick="return confirm('Are you sure you want to terminate this project?')">
+                                                <i class="bi bi-x-circle-fill me-1"></i> Terminate
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
     <div class="col-12 text-end mb-3">
         <button class="btn btn-secondary me-2" data-bs-toggle="modal" data-bs-target="#archivedProjectsModal">
             <i class="bi bi-archive"></i> View Archived Projects
@@ -171,40 +229,52 @@
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header bg-warning text-white rounded-top-4">
                 <h5 class="modal-title fw-bold">
-                    <i class="bi bi-pencil-square me-2"></i> Edit Project
+                    <i class="bi bi-pencil-square me-2"></i> Edit Project Status
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form>
-                <!-- NOTE: Update logic not yet implemented in Controller, this is just UI -->
+            <form method="post" asp-action="EditProject">
                 <div class="modal-body">
-                    <input type="hidden" id="editProjectID">
+                    <div id="pendingMessage" class="alert alert-warning d-none">
+                        <i class="bi bi-exclamation-circle me-2"></i> This project is pending approval and cannot be edited.
+                    </div>
+                    <div id="approvedMessage" class="alert alert-info d-none">
+                        <i class="bi bi-info-circle me-2"></i> Approved projects can be updated to 'Completed'.
+                    </div>
+
+                    <input type="hidden" name="Project_ID" id="editProjectID">
+                    
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Project Title</label>
-                        <input type="text" id="editProjectTitle" class="form-control">
+                        <input type="text" id="editProjectTitle" class="form-control" readonly>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Description</label>
-                        <textarea id="editProjectDesc" class="form-control" rows="2"></textarea>
+                        <textarea id="editProjectDesc" class="form-control" rows="2" readonly></textarea>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-semibold">Start Date</label>
-                            <input type="date" id="editStartDate" class="form-control">
+                            <input type="date" id="editStartDate" class="form-control" readonly>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-semibold">End Date</label>
-                            <input type="date" id="editEndDate" class="form-control">
+                            <input type="date" id="editEndDate" class="form-control" readonly>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Status</label>
-                        <input type="text" id="editStatus" class="form-control" readonly>
+                        <!-- If Approved, show dropdown to allow Completed. If Pending, show text. -->
+                        <select name="Project_Status" id="editStatusSelect" class="form-select d-none">
+                            <option value="Ongoing">Ongoing</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                        <input type="text" id="editStatusText" class="form-control" readonly>
                     </div>
                 </div>
                 <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-warning text-white px-4">Save Changes</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" id="btnSaveChanges" class="btn btn-warning text-white px-4">Save Changes</button>
                 </div>
             </form>
         </div>
@@ -299,12 +369,54 @@
         // Populate Edit Modal
         document.querySelectorAll('.btn-edit').forEach(btn => {
             btn.addEventListener('click', () => {
+                const status = btn.dataset.status;
+                
                 document.getElementById('editProjectID').value = btn.dataset.id;
                 document.getElementById('editProjectTitle').value = btn.dataset.title;
                 document.getElementById('editProjectDesc').value = btn.dataset.desc;
                 document.getElementById('editStartDate').value = btn.dataset.start;
                 document.getElementById('editEndDate').value = btn.dataset.end;
-                document.getElementById('editStatus').value = btn.dataset.status;
+                
+                const statusSelect = document.getElementById('editStatusSelect');
+                const statusText = document.getElementById('editStatusText');
+                const btnSave = document.getElementById('btnSaveChanges');
+                const pendingMsg = document.getElementById('pendingMessage');
+                const approvedMsg = document.getElementById('approvedMessage');
+
+                // Reset State
+                statusSelect.classList.add('d-none');
+                statusText.classList.remove('d-none');
+                btnSave.disabled = true;
+                pendingMsg.classList.add('d-none');
+                approvedMsg.classList.add('d-none');
+
+                if (status === 'Pending') {
+                    statusText.value = status;
+                    pendingMsg.classList.remove('d-none');
+                    // Button remains disabled
+                } 
+                else if (status === 'Approved' || status === 'Ongoing') {
+                    statusText.classList.add('d-none');
+                    statusSelect.classList.remove('d-none');
+                    
+                    // Set dropdown value if status matches an option, otherwise default to Ongoing
+                    if(status === 'Approved') {
+                        statusSelect.value = 'Ongoing'; // Suggest next step
+                    } else {
+                        statusSelect.value = status; 
+                    }
+                    
+                    approvedMsg.classList.remove('d-none');
+                    approvedMsg.innerHTML = '<i class="bi bi-info-circle me-2"></i> You can update status to Ongoing or Completed.';
+                    btnSave.disabled = false;
+                }
+                else if (status === 'Completed') {
+                    statusText.value = status;
+                    // Already completed
+                }
+                else {
+                    statusText.value = status;
+                }
             });
         });
 

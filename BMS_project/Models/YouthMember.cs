@@ -24,12 +24,14 @@ namespace BMS_project.Models
         public int Age { get; set; }
 
         [Required]
-        [Column("Gender")]
-        public string Gender { get; set; }
+        [Column("Sex")]
+        public string Sex { get; set; }
 
-        [Required, StringLength(100)]
-        [Column("Sitio")]
-        public string Sitio { get; set; }
+        [Column("sitio_id")]
+        public int? Sitio_ID { get; set; }
+
+        [ForeignKey("Sitio_ID")]
+        public Sitio Sitio { get; set; }
 
         [Required, DataType(DataType.Date)]
         [Column("Birthday")]

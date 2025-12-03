@@ -162,12 +162,8 @@
                     <!-- DocumentType -->
                     <div class="mb-3">
                         <label class="form-label fw-bold">Document Type</label>
-                        <select name="DocumentType" class="form-select" required>
+                        <select name="DocumentType" class="form-select" asp-items="@(new SelectList(ViewBag.DocumentTypes, "Value", "Text"))" required>
                             <option value="">Select Type...</option>
-                            <option value="Report">Report</option>
-                            <option value="Minutes">Meeting Minutes</option>
-                            <option value="Proposal">Budget Proposal</option>
-                            <option value="Resolution">Resolution</option>
                         </select>
                     </div>
 

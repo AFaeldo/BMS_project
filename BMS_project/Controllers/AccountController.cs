@@ -134,7 +134,7 @@ public class AccountController : Controller
 
                     await _context.SaveChangesAsync();
 
-                    ViewBag.Error = "Your term has ended. Please contact the administrator for re-election.";
+                    ViewBag.Error = "Invalid username or password.";
                     return View();
                 }
                 else

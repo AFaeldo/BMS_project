@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 03, 2025 at 07:33 PM
+-- Generation Time: Dec 04, 2025 at 12:15 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -20,6 +20,21 @@ SET time_zone = "+00:00";
 --
 -- Database: `kabataan`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `announcement`
+--
+
+CREATE TABLE `announcement` (
+  `Announcement_ID` int(11) NOT NULL,
+  `User_ID` int(11) NOT NULL,
+  `Title` varchar(255) NOT NULL,
+  `Message` text NOT NULL,
+  `IsActive` tinyint(1) DEFAULT 1 COMMENT '1=Show on Login, 0=Hidden',
+  `Date_Created` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -120,7 +135,9 @@ CREATE TABLE `budget` (
 --
 
 INSERT INTO `budget` (`budget_id`, `Barangay_ID`, `budget`, `disbursed`, `balance`, `Term_ID`) VALUES
-(7, 5, 500000.00, 250.00, 499750.00, 5);
+(7, 5, 500000.00, 250.00, 499750.00, 5),
+(8, 5, 25000.00, 250.00, 24750.00, 6),
+(9, 5, 100000.00, 0.00, 100000.00, 8);
 
 -- --------------------------------------------------------
 
@@ -140,6 +157,16 @@ CREATE TABLE `compliance` (
   `Term_ID` int(11) NOT NULL,
   `IsArchived` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `compliance`
+--
+
+INSERT INTO `compliance` (`com_id`, `Barangay_id`, `File_ID`, `Title`, `Type`, `Status`, `due_date`, `Date_Submitted`, `Term_ID`, `IsArchived`) VALUES
+(9, 1, NULL, 'Secret', 'Report', 'Not Submitted', '2025-12-27', NULL, 6, 0),
+(10, 3, NULL, 'Secretasdsadsadsa', 'Minutes', 'Not Submitted', '2025-12-27', NULL, 6, 0),
+(11, 3, NULL, 'Secretasdsadsadsa', 'Minutes', 'Not Submitted', '2025-12-27', NULL, 8, 0),
+(12, 1, NULL, 'Secretasdsadsadsa', 'Minutes of Meeting', 'Not Submitted', '2025-12-27', NULL, 8, 0);
 
 -- --------------------------------------------------------
 
@@ -161,7 +188,9 @@ CREATE TABLE `federation_fund` (
 
 INSERT INTO `federation_fund` (`Fund_ID`, `Term_ID`, `Total_Amount`, `Allocated_To_Barangays`, `Created_At`) VALUES
 (1, 5, 1000000.00, 500000.00, '2025-12-03 06:43:29'),
-(2, 3, 500000.00, 0.00, '2025-12-03 11:20:17');
+(2, 3, 500000.00, 0.00, '2025-12-03 11:20:17'),
+(3, 6, 1000000.00, 25000.00, '2025-12-04 04:18:38'),
+(4, 8, 100000.00, 100000.00, '2025-12-04 06:28:54');
 
 -- --------------------------------------------------------
 
@@ -185,7 +214,8 @@ INSERT INTO `file_upload` (`File_ID`, `File_Name`, `File`, `User_ID`, `Timestamp
 (9, 'LabExercise5.pdf', '/UploadedFiles/Instructions/LabExercise5_20251203224815.pdf', 7, '2025-12-03 22:48:15'),
 (10, 'LabExercise5.pdf', '/UploadedFiles/Instructions/LabExercise5_20251203225605.pdf', 7, '2025-12-03 22:56:05'),
 (11, 'Exercise 8.pdf', '/UploadedFiles/Instructions/Exercise 8_20251203225721.pdf', 7, '2025-12-03 22:57:21'),
-(12, 'Exercise 8.pdf', '/UploadedFiles/Submissions/4_20251204012105_209e6c.pdf', 9, '2025-12-04 01:21:05');
+(12, 'Exercise 8.pdf', '/UploadedFiles/Submissions/4_20251204012105_209e6c.pdf', 9, '2025-12-04 01:21:05'),
+(13, 'Sampledasf ', '/UploadedFiles/Sampledasf _20251204043256_739dbd.pdf', 9, '2025-12-04 04:32:56');
 
 -- --------------------------------------------------------
 
@@ -223,14 +253,19 @@ INSERT INTO `kabataan_service_record` (`Record_ID`, `User_ID`, `Term_ID`, `Role_
 (14, 9, 4, 3, 'Term Ended', NULL),
 (15, 10, 4, 3, 'Term Ended', '2025-12-03'),
 (16, 11, 4, 3, 'Resigned', '2025-12-02'),
-(17, 6, 5, 3, 'Active', NULL),
+(17, 6, 5, 3, 'Term Ended', '2025-12-04'),
 (18, 7, 5, 2, 'Resigned', '2025-12-02'),
 (19, 9, 5, 3, 'Resigned', '2025-12-01'),
 (20, 9, 5, 3, 'Term Ended', '2025-12-03'),
 (21, 7, 5, 2, 'Term Ended', '2025-12-03'),
 (22, 11, 5, 3, 'Active', NULL),
-(23, 9, 6, 3, 'Active', NULL),
-(24, 7, 6, 2, 'Active', NULL);
+(23, 9, 6, 3, 'Term Ended', '2025-12-04'),
+(24, 7, 6, 2, 'Resigned', '2025-12-04'),
+(25, 6, 6, 3, 'Resigned', '2025-12-04'),
+(26, 10, 6, 3, 'Active', NULL),
+(27, 9, 8, 3, 'Active', NULL),
+(28, 6, 8, 3, 'Active', NULL),
+(29, 7, 8, 2, 'Active', NULL);
 
 -- --------------------------------------------------------
 
@@ -256,8 +291,9 @@ INSERT INTO `kabataan_term_period` (`Term_ID`, `Term_Name`, `Start_Date`, `Offic
 (3, '2025-2028 Term', '2025-12-01', '2028-01-01', 0),
 (4, '2021-2024 Term', '2021-01-09', '2024-02-07', 0),
 (5, '2025-2028 Term', '2025-12-02', '2028-06-09', 0),
-(6, '2028-2031 Term', '2028-06-23', '2031-07-18', 1),
-(7, '2021-2024 Term', '2021-02-01', '2024-02-03', 0);
+(6, '2028-2031 Term', '2028-06-23', '2031-07-18', 0),
+(7, '2021-2024 Term', '2021-02-01', '2024-02-03', 0),
+(8, '2031-2034 term', '2031-07-11', '2034-08-12', 1);
 
 -- --------------------------------------------------------
 
@@ -278,8 +314,8 @@ CREATE TABLE `login` (
 --
 
 INSERT INTO `login` (`id`, `username`, `password`, `Role_ID`, `User_ID`) VALUES
-(5, 'SK0001', 'AQAAAAIAAYagAAAAEMg1nQ7sImaiG9dG7xjeRhR1W0ci+IiDltOARI2ZQXE4DWDLUvlZtaOns70IHjqYig==', 1, 5),
-(6, 'SK0002', 'AQAAAAIAAYagAAAAEBQnVePJDQ0MztACXLlvdGOcfmgR6ssXXJqi4jEk5rO4npn3iWIbe/gVV8rlY1MVSw==', 3, 6),
+(5, 'SK0001', 'AQAAAAIAAYagAAAAEAMz2aCc7Rkb6L6PQmDueww7yjqjItSaxOmeOHKUiJB+Njb554gvn1Coa6sXOihatg==', 1, 5),
+(6, 'SK0002', 'AQAAAAIAAYagAAAAELl1++Eer7Tl0byioPYOLacTOe0mzK5eO0ldpEq02Yzw3xO6urWfALR54+c/RZnfrQ==', 3, 6),
 (7, 'SK0003', 'AQAAAAIAAYagAAAAEN094Oxib6sq8Y6QswEPoVhqFXpUV+XmQKuq9MgLQulXpRzxIeZqWfNwHojvWTnipQ==', 2, 7),
 (9, 'SK0004', 'AQAAAAIAAYagAAAAEBD/mpOOVTKybSilgkzc3zqfKV+J7Kk7SqkNAxHcqTfbbChYXJ7xkltEMmk8k8lwog==', 3, 9),
 (10, 'SK0005', 'AQAAAAIAAYagAAAAEEaXxHIYiIjCebzsz6Y1du+69JkEECn5kxugS8uF3lkdc6UKwQ+3frg+0uhqwT4BxA==', 3, 10),
@@ -306,6 +342,13 @@ CREATE TABLE `project` (
   `IsArchived` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `project`
+--
+
+INSERT INTO `project` (`Project_ID`, `User_ID`, `Term_ID`, `File_ID`, `Project_Title`, `Project_Description`, `Estimated_Cost`, `Date_Submitted`, `Project_Status`, `Start_Date`, `End_Date`, `IsArchived`) VALUES
+(16, 9, 7, 13, 'Sampleasdsda', 'asdsadsadsa', 0.00, '2025-12-04', 'Rejected', '2025-12-01', '2025-12-07', 1);
+
 -- --------------------------------------------------------
 
 --
@@ -318,6 +361,15 @@ CREATE TABLE `project_allocation` (
   `Project_ID` int(11) NOT NULL,
   `Amount_Allocated` decimal(10,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `project_allocation`
+--
+
+INSERT INTO `project_allocation` (`Allocation_ID`, `Budget_ID`, `Project_ID`, `Amount_Allocated`) VALUES
+(2, 8, 16, 250.00),
+(3, 9, 16, 0.00),
+(4, 9, 16, 0.00);
 
 -- --------------------------------------------------------
 
@@ -333,6 +385,14 @@ CREATE TABLE `project_log` (
   `Changed_On` datetime DEFAULT current_timestamp(),
   `Remarks` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `project_log`
+--
+
+INSERT INTO `project_log` (`Log_ID`, `Project_ID`, `User_ID`, `Status`, `Changed_On`, `Remarks`) VALUES
+(1, 16, 9, 'Pending', '2025-12-04 04:32:56', 'Project created and submitted for approval.'),
+(2, 16, 9, 'Approved', '2025-12-04 05:53:08', 'Project status updated to Approved by Federation President');
 
 -- --------------------------------------------------------
 
@@ -354,6 +414,27 @@ INSERT INTO `role` (`Role_ID`, `Role_Name`, `Has_Term_Limit`) VALUES
 (1, 'SuperAdmin', 0),
 (2, 'FederationPresident\n', 1),
 (3, 'BarangaySK', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `sitio`
+--
+
+CREATE TABLE `sitio` (
+  `sitio_id` int(11) NOT NULL,
+  `Barangay_id` int(11) DEFAULT NULL,
+  `Name` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `sitio`
+--
+
+INSERT INTO `sitio` (`sitio_id`, `Barangay_id`, `Name`) VALUES
+(1, 5, 'Kanluran'),
+(2, 5, 'Hilaga'),
+(3, 5, 'weh');
 
 -- --------------------------------------------------------
 
@@ -550,7 +631,94 @@ INSERT INTO `system_log` (`SysLog_id`, `User_ID`, `Action`, `Table_Name`, `Recor
 (173, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 01:21:34'),
 (174, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 01:24:13'),
 (175, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 01:28:53'),
-(176, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 01:34:26');
+(176, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 01:34:26'),
+(177, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 02:45:48'),
+(178, 7, 'Create Compliance', 'Compliance', 9, 'Created requirement: Secret', '2025-12-04 02:46:31'),
+(179, 7, 'Create Compliance', 'Compliance', 10, 'Created requirement: Secretasdsadsadsa', '2025-12-04 02:46:44'),
+(180, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 02:49:43'),
+(181, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 02:52:40'),
+(182, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 02:59:05'),
+(183, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 03:10:21'),
+(184, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 03:13:38'),
+(185, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 03:18:22'),
+(186, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 03:18:34'),
+(187, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 03:43:18'),
+(188, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 03:48:20'),
+(189, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 03:50:38'),
+(190, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 03:53:18'),
+(191, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 03:54:44'),
+(192, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 04:08:50'),
+(193, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 04:11:40'),
+(194, 5, 'Update User', 'User', 6, 'Updated User: SK0002', '2025-12-04 04:12:00'),
+(195, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 04:13:52'),
+(196, 5, 'Restore User', 'User', 6, 'Re-elected User: SK0002', '2025-12-04 04:14:03'),
+(197, 5, 'Restore User', 'User', 10, 'Re-elected User: SK0005', '2025-12-04 04:14:03'),
+(198, 5, 'Update User', 'User', 10, 'Updated User: SK0005', '2025-12-04 04:14:14'),
+(199, 5, 'Update User', 'User', 5, 'Updated User: SK0001', '2025-12-04 04:14:36'),
+(200, 5, 'Update User', 'User', 5, 'Updated User: SK0001', '2025-12-04 04:15:06'),
+(201, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 04:15:15'),
+(202, 6, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 04:16:41'),
+(203, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 04:18:14'),
+(204, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 04:18:29'),
+(205, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 04:18:47'),
+(206, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 04:26:50'),
+(207, 7, 'Add Budget', 'Budget', 0, 'Allocated XDR25,000.00 to Bayanan I', '2025-12-04 04:27:03'),
+(208, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 04:27:52'),
+(209, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 04:32:42'),
+(210, 9, 'Create Project', 'Project', 16, 'Created Project: Sampleasdsda', '2025-12-04 04:32:56'),
+(211, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 04:42:52'),
+(212, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 04:48:45'),
+(213, 9, 'Add Youth', 'YouthMember', 7, 'Added Youth: asdsad asdasdsa', '2025-12-04 04:49:20'),
+(214, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 04:51:01'),
+(215, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 05:08:02'),
+(216, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 05:17:42'),
+(217, 9, 'Add Sitio', 'Sitio', 1, 'Added Sitio: Kanluran', '2025-12-04 05:19:39'),
+(218, 9, 'Add Sitio', 'Sitio', 2, 'Added Sitio: Hilaga', '2025-12-04 05:19:53'),
+(219, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 05:24:43'),
+(220, 9, 'Add Sitio', 'Sitio', 3, 'Added Sitio: weh', '2025-12-04 05:25:09'),
+(221, 9, 'Add Youth', 'YouthMember', 8, 'Added Youth: Zyris Ortaleza', '2025-12-04 05:25:35'),
+(222, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 05:26:41'),
+(223, 6, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 05:26:52'),
+(224, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 05:28:08'),
+(225, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 05:39:27'),
+(226, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 05:45:05'),
+(227, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 05:52:58'),
+(228, 7, 'Approve/Reject Project', 'Project', 16, 'Project Sampleasdsda Status Updated to Approved', '2025-12-04 05:53:08'),
+(229, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 05:59:07'),
+(230, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 06:08:54'),
+(231, 5, 'Add Term', 'KabataanTermPeriod', 8, 'Added New Term: 2031-2034 term', '2025-12-04 06:10:32'),
+(232, 5, 'Set Active Term', 'Term', 8, 'Set Active Term to: 2031-2034 term', '2025-12-04 06:10:36'),
+(233, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 06:10:57'),
+(234, 5, 'Restore User', 'User', 9, 'Re-elected User: SK0004', '2025-12-04 06:11:03'),
+(235, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 06:11:14'),
+(236, 9, 'Terminate Project', 'Project', 16, 'Terminated Project: Sampleasdsda', '2025-12-04 06:11:31'),
+(237, 9, 'Delete/Archive Project', 'Project', 16, 'Archived Project ID 16: Sampleasdsda', '2025-12-04 06:11:58'),
+(238, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 06:22:42'),
+(239, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 06:25:08'),
+(240, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 06:28:47'),
+(241, 5, 'Archive User', 'User', 6, 'Resigned/Archived User: SK0002', '2025-12-04 06:28:59'),
+(242, 5, 'Restore User', 'User', 6, 'Re-elected User: SK0002', '2025-12-04 06:29:03'),
+(243, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 06:29:23'),
+(244, 5, 'Archive User', 'User', 7, 'Resigned/Archived User: SK0003', '2025-12-04 06:30:47'),
+(245, 5, 'Restore User', 'User', 7, 'Re-elected User: SK0003', '2025-12-04 06:30:50'),
+(246, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 06:31:03'),
+(247, 7, 'Add Budget', 'Budget', 0, 'Allocated XDR100,000.00 to Bayanan I', '2025-12-04 06:31:19'),
+(248, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 06:31:31'),
+(249, 9, 'Carry Over Project', 'Project', 16, 'Carried Over Project: Sampleasdsda to Term 2031-2034 term', '2025-12-04 06:31:38'),
+(250, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 06:34:07'),
+(251, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 06:41:33'),
+(252, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 06:46:32'),
+(253, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 06:46:50'),
+(254, 7, 'Create Compliance', 'Compliance', 11, 'Created requirement: Secretasdsadsadsa', '2025-12-04 06:47:06'),
+(255, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 06:53:45'),
+(256, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 06:56:11'),
+(257, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 06:57:55'),
+(258, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 07:00:08'),
+(259, 7, 'Create Compliance', 'Compliance', 12, 'Created requirement: Secretasdsadsadsa', '2025-12-04 07:00:20'),
+(260, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 07:01:08'),
+(261, 9, 'Carry Over Project', 'Project', 16, 'Carried Over Project: Sampleasdsda to Term 2031-2034 term', '2025-12-04 07:01:15'),
+(262, 9, 'Terminate Project', 'Project', 16, 'Terminated Project: Sampleasdsda', '2025-12-04 07:01:42'),
+(263, 9, 'Terminate Project', 'Project', 16, 'Rejected and Archived Project: Sampleasdsda', '2025-12-04 07:14:30');
 
 -- --------------------------------------------------------
 
@@ -573,11 +741,11 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` (`User_ID`, `First_Name`, `Last_Name`, `Email`, `Barangay_ID`, `Role_ID`, `IsArchived`) VALUES
-(5, 'Brent Paulos', 'Bolanos', 'ifdhjbjkfhb@gmail.com', 7, 1, 0),
+(5, 'Brent Paulos', 'Bolanos', 'ifdhjbjkfhb@gmail.com', 7, NULL, 0),
 (6, 'Brent', 'Dela Cruz', 'ifdhjbjkfhb@gmail.com', 16, 3, 0),
 (7, 'Juan', 'Dela Cruz', 'ifdhjbjkfhb@gmail.com', 19, 2, 0),
 (9, 'Juan', 'Dela Cruz', 'ifdhjbjkfhb@gmail.com', 5, 3, 0),
-(10, 'Jackolin', 'Jack', 'ralphjohnsales123@gmail.com', 13, 3, 1),
+(10, 'Jack', 'Jack', 'ralphjohnsales123@gmail.com', 13, 3, 0),
 (11, 'Zyris', 'Ortaleza', 'sklnjdb@gmail.com', 58, 3, 0);
 
 -- --------------------------------------------------------
@@ -592,8 +760,8 @@ CREATE TABLE `youth_member` (
   `First_Name` varchar(100) NOT NULL,
   `Last_Name` varchar(100) NOT NULL,
   `Age` int(11) NOT NULL,
-  `Gender` enum('Male','Female','Other') NOT NULL,
-  `sitio` varchar(255) NOT NULL,
+  `Sex` enum('Male','Female') NOT NULL,
+  `sitio_id` int(11) NOT NULL,
   `Birthday` date NOT NULL,
   `IsArchived` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -602,14 +770,19 @@ CREATE TABLE `youth_member` (
 -- Dumping data for table `youth_member`
 --
 
-INSERT INTO `youth_member` (`Member_ID`, `Barangay_ID`, `First_Name`, `Last_Name`, `Age`, `Gender`, `sitio`, `Birthday`, `IsArchived`) VALUES
-(4, 5, 'kurt', 'asd', 14, 'Male', 'Kanluran', '2011-06-09', 1),
-(5, 16, 'Brent Paulo', 'Bolanos', 21, 'Male', 'Kanluran', '2004-06-07', 0),
-(6, 5, 'Zyris', 'Ortaleza', 20, 'Female', 'adsadsadsa', '2005-05-02', 0);
+INSERT INTO `youth_member` (`Member_ID`, `Barangay_ID`, `First_Name`, `Last_Name`, `Age`, `Sex`, `sitio_id`, `Birthday`, `IsArchived`) VALUES
+(8, 5, 'Zyris', 'Ortaleza', 20, 'Female', 2, '2005-05-02', 0);
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `announcement`
+--
+ALTER TABLE `announcement`
+  ADD PRIMARY KEY (`Announcement_ID`),
+  ADD KEY `fk_announcement_user` (`User_ID`);
 
 --
 -- Indexes for table `barangay`
@@ -704,6 +877,13 @@ ALTER TABLE `role`
   ADD PRIMARY KEY (`Role_ID`);
 
 --
+-- Indexes for table `sitio`
+--
+ALTER TABLE `sitio`
+  ADD PRIMARY KEY (`sitio_id`),
+  ADD KEY `fk_sitio_barangay` (`Barangay_id`);
+
+--
 -- Indexes for table `system_log`
 --
 ALTER TABLE `system_log`
@@ -723,11 +903,18 @@ ALTER TABLE `user`
 --
 ALTER TABLE `youth_member`
   ADD PRIMARY KEY (`Member_ID`),
-  ADD KEY `youth_member_ibfk_1` (`Barangay_ID`);
+  ADD KEY `youth_member_ibfk_1` (`Barangay_ID`),
+  ADD KEY `fk_sitio_id` (`sitio_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
 --
+
+--
+-- AUTO_INCREMENT for table `announcement`
+--
+ALTER TABLE `announcement`
+  MODIFY `Announcement_ID` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `barangay`
@@ -739,37 +926,37 @@ ALTER TABLE `barangay`
 -- AUTO_INCREMENT for table `budget`
 --
 ALTER TABLE `budget`
-  MODIFY `budget_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `budget_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `compliance`
 --
 ALTER TABLE `compliance`
-  MODIFY `com_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `com_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `federation_fund`
 --
 ALTER TABLE `federation_fund`
-  MODIFY `Fund_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `Fund_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `file_upload`
 --
 ALTER TABLE `file_upload`
-  MODIFY `File_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `File_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `kabataan_service_record`
 --
 ALTER TABLE `kabataan_service_record`
-  MODIFY `Record_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `Record_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `kabataan_term_period`
 --
 ALTER TABLE `kabataan_term_period`
-  MODIFY `Term_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `Term_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `login`
@@ -781,19 +968,19 @@ ALTER TABLE `login`
 -- AUTO_INCREMENT for table `project`
 --
 ALTER TABLE `project`
-  MODIFY `Project_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `Project_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `project_allocation`
 --
 ALTER TABLE `project_allocation`
-  MODIFY `Allocation_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `Allocation_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `project_log`
 --
 ALTER TABLE `project_log`
-  MODIFY `Log_ID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `Log_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `role`
@@ -802,10 +989,16 @@ ALTER TABLE `role`
   MODIFY `Role_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
+-- AUTO_INCREMENT for table `sitio`
+--
+ALTER TABLE `sitio`
+  MODIFY `sitio_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT for table `system_log`
 --
 ALTER TABLE `system_log`
-  MODIFY `SysLog_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=177;
+  MODIFY `SysLog_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=264;
 
 --
 -- AUTO_INCREMENT for table `user`
@@ -817,11 +1010,17 @@ ALTER TABLE `user`
 -- AUTO_INCREMENT for table `youth_member`
 --
 ALTER TABLE `youth_member`
-  MODIFY `Member_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `Member_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `announcement`
+--
+ALTER TABLE `announcement`
+  ADD CONSTRAINT `fk_announcement_user` FOREIGN KEY (`User_ID`) REFERENCES `user` (`User_ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `budget`
@@ -888,6 +1087,12 @@ ALTER TABLE `project_log`
   ADD CONSTRAINT `project_log_ibfk_2` FOREIGN KEY (`User_ID`) REFERENCES `user` (`User_ID`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
+-- Constraints for table `sitio`
+--
+ALTER TABLE `sitio`
+  ADD CONSTRAINT `fk_sitio_barangay` FOREIGN KEY (`Barangay_id`) REFERENCES `barangay` (`Barangay_ID`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
 -- Constraints for table `system_log`
 --
 ALTER TABLE `system_log`
@@ -904,7 +1109,8 @@ ALTER TABLE `user`
 -- Constraints for table `youth_member`
 --
 ALTER TABLE `youth_member`
-  ADD CONSTRAINT `barangay_id` FOREIGN KEY (`Barangay_ID`) REFERENCES `barangay` (`Barangay_ID`) ON DELETE CASCADE;
+  ADD CONSTRAINT `barangay_id` FOREIGN KEY (`Barangay_ID`) REFERENCES `barangay` (`Barangay_ID`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_sitio_id` FOREIGN KEY (`sitio_id`) REFERENCES `sitio` (`sitio_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

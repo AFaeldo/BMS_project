@@ -45,91 +45,99 @@ namespace BMS_project.Controllers
             return null;
         }
 
-        public async Task<IActionResult> Dashboard()
+        public async Task<IActionResult> Dashboard(int? termId)
         {
             ViewData["Title"] = "Dashboard";
 
             var viewModel = new FederationDashboardViewModel();
 
-            // Get Active Term
-            var activeTerm = await _context.KabataanTermPeriods.FirstOrDefaultAsync(t => t.IsActive);
-            int? activeTermId = activeTerm?.Term_ID;
+            // 1. Get All Terms for Dropdown
+            viewModel.AllTerms = await _context.KabataanTermPeriods.OrderByDescending(t => t.Start_Date).ToListAsync();
 
-            // Project Counts (Optionally filter by term if projects are term-specific, but usually they are linked to budgets which are term-specific. 
-            // If Project model has Term_ID, we should filter. Let's check Project model.)
-            // Checked Project model: It HAS Term_ID. So we should filter projects by term too if that's the requirement. 
-            // However, typically dashboard counts might be "All Time" or "Current Term". 
-            // Given the context of "New Term", likely they want Current Term stats.
-            
-            if (activeTermId.HasValue)
+            // 2. Determine Active/Selected Term
+            var activeTerm = viewModel.AllTerms.FirstOrDefault(t => t.IsActive);
+            int targetTermId = termId ?? (activeTerm?.Term_ID ?? 0);
+            viewModel.SelectedTermId = targetTermId;
+            viewModel.CurrentTermName = viewModel.AllTerms.FirstOrDefault(t => t.Term_ID == targetTermId)?.Term_Name ?? "Unknown Term";
+
+            if (targetTermId != 0)
             {
+                // Project Counts
                 viewModel.TotalApprovedProjects = await _context.Projects
-                    .CountAsync(p => p.Project_Status == "Approved" && p.Term_ID == activeTermId);
+                    .CountAsync(p => p.Project_Status == "Approved" && p.Term_ID == targetTermId);
                 
                 viewModel.TotalPendingProjects = await _context.Projects
-                    .CountAsync(p => p.Project_Status == "Pending" && p.Term_ID == activeTermId);
+                    .CountAsync(p => p.Project_Status == "Pending" && p.Term_ID == targetTermId);
 
-                viewModel.TotalFederationBudget = await _context.FederationFunds
-                    .Where(f => f.Term_ID == activeTermId)
-                    .Select(f => f.Total_Amount)
-                    .FirstOrDefaultAsync();
+                // Financials
+                var fedFund = await _context.FederationFunds
+                    .FirstOrDefaultAsync(f => f.Term_ID == targetTermId);
 
-                viewModel.TotalDisbursed = await _context.Budgets
-                    .Where(b => b.Term_ID == activeTermId)
-                    .SumAsync(b => (decimal?)b.disbursed) ?? 0M;
+                if (fedFund != null)
+                {
+                    viewModel.TotalFederationBudget = fedFund.Total_Amount;
+                    // "Total Disbursed" requested to be "Total Allocated to Barangays"
+                    viewModel.TotalDisbursed = fedFund.Allocated_To_Barangays;
+                    // "Remaining Balance" requested to be "Federation Remaining Balance"
+                    viewModel.TotalRemainingBalance = fedFund.Total_Amount - fedFund.Allocated_To_Barangays;
+                }
+                else
+                {
+                    viewModel.TotalFederationBudget = 0;
+                    viewModel.TotalDisbursed = 0;
+                    viewModel.TotalRemainingBalance = 0;
+                }
 
-                viewModel.TotalRemainingBalance = await _context.Budgets
-                    .Where(b => b.Term_ID == activeTermId)
-                    .SumAsync(b => (decimal?)b.balance) ?? 0M;
+                // CHART 1: Monthly Expenses (Projects Approved in this Term)
+                var currentYear = DateTime.Now.Year; // Or use term start year? sticking to current year for trend
+                
+                var monthlyData = await _context.Projects
+                    .Include(p => p.Allocations)
+                    .Where(p => p.Project_Status == "Approved" && 
+                                p.Term_ID == targetTermId && 
+                                p.Date_Submitted.HasValue && 
+                                p.Date_Submitted.Value.Year == currentYear)
+                    .GroupBy(p => p.Date_Submitted.Value.Month)
+                    .Select(g => new 
+                    { 
+                        Month = g.Key, 
+                        Total = g.Sum(p => p.Allocations.Sum(a => a.Amount_Allocated)) 
+                    })
+                    .ToListAsync();
+
+                var labels = new string[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+                var data = new decimal[12];
+
+                foreach (var item in monthlyData)
+                {
+                    if (item.Month >= 1 && item.Month <= 12)
+                    {
+                        data[item.Month - 1] = item.Total;
+                    }
+                }
+
+                viewModel.MonthlyExpensesLabelsJson = JsonConvert.SerializeObject(labels);
+                viewModel.MonthlyExpensesDataJson = JsonConvert.SerializeObject(data);
+
+                // CHART 2: Barangay Budget Allocation (Data Visualization for Barangays Budget)
+                var barangayBudgets = await _context.Budgets
+                    .Include(b => b.Barangay)
+                    .Where(b => b.Term_ID == targetTermId)
+                    .OrderByDescending(b => b.budget) // Top funded first
+                    .Select(b => new { Name = b.Barangay.Barangay_Name, Amount = b.budget })
+                    .ToListAsync();
+
+                viewModel.BarangayBudgetLabelsJson = JsonConvert.SerializeObject(barangayBudgets.Select(b => b.Name).ToArray());
+                viewModel.BarangayBudgetDataJson = JsonConvert.SerializeObject(barangayBudgets.Select(b => b.Amount).ToArray());
             }
             else
             {
-                viewModel.TotalApprovedProjects = 0;
-                viewModel.TotalPendingProjects = 0;
-                viewModel.TotalFederationBudget = 0M;
-                viewModel.TotalDisbursed = 0M;
-                viewModel.TotalRemainingBalance = 0M;
+                // No term selected or exists
+                viewModel.MonthlyExpensesLabelsJson = "[]";
+                viewModel.MonthlyExpensesDataJson = "[]";
+                viewModel.BarangayBudgetLabelsJson = "[]";
+                viewModel.BarangayBudgetDataJson = "[]";
             }
-
-            // Chart Data: Monthly Expenses per Barangay (Aggregated for Federation) for CURRENT TERM
-            var currentYear = DateTime.Now.Year;
-            
-            // If no active term, empty chart
-            if (!activeTermId.HasValue)
-            {
-                 viewModel.MonthlyExpensesLabelsJson = JsonConvert.SerializeObject(new string[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" });
-                 viewModel.MonthlyExpensesDataJson = JsonConvert.SerializeObject(new decimal[12]);
-                 return View(viewModel);
-            }
-
-            var monthlyData = await _context.Projects
-                .Include(p => p.Allocations)
-                .Where(p => p.Project_Status == "Approved" && 
-                            p.Term_ID == activeTermId && // Filter by Term
-                            p.Date_Submitted.HasValue && 
-                            p.Date_Submitted.Value.Year == currentYear)
-                .GroupBy(p => p.Date_Submitted.Value.Month)
-                .Select(g => new 
-                { 
-                    Month = g.Key, 
-                    Total = g.Sum(p => p.Allocations.Sum(a => a.Amount_Allocated)) 
-                })
-                .ToListAsync();
-
-            // Prepare arrays for 12 months
-            var labels = new string[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-            var data = new decimal[12];
-
-            foreach (var item in monthlyData)
-            {
-                if (item.Month >= 1 && item.Month <= 12)
-                {
-                    data[item.Month - 1] = item.Total;
-                }
-            }
-
-            viewModel.MonthlyExpensesLabelsJson = JsonConvert.SerializeObject(labels);
-            viewModel.MonthlyExpensesDataJson = JsonConvert.SerializeObject(data);
 
             return View(viewModel);
         }
@@ -147,6 +155,16 @@ namespace BMS_project.Controllers
                     Text = b.Barangay_Name
                 })
                 .ToListAsync();
+
+            // Populate Document Types (FIX for ArgumentNullException)
+            ViewBag.DocumentTypes = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "Report", Text = "Report" },
+                new SelectListItem { Value = "Financial Statement", Text = "Financial Statement" },
+                new SelectListItem { Value = "Minutes of Meeting", Text = "Minutes of Meeting" },
+                new SelectListItem { Value = "Proposal", Text = "Proposal" },
+                new SelectListItem { Value = "Project Documentation", Text = "Project Documentation" }
+            };
 
             // 1. Get All Terms for Filter Dropdown
             var terms = await _context.KabataanTermPeriods
@@ -295,99 +313,99 @@ namespace BMS_project.Controllers
                 return RedirectToAction(nameof(ProjectApprovals));
             }
 
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            var strategy = _context.Database.CreateExecutionStrategy();
+            IActionResult result = null;
+            await strategy.ExecuteAsync(async () =>
             {
-                var project = await _context.Projects
-                    .Include(p => p.Allocations)
-                    .Include(p => p.User)
-                    .FirstOrDefaultAsync(p => p.Project_ID == model.Project_ID);
-
-                if (project == null)
+                await using var transaction = await _context.Database.BeginTransactionAsync();
+                try
                 {
-                    return NotFound();
-                }
+                    var project = await _context.Projects
+                        .Include(p => p.Allocations)
+                        .Include(p => p.User)
+                        .FirstOrDefaultAsync(p => p.Project_ID == model.Project_ID);
 
-                // Allow editing if it's Pending (or maybe strictly Pending as per original code)
-                // For now, keeping the check but you might want to remove it if you want to edit approved projects.
-                if (project.Project_Status != "Pending") 
-                {
-                     // Only allow editing Pending projects for now
-                     TempData["ErrorMessage"] = "Can only edit pending projects.";
-                     return RedirectToAction(nameof(ProjectApprovals));
-                }
-
-                var allocation = project.Allocations.FirstOrDefault();
-                if (allocation == null)
-                {
-                    TempData["ErrorMessage"] = "Allocation record not found.";
-                    return RedirectToAction(nameof(ProjectApprovals));
-                }
-
-                // 1. Update Amount if changed
-                decimal finalAmount = allocation.Amount_Allocated;
-                if (model.Approved_Amount.HasValue && model.Approved_Amount.Value != allocation.Amount_Allocated)
-                {
-                    allocation.Amount_Allocated = model.Approved_Amount.Value;
-                    finalAmount = model.Approved_Amount.Value;
-                    _context.ProjectAllocations.Update(allocation);
-                }
-
-                // 2. Update Project Status
-                string newStatus = !string.IsNullOrEmpty(model.Status) ? model.Status : "Approved";
-                project.Project_Status = newStatus;
-                _context.Projects.Update(project);
-
-                // 3. Handle Budget Logic (Only if Approved)
-                if (newStatus == "Approved")
-                {
-                    var budget = await _context.Budgets.FirstOrDefaultAsync(b => b.Budget_ID == allocation.Budget_ID);
-                    if (budget == null)
+                    if (project == null)
                     {
-                        throw new Exception("Budget not found.");
+                        result = NotFound();
+                        return;
                     }
 
-                    if (budget.balance < finalAmount)
+                    if (project.Project_Status != "Pending") 
                     {
-                        // Rollback is handled by catch block
-                        throw new Exception("Insufficient budget balance for approval.");
+                        TempData["ErrorMessage"] = "Can only edit pending projects.";
+                        result = RedirectToAction(nameof(ProjectApprovals));
+                        return;
                     }
 
-                    budget.disbursed += finalAmount;
-                    budget.balance -= finalAmount;
-                    _context.Budgets.Update(budget);
+                    var allocation = project.Allocations.FirstOrDefault();
+                    if (allocation == null)
+                    {
+                        TempData["ErrorMessage"] = "Allocation record not found.";
+                        result = RedirectToAction(nameof(ProjectApprovals));
+                        return;
+                    }
+
+                    decimal finalAmount = allocation.Amount_Allocated;
+                    if (model.Approved_Amount.HasValue && model.Approved_Amount.Value != allocation.Amount_Allocated)
+                    {
+                        allocation.Amount_Allocated = model.Approved_Amount.Value;
+                        finalAmount = model.Approved_Amount.Value;
+                        _context.ProjectAllocations.Update(allocation);
+                    }
+
+                    string newStatus = !string.IsNullOrEmpty(model.Status) ? model.Status : "Approved";
+                    project.Project_Status = newStatus;
+                    _context.Projects.Update(project);
+
+                    if (newStatus == "Approved")
+                    {
+                        var budget = await _context.Budgets.FirstOrDefaultAsync(b => b.Budget_ID == allocation.Budget_ID);
+                        if (budget == null)
+                        {
+                            throw new Exception("Budget not found.");
+                        }
+
+                        if (budget.balance < finalAmount)
+                        {
+                            throw new Exception("Insufficient budget balance for approval.");
+                        }
+
+                        budget.disbursed += finalAmount;
+                        budget.balance -= finalAmount;
+                        _context.Budgets.Update(budget);
+                    }
+
+                    var log = new ProjectLog
+                    {
+                        Project_ID = project.Project_ID,
+                        User_ID = project.User_ID, 
+                        Status = newStatus,
+                        Changed_On = DateTime.Now,
+                        Remarks = model.Remarks ?? $"Project status updated to {newStatus} by Federation President"
+                    };
+                    _context.ProjectLogs.Add(log);
+
+                    int? userId = GetCurrentUserId();
+                    if (userId.HasValue)
+                    {
+                        await _systemLogService.LogAsync(userId.Value, "Approve/Reject Project", $"Project {project.Project_Title} Status Updated to {newStatus}", "Project", project.Project_ID);
+                    }
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    TempData["SuccessMessage"] = $"Project {newStatus.ToLower()} successfully.";
+                    result = RedirectToAction(nameof(ProjectApprovals));
                 }
-
-                // 4. Log
-                var log = new ProjectLog
+                catch (Exception ex)
                 {
-                    Project_ID = project.Project_ID,
-                    User_ID = project.User_ID, 
-                    Status = newStatus,
-                    Changed_On = DateTime.Now,
-                    Remarks = model.Remarks ?? $"Project status updated to {newStatus} by Federation President"
-                };
-                _context.ProjectLogs.Add(log);
-
-                // LOGGING (System Log)
-                int? userId = GetCurrentUserId();
-                if (userId.HasValue)
-                {
-                    await _systemLogService.LogAsync(userId.Value, "Approve/Reject Project", $"Project {project.Project_Title} Status Updated to {newStatus}", "Project", project.Project_ID);
+                    await transaction.RollbackAsync();
+                    TempData["ErrorMessage"] = "Error processing project: " + ex.Message;
+                    result = RedirectToAction(nameof(ProjectApprovals));
                 }
-
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-
-                TempData["SuccessMessage"] = $"Project {newStatus.ToLower()} successfully.";
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                TempData["ErrorMessage"] = "Error processing project: " + ex.Message;
-            }
-
-            return RedirectToAction(nameof(ProjectApprovals));
+            });
+            return result;
         }
 
         public async Task<IActionResult> DownloadFile(int id)
@@ -519,8 +537,10 @@ namespace BMS_project.Controllers
                 return RedirectToAction("Budget");
             }
 
-            using (var transaction = await _context.Database.BeginTransactionAsync())
+            var strategy = _context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
             {
+                await using var transaction = await _context.Database.BeginTransactionAsync();
                 try
                 {
                     // 4. Update Federation Fund Tracker
@@ -567,15 +587,15 @@ namespace BMS_project.Controllers
 
                     await transaction.CommitAsync();
                     TempData["SuccessMessage"] = "Budget allocated successfully.";
+                    return RedirectToAction("Budget");
                 }
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
                     TempData["ErrorMessage"] = "Error allocating budget: " + ex.Message;
+                    return RedirectToAction("Budget");
                 }
-            }
-
-            return RedirectToAction("Budget");
+            });
         }
 
         // Call this when a project is approved to allocate amount to a project.

@@ -10,5 +10,23 @@ namespace BMS_project.ViewModels
         public string CurrentTerm { get; set; }
         public decimal FederationFundAmount { get; set; }
         public List<KabataanTermPeriod> AllTerms { get; set; } = new List<KabataanTermPeriod>();
+        public int SelectedTermId { get; set; }
+
+        // Barangay Dashboard Stats
+        public int TotalYouth { get; set; }
+        public int TotalApprovedProjects { get; set; }
+        public int TotalOngoingProjects { get; set; }
+        public int TotalPendingProjects { get; set; }
+
+        // Charts Data
+        public string SexDistributionLabels { get; set; } // JSON
+        public string SexDistributionData { get; set; } // JSON
+        public string AgeDistributionLabels { get; set; } // JSON
+        public string AgeDistributionData { get; set; } // JSON
+        public string SitioDistributionLabels { get; set; } // JSON
+        public string SitioDistributionData { get; set; } // JSON
+
+        // Calendar Data
+        public string CalendarEvents { get; set; } // JSON List of objects { title, start, end }
     }
 }

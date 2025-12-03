@@ -1,185 +1,205 @@
-﻿@{
+﻿@model BMS_project.ViewModels.DashboardViewModel
+
+@{
     Layout = "~/Views/Shared/_BarangayLayout.cshtml";
     ViewData["Title"] = "Dashboard";
 }
 
 <div class="container-fluid">
     <!-- PAGE HEADER -->
-    <div class="mb-4">
+    <div class="mb-4 d-flex justify-content-between align-items-center">
         <h2 class="fw-bold">SK Barangay Dashboard</h2>
+        <form method="get" asp-action="Dashboard" class="d-flex align-items-center">
+            <label class="me-2 fw-semibold">Term:</label>
+            <select name="termId" class="form-select form-select-sm" onchange="this.form.submit()" style="width: 200px;">
+                @foreach (var term in Model.AllTerms)
+                {
+                    <option value="@term.Term_ID" selected="@(term.Term_ID == Model.SelectedTermId)">
+                        @term.Term_Name @(term.IsActive ? "(Active)" : "")
+                    </option>
+                }
+            </select>
+        </form>
     </div>
 
     <!-- KPI CARDS -->
     <div class="row g-4 mb-4">
         <div class="col-md-3">
-            <div class="card text-center border-0 shadow-sm">
+            <div class="card text-center border-0 shadow-sm bg-white text-dark">
                 <div class="card-body">
-                    <h6 class="fw-semibold text-secondary mb-1">Total Youth Registered</h6>
-                    <h3 class="fw-bold mb-0">0</h3>
+                    <h6 class="fw-semibold mb-1">Total Youth Registered</h6>
+                    <h3 class="fw-bold mb-0">@Model.TotalYouth</h3>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card text-center border-0 shadow-sm">
+            <div class="card text-center border-0 shadow-sm bg-white text-dark">
                 <div class="card-body">
-                    <h6 class="fw-semibold text-secondary mb-1">Approved Projects</h6>
-                    <h3 class="fw-bold mb-0">0</h3>
+                    <h6 class="fw-semibold mb-1">Approved Projects</h6>
+                    <h3 class="fw-bold mb-0">@Model.TotalApprovedProjects</h3>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card text-center border-0 shadow-sm">
+            <div class="card text-center border-0 shadow-sm bg-white text-dark">
                 <div class="card-body">
-                    <h6 class="fw-semibold text-secondary mb-1">Ongoing Projects</h6>
-                    <h3 class="fw-bold mb-0">0</h3>
+                    <h6 class="fw-semibold mb-1">Ongoing Projects</h6>
+                    <h3 class="fw-bold mb-0">@Model.TotalOngoingProjects</h3>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card text-center border-0 shadow-sm">
+            <div class="card text-center border-0 shadow-sm bg-white text-dark">
                 <div class="card-body">
-                    <h6 class="fw-semibold text-secondary mb-1">Pending Reports</h6>
-                    <h3 class="fw-bold mb-0">0</h3>
+                    <h6 class="fw-semibold mb-1">Pending Projects</h6>
+                    <h3 class="fw-bold mb-0">@Model.TotalPendingProjects</h3>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="row g-4 mt-4">
-        <!-- LEFT SIDE: Recent Activities (full height) -->
+        <!-- LEFT SIDE: Calendar (Approved Projects) -->
         <div class="col-md-8">
             <div class="card shadow-sm border-0 rounded-3 h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <div class="fw-bold">Recent Activities</div>
-                    <button id="clearActivities" class="btn btn-sm btn-danger">Clear</button>
+                <div class="card-header bg-white fw-bold text-primary">
+                    <i class="bi bi-calendar-event me-2"></i> Project Calendar
                 </div>
-                <div class="card-body">
-                    <ul id="activityList" class="list-group list-group-flush">
-                        <!-- Activity items appear here -->
-                    </ul>
+                <div class="card-body p-3">
+                    <div id='calendar'></div>
                 </div>
             </div>
         </div>
 
-        <!-- RIGHT SIDE: Gender Chart -->
+        <!-- RIGHT SIDE: Sex Chart -->
         <div class="col-md-4">
-            <div class="card shadow-sm border-0">
-                <div class="card-header fw-bold">Gender Distribution</div>
-                <div class="card-body">
-                    <canvas id="genderChart"></canvas>
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white fw-bold text-dark">Sex Distribution</div>
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    <canvas id="sexChart" style="max-height: 300px;"></canvas>
                 </div>
             </div>
-
-            <!-- You can also add Age or Barangay charts below if desired -->
         </div>
     </div>
 
-    <!-- Additional Charts Beneath (Optional) -->
-    <div class="row g-4 mt-3">
+    <!-- Additional Charts Beneath -->
+    <div class="row g-4 mt-3 mb-5">
         <!-- Age Chart -->
         <div class="col-md-6">
             <div class="card shadow-sm border-0">
-                <div class="card-header fw-bold">Age Distribution</div>
+                <div class="card-header bg-white fw-bold text-dark">Age Distribution</div>
                 <div class="card-body">
                     <canvas id="ageChart"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- Barangay Chart -->
+        <!-- Sitio Chart -->
         <div class="col-md-6">
             <div class="card shadow-sm border-0">
-                <div class="card-header fw-bold">Youth per Barangay</div>
+                <div class="card-header bg-white fw-bold text-dark">Youth per Sitio</div>
                 <div class="card-body">
-                    <canvas id="barangayChart"></canvas>
+                    <canvas id="sitioChart"></canvas>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
 @section Scripts {
     <!-- Load Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Load FullCalendar -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
 
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ===============================
+            // FULL CALENDAR SETUP
+            // ===============================
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,listMonth'
+                },
+                height: 450,
+                events: @Html.Raw(Model.CalendarEvents) // Injected from Model
+            });
+            calendar.render();
 
-         // Clear Recent SK Activities
-        document.getElementById('clearActivities').addEventListener('click', function () {
-            const list = document.getElementById('activityList');
-            list.innerHTML = '';
-        });
-
-        // ===============================
-        // SAMPLE DATA (Replace from Model)
-        // ===============================
-        const maleCount = 120;
-        const femaleCount = 150;
-
-        const ageLabels = ['15', '16', '17', '18', '19', '20', '21', '22', '23', '24'];
-        const ageData = [10, 18, 20, 25, 22, 15, 8, 12, 9, 6];
-
-        const barangayLabels = ['Barangay 1', 'Barangay 2', 'Barangay 3', 'Barangay 4'];
-        const barangayCounts = [50, 80, 30, 70];
-
-        // ===============================
-        // PIE CHART - Gender
-        // ===============================
-        new Chart(document.getElementById('genderChart'), {
-            type: 'pie',
-            data: {
-                labels: ['Male', 'Female'],
-                datasets: [{
-                    data: [maleCount, femaleCount],
-                    backgroundColor: ['#4e73df', '#e83e8c']
-                }]
-            }
-        });
-
-        // ===============================
-        // BAR CHART - Age Distribution
-        // ===============================
-        new Chart(document.getElementById('ageChart'), {
-            type: 'bar',
-            data: {
-                labels: ageLabels,
-                datasets: [{
-                    label: 'Total Youth',
-                    data: ageData,
-                    backgroundColor: '#1cc88a'
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: { beginAtZero: true }
+            // ===============================
+            // CHARTS DATA
+            // ===============================
+            
+            // SEX CHART
+            const sexLabels = @Html.Raw(Model.SexDistributionLabels);
+            const sexData = @Html.Raw(Model.SexDistributionData);
+            
+            new Chart(document.getElementById('sexChart'), {
+                type: 'pie',
+                data: {
+                    labels: sexLabels,
+                    datasets: [{
+                        data: sexData,
+                        backgroundColor: ['#4e73df', '#e83e8c', '#36b9cc'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
                 }
-            }
-        });
+            });
 
-        // ===============================
-        // BAR CHART - Youth per Barangay
-        // ===============================
-        new Chart(document.getElementById('barangayChart'), {
-            type: 'bar',
-            data: {
-                labels: barangayLabels,
-                datasets: [{
-                    label: 'Youth Count',
-                    data: barangayCounts,
-                    backgroundColor: '#36b9cc'
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: { beginAtZero: true }
+            // AGE CHART
+            const ageLabels = @Html.Raw(Model.AgeDistributionLabels);
+            const ageData = @Html.Raw(Model.AgeDistributionData);
+
+            new Chart(document.getElementById('ageChart'), {
+                type: 'bar',
+                data: {
+                    labels: ageLabels,
+                    datasets: [{
+                        label: 'Youth Count',
+                        data: ageData,
+                        backgroundColor: '#1cc88a'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    }
                 }
-            }
-        });
+            });
 
-        // Clear Recent Activities
-        document.getElementById('clearActivities').addEventListener('click', function () {
-            document.getElementById('activityList').innerHTML = '';
+            // SITIO CHART
+            const sitioLabels = @Html.Raw(Model.SitioDistributionLabels);
+            const sitioData = @Html.Raw(Model.SitioDistributionData);
+
+            new Chart(document.getElementById('sitioChart'), {
+                type: 'bar',
+                data: {
+                    labels: sitioLabels,
+                    datasets: [{
+                        label: 'Youth Count',
+                        data: sitioData,
+                        backgroundColor: '#36b9cc'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    }
+                }
+            });
         });
     </script>
 }

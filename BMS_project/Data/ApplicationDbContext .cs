@@ -24,6 +24,7 @@ namespace BMS_project.Data
         public DbSet<SystemLog> SystemLogs { get; set; }
         public DbSet<FederationFund> FederationFunds { get; set; }
         public DbSet<Compliance> Compliances { get; set; }
+        public DbSet<Sitio> Sitios { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -41,6 +42,20 @@ namespace BMS_project.Data
             modelBuilder.Entity<SystemLog>().ToTable("system_log").HasKey(s => s.SysLog_id);
             modelBuilder.Entity<FederationFund>().ToTable("federation_fund").HasKey(f => f.Fund_ID);
             modelBuilder.Entity<Compliance>().ToTable("compliance").HasKey(c => c.Compliance_ID);
+            modelBuilder.Entity<Sitio>().ToTable("sitio").HasKey(s => s.Sitio_ID);
+
+            modelBuilder.Entity<Sitio>()
+                .HasOne(s => s.Barangay)
+                .WithMany()
+                .HasForeignKey(s => s.Barangay_ID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<YouthMember>()
+                .HasOne(y => y.Sitio)
+                .WithMany()
+                .HasForeignKey(y => y.Sitio_ID)
+                .OnDelete(DeleteBehavior.SetNull);
+
 
             modelBuilder.Entity<Compliance>()
                 .HasOne(c => c.KabataanTermPeriod)

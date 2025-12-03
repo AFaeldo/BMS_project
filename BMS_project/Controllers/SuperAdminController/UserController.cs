@@ -143,6 +143,13 @@ namespace BMS_project.Controllers.SuperAdminController
             if (dto.BarangayId == null) return BadRequest("Barangay is required.");
             if (string.IsNullOrWhiteSpace(dto.Email)) return BadRequest("Email Is Required");
 
+            // Prevent creation of SuperAdmin
+            var role = await _context.Roles.FindAsync(dto.RoleId);
+            if (role != null && role.Role_Name == "SuperAdmin")
+            {
+                return BadRequest("Cannot create SuperAdmin users.");
+            }
+
             // Check active term
             var activeTerm = await _context.KabataanTermPeriods.FirstOrDefaultAsync(t => t.IsActive);
             if (activeTerm == null)
@@ -154,60 +161,64 @@ namespace BMS_project.Controllers.SuperAdminController
             if (await _context.Login.AnyAsync(l => l.Username == dto.Username))
                 return BadRequest("Username already exists.");
 
-            await using var tx = await _context.Database.BeginTransactionAsync();
-            try
+            var strategy = _context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
             {
-                // create user
-                var user = new User
+                await using var tx = await _context.Database.BeginTransactionAsync();
+                try
                 {
-                    First_Name = dto.FirstName,
-                    Last_Name = dto.LastName,
-                    Email = dto.Email,
-                    Barangay_ID = dto.BarangayId,
-                    Role_ID = dto.RoleId,
-                    IsArchived = false
-                };
-                _context.Users.Add(user);
-                await _context.SaveChangesAsync();
+                    // create user
+                    var user = new User
+                    {
+                        First_Name = dto.FirstName,
+                        Last_Name = dto.LastName,
+                        Email = dto.Email,
+                        Barangay_ID = dto.BarangayId,
+                        Role_ID = dto.RoleId,
+                        IsArchived = false
+                    };
+                    _context.Users.Add(user);
+                    await _context.SaveChangesAsync();
 
-                // create login
-                var login = new Login
-                {
-                    Username = dto.Username,
-                    Role_ID = dto.RoleId ?? 0,
-                    User_ID = user.User_ID
-                };
-                login.Password = _passwordHasher.HashPassword(user, dto.Password);
+                    // create login
+                    var login = new Login
+                    {
+                        Username = dto.Username,
+                        Role_ID = dto.RoleId ?? 0,
+                        User_ID = user.User_ID
+                    };
+                    login.Password = _passwordHasher.HashPassword(user, dto.Password);
 
-                _context.Login.Add(login);
+                    _context.Login.Add(login);
 
-                // create service record
-                var serviceRecord = new KabataanServiceRecord
-                {
-                    User_ID = user.User_ID,
-                    Term_ID = activeTerm.Term_ID,
-                    Role_ID = dto.RoleId ?? 0,
-                    Status = "Active"
-                };
-                _context.KabataanServiceRecords.Add(serviceRecord);
+                    // create service record
+                    var serviceRecord = new KabataanServiceRecord
+                    {
+                        User_ID = user.User_ID,
+                        Term_ID = activeTerm.Term_ID,
+                        Role_ID = dto.RoleId ?? 0,
+                        Status = "Active"
+                    };
+                    _context.KabataanServiceRecords.Add(serviceRecord);
 
-                // LOGGING
-                var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (int.TryParse(userIdStr, out int adminId))
-                {
-                    await _systemLogService.LogAsync(adminId, "Create User", $"Created User: {dto.Username}", "User", user.User_ID);
+                    // LOGGING
+                    var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    if (int.TryParse(userIdStr, out int adminId))
+                    {
+                        await _systemLogService.LogAsync(adminId, "Create User", $"Created User: {dto.Username}", "User", user.User_ID);
+                    }
+
+                    await _context.SaveChangesAsync();
+
+                    await tx.CommitAsync();
+                    return Ok(new { success = true });
                 }
-
-                await _context.SaveChangesAsync();
-
-                await tx.CommitAsync();
-                return Ok(new { success = true });
-            }
-            catch (Exception ex)
-            {
-                await tx.RollbackAsync();
-                return StatusCode(500, ex.Message);
-            }
+                catch (Exception ex)
+                {
+                    await tx.RollbackAsync();
+                    return StatusCode(500, ex.Message);
+                }
+            });
         }
 
         // PUT: api/users/5
@@ -231,47 +242,61 @@ namespace BMS_project.Controllers.SuperAdminController
                     return BadRequest("Username already exists.");
             }
 
-            await using var tx = await _context.Database.BeginTransactionAsync();
-            try
+            // Prevent escalation to SuperAdmin
+            if (dto.RoleId.HasValue)
             {
-                // update user fields
-                user.First_Name = dto.FirstName;
-                user.Last_Name = dto.LastName;
-                user.Email = dto.Email;
-                user.Barangay_ID = dto.BarangayId;
-                user.Role_ID = dto.RoleId;
-
-                _context.Users.Update(user);
-                await _context.SaveChangesAsync();
-
-                // update login fields
-                login.Username = dto.Username;
-                login.Role_ID = dto.RoleId ?? login.Role_ID;
-
-                if (!string.IsNullOrWhiteSpace(dto.Password))
+                var role = await _context.Roles.FindAsync(dto.RoleId.Value);
+                if (role != null && role.Role_Name == "SuperAdmin")
                 {
-                    login.Password = _passwordHasher.HashPassword(user, dto.Password);
+                    return BadRequest("Cannot assign SuperAdmin role.");
                 }
-
-                _context.Login.Update(login);
-
-                // LOGGING
-                var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (int.TryParse(userIdStr, out int adminId))
-                {
-                    await _systemLogService.LogAsync(adminId, "Update User", $"Updated User: {dto.Username}", "User", user.User_ID);
-                }
-
-                await _context.SaveChangesAsync();
-                
-                await tx.CommitAsync();
-                return Ok(new { success = true });
             }
-            catch (Exception ex)
+
+            var strategy = _context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
             {
-                await tx.RollbackAsync();
-                return StatusCode(500, ex.Message);
-            }
+                await using var tx = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    // update user fields
+                    user.First_Name = dto.FirstName;
+                    user.Last_Name = dto.LastName;
+                    user.Email = dto.Email;
+                    user.Barangay_ID = dto.BarangayId;
+                    user.Role_ID = dto.RoleId;
+
+                    _context.Users.Update(user);
+                    await _context.SaveChangesAsync();
+
+                    // update login fields
+                    login.Username = dto.Username;
+                    login.Role_ID = dto.RoleId ?? login.Role_ID;
+
+                    if (!string.IsNullOrWhiteSpace(dto.Password))
+                    {
+                        login.Password = _passwordHasher.HashPassword(user, dto.Password);
+                    }
+
+                    _context.Login.Update(login);
+
+                    // LOGGING
+                    var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    if (int.TryParse(userIdStr, out int adminId))
+                    {
+                        await _systemLogService.LogAsync(adminId, "Update User", $"Updated User: {dto.Username}", "User", user.User_ID);
+                    }
+
+                    await _context.SaveChangesAsync();
+                    
+                    await tx.CommitAsync();
+                    return Ok(new { success = true });
+                }
+                catch (Exception ex)
+                {
+                    await tx.RollbackAsync();
+                    return StatusCode(500, ex.Message);
+                }
+            });
         }
 
         // POST: api/users/5/archive (Resign/Step Down)
@@ -286,10 +311,10 @@ namespace BMS_project.Controllers.SuperAdminController
             if (login == null || login.User == null) return NotFound();
 
             // Role Restriction: This archiving action is only allowed for users with the "Barangay" role.
-            if (login.Role == null || !login.Role.Role_Name.Contains("Barangay", StringComparison.OrdinalIgnoreCase))
-            {
-                return BadRequest("Only users with the 'Barangay' role can be archived.");
-            }
+            //if (login.Role == null || !login.Role.Role_Name.Contains("Barangay", StringComparison.OrdinalIgnoreCase))
+            //{
+            //    return BadRequest("Only users with the 'Barangay' role can be archived.");
+            //}
 
             // Constraint: A user cannot resign if they have any projects with status 'Pending' or 'Approved'.
             var hasOngoingProjects = await _context.Projects.AnyAsync(p => 
@@ -301,42 +326,45 @@ namespace BMS_project.Controllers.SuperAdminController
                 return BadRequest("Cannot resign while there are ongoing projects or proposals.");
             }
 
-            await using var tx = await _context.Database.BeginTransactionAsync();
-            try 
+            var strategy = _context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
             {
-                // 1. Set User to Archived
-                login.User.IsArchived = true;
-
-                // 2. Find Active Service Record and mark as Resigned
-                var activeRecord = await _context.KabataanServiceRecords
-                    .Where(r => r.User_ID == login.User_ID && r.Status == "Active")
-                    .OrderByDescending(r => r.Record_ID)
-                    .FirstOrDefaultAsync();
-
-                if (activeRecord != null)
+                await using var tx = await _context.Database.BeginTransactionAsync();
+                try 
                 {
-                    activeRecord.Status = "Resigned";
-                    activeRecord.Actual_End_Date = DateTime.Now;
-                    _context.KabataanServiceRecords.Update(activeRecord);
-                }
+                    // 1. Set User to Archived
+                    login.User.IsArchived = true;
 
-                // LOGGING
-                var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (int.TryParse(userIdStr, out int adminId))
+                    // 2. Find Active Service Record and mark as Resigned
+                    var activeRecord = await _context.KabataanServiceRecords
+                        .Where(r => r.User_ID == login.User_ID && r.Status == "Active")
+                        .OrderByDescending(r => r.Record_ID)
+                        .FirstOrDefaultAsync();
+
+                    if (activeRecord != null)
+                    {
+                        activeRecord.Status = "Resigned";
+                        activeRecord.Actual_End_Date = DateTime.Now;
+                        _context.KabataanServiceRecords.Update(activeRecord);
+                    }
+
+                    // LOGGING
+                    var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    if (int.TryParse(userIdStr, out int adminId))
+                    {
+                        await _systemLogService.LogAsync(adminId, "Archive User", $"Resigned/Archived User: {login.Username}", "User", login.User_ID);
+                    }
+
+                    await _context.SaveChangesAsync();
+                    await tx.CommitAsync();
+                    return Ok(new { success = true });
+                }
+                catch(Exception ex)
                 {
-                    await _systemLogService.LogAsync(adminId, "Archive User", $"Resigned/Archived User: {login.Username}", "User", login.User_ID);
+                    await tx.RollbackAsync();
+                    return StatusCode(500, ex.Message);
                 }
-
-                await _context.SaveChangesAsync();
-                await tx.CommitAsync();
-            }
-            catch(Exception ex)
-            {
-                await tx.RollbackAsync();
-                return StatusCode(500, ex.Message);
-            }
-
-            return Ok(new { success = true });
+            });
         }
 
         // POST: api/users/restore (Re-Elect Selected)
@@ -353,46 +381,50 @@ namespace BMS_project.Controllers.SuperAdminController
                 .Where(l => ids.Contains(l.Id))
                 .ToListAsync();
 
-            await using var tx = await _context.Database.BeginTransactionAsync();
-            try
+            var strategy = _context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
             {
-                var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                int.TryParse(userIdStr, out int adminId);
-
-                foreach (var l in logins)
+                await using var tx = await _context.Database.BeginTransactionAsync();
+                try
                 {
-                    if (l.User != null)
+                    var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    int.TryParse(userIdStr, out int adminId);
+
+                    foreach (var l in logins)
                     {
-                        // Un-archive user
-                        l.User.IsArchived = false;
-
-                        // Create NEW Service Record (Re-election)
-                        var newRecord = new KabataanServiceRecord
+                        if (l.User != null)
                         {
-                            User_ID = l.User.User_ID,
-                            Term_ID = activeTerm.Term_ID,
-                            Role_ID = l.Role_ID,
-                            Status = "Active"
-                        };
-                        _context.KabataanServiceRecords.Add(newRecord);
+                            // Un-archive user
+                            l.User.IsArchived = false;
 
-                        // Log for each user
-                        if (adminId > 0)
-                        {
-                            await _systemLogService.LogAsync(adminId, "Restore User", $"Re-elected User: {l.Username}", "User", l.User.User_ID);
+                            // Create NEW Service Record (Re-election)
+                            var newRecord = new KabataanServiceRecord
+                            {
+                                User_ID = l.User.User_ID,
+                                Term_ID = activeTerm.Term_ID,
+                                Role_ID = l.Role_ID,
+                                Status = "Active"
+                            };
+                            _context.KabataanServiceRecords.Add(newRecord);
+
+                            // Log for each user
+                            if (adminId > 0)
+                            {
+                                await _systemLogService.LogAsync(adminId, "Restore User", $"Re-elected User: {l.Username}", "User", l.User.User_ID);
+                            }
                         }
                     }
-                }
 
-                await _context.SaveChangesAsync();
-                await tx.CommitAsync();
-                return Ok(new { success = true });
-            }
-            catch (Exception ex)
-            {
-                await tx.RollbackAsync();
-                return StatusCode(500, ex.Message);
-            }
+                    await _context.SaveChangesAsync();
+                    await tx.CommitAsync();
+                    return Ok(new { success = true });
+                }
+                catch (Exception ex)
+                {
+                    await tx.RollbackAsync();
+                    return StatusCode(500, ex.Message);
+                }
+            });
         }
 
         // DELETE: api/users/barangays
@@ -411,6 +443,7 @@ namespace BMS_project.Controllers.SuperAdminController
         public async Task<IActionResult> Roles()
         {
             var list = await _context.Roles
+                .Where(r => r.Role_Name != "SuperAdmin")
                 .OrderBy(r => r.Role_Name)
                 .Select(r => new { id = r.Role_ID, text = r.Role_Name })
                 .ToListAsync();

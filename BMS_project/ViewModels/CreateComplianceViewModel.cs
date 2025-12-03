@@ -25,5 +25,6 @@ namespace BMS_project.ViewModels
 
         // Dropdown list
         public IEnumerable<SelectListItem>? BarangayList { get; set; }
+        public List<SelectListItem> DocumentTypeList { get; set; } = new List<SelectListItem>();
     }
 }
