@@ -6,9 +6,11 @@ using BMS_project.Models;
 using BMS_project.Models.Dto;
 using System.Security.Claims;
 using BMS_project.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BMS_project.Controllers.SuperAdminController
 {
+    [Authorize(Roles = "SuperAdmin")]
     [Route("api/[controller]")]
     [ApiController]
     public class UsersController : ControllerBase
@@ -353,46 +355,62 @@ namespace BMS_project.Controllers.SuperAdminController
                 .Where(l => ids.Contains(l.Id))
                 .ToListAsync();
 
-            await using var tx = await _context.Database.BeginTransactionAsync();
-            try
+            var strategy = _context.Database.CreateExecutionStrategy();
+
+            return await strategy.ExecuteAsync(async () =>
             {
-                var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                int.TryParse(userIdStr, out int adminId);
-
-                foreach (var l in logins)
+                await using var tx = await _context.Database.BeginTransactionAsync();
+                try
                 {
-                    if (l.User != null)
+                    var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    int.TryParse(userIdStr, out int adminId);
+
+                    foreach (var l in logins)
                     {
-                        // Un-archive user
-                        l.User.IsArchived = false;
-
-                        // Create NEW Service Record (Re-election)
-                        var newRecord = new KabataanServiceRecord
+                        if (l.User != null)
                         {
-                            User_ID = l.User.User_ID,
-                            Term_ID = activeTerm.Term_ID,
-                            Role_ID = l.Role_ID,
-                            Status = "Active"
-                        };
-                        _context.KabataanServiceRecords.Add(newRecord);
+                            // 1. Un-archive user
+                            l.User.IsArchived = false;
+                            _context.Users.Update(l.User); // Explicitly mark as modified
 
-                        // Log for each user
-                        if (adminId > 0)
-                        {
-                            await _systemLogService.LogAsync(adminId, "Restore User", $"Re-elected User: {l.Username}", "User", l.User.User_ID);
+                            // 2. Verify if they already have an ACTIVE record for this term (to prevent duplicates)
+                            bool hasActiveRecord = await _context.KabataanServiceRecords
+                                .AnyAsync(r => r.User_ID == l.User.User_ID && r.Term_ID == activeTerm.Term_ID && r.Status == "Active");
+
+                            if (!hasActiveRecord)
+                            {
+                                // 3. Create NEW Service Record (Re-election)
+                                var newRecord = new KabataanServiceRecord
+                                {
+                                    User_ID = l.User.User_ID,
+                                    Term_ID = activeTerm.Term_ID,
+                                    Role_ID = l.Role_ID,
+                                    Status = "Active"
+                                };
+                                _context.KabataanServiceRecords.Add(newRecord);
+                            }
+
+                            // Log for each user
+                            if (adminId > 0)
+                            {
+                                await _systemLogService.LogAsync(adminId, "Restore User", $"Re-elected User: {l.Username}", "User", l.User.User_ID);
+                            }
                         }
                     }
-                }
 
-                await _context.SaveChangesAsync();
-                await tx.CommitAsync();
-                return Ok(new { success = true });
-            }
-            catch (Exception ex)
-            {
-                await tx.RollbackAsync();
-                return StatusCode(500, ex.Message);
-            }
+                    await _context.SaveChangesAsync();
+                    await tx.CommitAsync();
+                    return Ok(new { success = true });
+                }
+                catch (Exception ex)
+                {
+                    await tx.RollbackAsync();
+                    // We must return a result here since we are inside ExecuteAsync logic
+                    // But catching generic Exception here might hide specific DB errors from the strategy
+                    // For safety in API context, we return StatusCode.
+                    return StatusCode(500, "Re-election failed: " + ex.Message);
+                }
+            });
         }
 
         // DELETE: api/users/barangays

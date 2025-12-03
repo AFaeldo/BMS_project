@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 03, 2025 at 02:54 AM
+-- Generation Time: Dec 03, 2025 at 04:41 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -115,6 +115,13 @@ CREATE TABLE `budget` (
   `Term_ID` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `budget`
+--
+
+INSERT INTO `budget` (`budget_id`, `Barangay_ID`, `budget`, `disbursed`, `balance`, `Term_ID`) VALUES
+(7, 5, 500000.00, 250.00, 499750.00, 5);
+
 -- --------------------------------------------------------
 
 --
@@ -134,7 +141,8 @@ CREATE TABLE `federation_fund` (
 --
 
 INSERT INTO `federation_fund` (`Fund_ID`, `Term_ID`, `Total_Amount`, `Allocated_To_Barangays`, `Created_At`) VALUES
-(1, 5, 1000000.00, 0.00, '2025-12-03 06:43:29');
+(1, 5, 1000000.00, 500000.00, '2025-12-03 06:43:29'),
+(2, 3, 500000.00, 0.00, '2025-12-03 11:20:17');
 
 -- --------------------------------------------------------
 
@@ -162,7 +170,8 @@ INSERT INTO `file_upload` (`File_ID`, `File_Name`, `File`, `Project_ID`, `User_I
 (4, 'PrefinalExam', '/UploadedFiles/PrefinalExam_20251130110427.pdf', 4, 9, '2025-11-30 11:04:27'),
 (5, 'Sample', '/UploadedFiles/Sample_20251130162944_669bed.pdf', 10, 9, '2025-11-30 16:29:44'),
 (6, 'Sampledasf ', '/UploadedFiles/Sampledasf _20251130212219_802b38.pdf', 11, 9, '2025-11-30 21:22:19'),
-(7, 'Sampledasf ', '/UploadedFiles/Sampledasf _20251130234116_88a554.pdf', 12, 9, '2025-11-30 23:41:16');
+(7, 'Sampledasf ', '/UploadedFiles/Sampledasf _20251130234116_88a554.pdf', 12, 9, '2025-11-30 23:41:16'),
+(8, 'Sampledasf ', '/UploadedFiles/Sampledasf _20251203100351_aca1ce.pdf', 13, 9, '2025-12-03 10:03:51');
 
 -- --------------------------------------------------------
 
@@ -226,11 +235,12 @@ CREATE TABLE `kabataan_term_period` (
 --
 
 INSERT INTO `kabataan_term_period` (`Term_ID`, `Term_Name`, `Start_Date`, `Official_End_Date`, `IsActive`) VALUES
-(1, 'Permanent Appointment', '2000-01-01', '2099-12-31', 0),
+(1, 'Permanent Appointment', '0000-00-00', '0000-00-00', 0),
 (2, '2023-2026 SK Term', '2023-11-01', '2025-11-30', 0),
 (3, '2025-2028 Term', '2025-12-01', '2028-01-01', 0),
 (4, '2021-2024 Term', '2021-01-09', '2024-02-07', 0),
-(5, '2025-2028 Term', '2025-12-02', '2028-06-08', 1);
+(5, '2025-2028 Term', '2025-12-02', '2028-06-09', 0),
+(6, '2028-2031 Term', '2028-06-23', '2031-07-17', 1);
 
 -- --------------------------------------------------------
 
@@ -278,6 +288,13 @@ CREATE TABLE `project` (
   `IsArchived` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `project`
+--
+
+INSERT INTO `project` (`Project_ID`, `User_ID`, `Term_ID`, `Project_Title`, `Project_Description`, `Estimated_Cost`, `Date_Submitted`, `Project_Status`, `Start_Date`, `End_Date`, `IsArchived`) VALUES
+(13, 9, NULL, 'Sampleasdsda', 'SDFSDFSDFFSDFDS', 0.00, '2025-12-03', 'Approved', '2025-12-01', '2025-12-07', 0);
+
 -- --------------------------------------------------------
 
 --
@@ -290,6 +307,13 @@ CREATE TABLE `project_allocation` (
   `Project_ID` int(11) NOT NULL,
   `Amount_Allocated` decimal(10,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `project_allocation`
+--
+
+INSERT INTO `project_allocation` (`Allocation_ID`, `Budget_ID`, `Project_ID`, `Amount_Allocated`) VALUES
+(1, 7, 13, 250.00);
 
 -- --------------------------------------------------------
 
@@ -334,7 +358,9 @@ INSERT INTO `project_log` (`Log_ID`, `Project_ID`, `User_ID`, `Status`, `Changed
 (21, 11, 9, 'Pending', '2025-12-01 12:54:43', 'Project status updated to Pending by Federation President'),
 (22, 11, 9, 'Approved', '2025-12-01 12:54:57', 'Project status updated to Approved by Federation President'),
 (23, 12, 9, 'Pending', '2025-12-01 23:58:44', 'Project status updated to Pending by Federation President'),
-(24, 12, 9, 'Approved', '2025-12-01 23:58:51', 'Project status updated to Approved by Federation President');
+(24, 12, 9, 'Approved', '2025-12-01 23:58:51', 'Project status updated to Approved by Federation President'),
+(25, 13, 9, 'Pending', '2025-12-03 10:03:51', 'Project created and submitted for approval.'),
+(26, 13, 9, 'Approved', '2025-12-03 10:05:20', 'Project status updated to Approved by Federation President');
 
 -- --------------------------------------------------------
 
@@ -425,7 +451,35 @@ INSERT INTO `system_log` (`SysLog_id`, `User_ID`, `Action`, `Table_Name`, `Recor
 (45, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 08:19:49'),
 (46, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 08:43:40'),
 (47, 7, 'Add Budget', 'Budget', 0, 'Added XDR1,500,000.00 Budget to Bayanan II', '2025-12-03 09:03:02'),
-(48, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 09:09:07');
+(48, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 09:09:07'),
+(49, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 09:57:56'),
+(50, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 09:58:18'),
+(51, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 09:59:25'),
+(52, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 09:59:45'),
+(53, 7, 'Add Budget', 'Budget', 0, 'Allocated XDR500,000.00 to Bayanan I', '2025-12-03 09:59:56'),
+(54, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 10:01:28'),
+(55, 9, 'Create Project', 'Project', 13, 'Created Project: Sampleasdsda', '2025-12-03 10:03:51'),
+(56, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 10:05:08'),
+(57, 7, 'Approve/Reject Project', 'Project', 13, 'Project Sampleasdsda Status Updated to Approved', '2025-12-03 10:05:20'),
+(58, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 10:06:54'),
+(59, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 10:16:23'),
+(60, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 10:26:22'),
+(61, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 10:26:22'),
+(62, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 10:39:51'),
+(63, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 10:42:05'),
+(65, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 11:06:36'),
+(66, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 11:15:20'),
+(67, 5, 'Edit Term', 'Term', 5, 'Updated Term: 2025-2028 Term', '2025-12-03 11:15:50'),
+(68, 5, 'Edit Term', 'Term', 5, 'Updated Term: 2025-2028 Term', '2025-12-03 11:18:01'),
+(69, 5, 'Set Active Term', 'Term', 3, 'Set Active Term to: 2025-2028 Term', '2025-12-03 11:18:24'),
+(70, 5, 'Set Active Term', 'Term', 5, 'Set Active Term to: 2025-2028 Term', '2025-12-03 11:18:36'),
+(71, 5, 'Set Active Term', 'Term', 3, 'Set Active Term to: 2025-2028 Term', '2025-12-03 11:20:10'),
+(72, 5, 'Set Active Term', 'Term', 5, 'Set Active Term to: 2025-2028 Term', '2025-12-03 11:20:19'),
+(73, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 11:30:21'),
+(74, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 11:32:25'),
+(75, 5, 'Add Term', 'KabataanTermPeriod', 6, 'Added New Term: 2028-2031 Term', '2025-12-03 11:32:32'),
+(76, 5, 'Set Active Term', 'Term', 6, 'Set Active Term to: 2028-2031 Term', '2025-12-03 11:32:40'),
+(77, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 11:32:54');
 
 -- --------------------------------------------------------
 
@@ -508,7 +562,8 @@ ALTER TABLE `barangay`
 --
 ALTER TABLE `budget`
   ADD PRIMARY KEY (`budget_id`),
-  ADD KEY `fk_budget_barangay` (`Barangay_ID`);
+  ADD KEY `fk_budget_barangay` (`Barangay_ID`),
+  ADD KEY `fk_budget_term` (`Term_ID`);
 
 --
 -- Indexes for table `federation_fund`
@@ -621,19 +676,19 @@ ALTER TABLE `barangay`
 -- AUTO_INCREMENT for table `budget`
 --
 ALTER TABLE `budget`
-  MODIFY `budget_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `budget_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `federation_fund`
 --
 ALTER TABLE `federation_fund`
-  MODIFY `Fund_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `Fund_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `file_upload`
 --
 ALTER TABLE `file_upload`
-  MODIFY `File_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `File_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `kabataan_service_record`
@@ -645,7 +700,7 @@ ALTER TABLE `kabataan_service_record`
 -- AUTO_INCREMENT for table `kabataan_term_period`
 --
 ALTER TABLE `kabataan_term_period`
-  MODIFY `Term_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `Term_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `login`
@@ -657,19 +712,19 @@ ALTER TABLE `login`
 -- AUTO_INCREMENT for table `project`
 --
 ALTER TABLE `project`
-  MODIFY `Project_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `Project_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `project_allocation`
 --
 ALTER TABLE `project_allocation`
-  MODIFY `Allocation_ID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `Allocation_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `project_log`
 --
 ALTER TABLE `project_log`
-  MODIFY `Log_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `Log_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `role`
@@ -681,7 +736,7 @@ ALTER TABLE `role`
 -- AUTO_INCREMENT for table `system_log`
 --
 ALTER TABLE `system_log`
-  MODIFY `SysLog_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
+  MODIFY `SysLog_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=78;
 
 --
 -- AUTO_INCREMENT for table `user`
@@ -703,7 +758,8 @@ ALTER TABLE `youth_member`
 -- Constraints for table `budget`
 --
 ALTER TABLE `budget`
-  ADD CONSTRAINT `fk_budget_barangay` FOREIGN KEY (`Barangay_ID`) REFERENCES `barangay` (`Barangay_ID`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_budget_barangay` FOREIGN KEY (`Barangay_ID`) REFERENCES `barangay` (`Barangay_ID`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_budget_term` FOREIGN KEY (`Term_ID`) REFERENCES `kabataan_term_period` (`Term_ID`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `federation_fund`

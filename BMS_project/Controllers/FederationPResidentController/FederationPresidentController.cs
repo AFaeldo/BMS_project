@@ -51,30 +51,63 @@ namespace BMS_project.Controllers
 
             var viewModel = new FederationDashboardViewModel();
 
-            // Project Counts
-            viewModel.TotalApprovedProjects = await _context.Projects.CountAsync(p => p.Project_Status == "Approved");
-            viewModel.TotalPendingProjects = await _context.Projects.CountAsync(p => p.Project_Status == "Pending");
-
-            // Budget Totals
+            // Get Active Term
             var activeTerm = await _context.KabataanTermPeriods.FirstOrDefaultAsync(t => t.IsActive);
-            viewModel.TotalFederationBudget = activeTerm != null 
-                ? await _context.FederationFunds
-                    .Where(f => f.Term_ID == activeTerm.Term_ID)
-                    .Select(f => f.Total_Amount)
-                    .FirstOrDefaultAsync()
-                : 0M;
+            int? activeTermId = activeTerm?.Term_ID;
 
-            viewModel.TotalDisbursed = await _context.Budgets.SumAsync(b => (decimal?)b.disbursed) ?? 0M;
-            viewModel.TotalRemainingBalance = await _context.Budgets.SumAsync(b => (decimal?)b.balance) ?? 0M;
-
-            // Chart Data: Monthly Expenses per Barangay (Aggregated for Federation)
-            // Logic: Sum of 'Amount_Allocated' for all APPROVED projects, grouped by Month of Date_Submitted (Current Year)
+            // Project Counts (Optionally filter by term if projects are term-specific, but usually they are linked to budgets which are term-specific. 
+            // If Project model has Term_ID, we should filter. Let's check Project model.)
+            // Checked Project model: It HAS Term_ID. So we should filter projects by term too if that's the requirement. 
+            // However, typically dashboard counts might be "All Time" or "Current Term". 
+            // Given the context of "New Term", likely they want Current Term stats.
             
+            if (activeTermId.HasValue)
+            {
+                viewModel.TotalApprovedProjects = await _context.Projects
+                    .CountAsync(p => p.Project_Status == "Approved" && p.Term_ID == activeTermId);
+                
+                viewModel.TotalPendingProjects = await _context.Projects
+                    .CountAsync(p => p.Project_Status == "Pending" && p.Term_ID == activeTermId);
+
+                viewModel.TotalFederationBudget = await _context.FederationFunds
+                    .Where(f => f.Term_ID == activeTermId)
+                    .Select(f => f.Total_Amount)
+                    .FirstOrDefaultAsync();
+
+                viewModel.TotalDisbursed = await _context.Budgets
+                    .Where(b => b.Term_ID == activeTermId)
+                    .SumAsync(b => (decimal?)b.disbursed) ?? 0M;
+
+                viewModel.TotalRemainingBalance = await _context.Budgets
+                    .Where(b => b.Term_ID == activeTermId)
+                    .SumAsync(b => (decimal?)b.balance) ?? 0M;
+            }
+            else
+            {
+                viewModel.TotalApprovedProjects = 0;
+                viewModel.TotalPendingProjects = 0;
+                viewModel.TotalFederationBudget = 0M;
+                viewModel.TotalDisbursed = 0M;
+                viewModel.TotalRemainingBalance = 0M;
+            }
+
+            // Chart Data: Monthly Expenses per Barangay (Aggregated for Federation) for CURRENT TERM
             var currentYear = DateTime.Now.Year;
             
+            // If no active term, empty chart
+            if (!activeTermId.HasValue)
+            {
+                 viewModel.MonthlyExpensesLabelsJson = JsonConvert.SerializeObject(new string[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" });
+                 viewModel.MonthlyExpensesDataJson = JsonConvert.SerializeObject(new decimal[12]);
+                 return View(viewModel);
+            }
+
             var monthlyData = await _context.Projects
                 .Include(p => p.Allocations)
-                .Where(p => p.Project_Status == "Approved" && p.Date_Submitted.HasValue && p.Date_Submitted.Value.Year == currentYear)
+                .Where(p => p.Project_Status == "Approved" && 
+                            p.Term_ID == activeTermId && // Filter by Term
+                            p.Date_Submitted.HasValue && 
+                            p.Date_Submitted.Value.Year == currentYear)
                 .GroupBy(p => p.Date_Submitted.Value.Month)
                 .Select(g => new 
                 { 
@@ -89,7 +122,6 @@ namespace BMS_project.Controllers
 
             foreach (var item in monthlyData)
             {
-                // Month is 1-based (1=Jan, 12=Dec), index is 0-based
                 if (item.Month >= 1 && item.Month <= 12)
                 {
                     data[item.Month - 1] = item.Total;
@@ -360,14 +392,26 @@ namespace BMS_project.Controllers
         }
 
         // Load list of budgets and pass to view
-        public IActionResult Budget()
+        public async Task<IActionResult> Budget()
         {
             ViewData["Title"] = "Barangay Budgets";
 
-            var budgets = _context.Budgets
-                .Include(b => b.Barangay)
-                .OrderBy(b => b.Barangay.Barangay_Name)
-                .ToList();
+            // Get Active Term
+            var activeTerm = await _context.KabataanTermPeriods.FirstOrDefaultAsync(t => t.IsActive);
+
+            List<Budget> budgets;
+            if (activeTerm != null)
+            {
+                 budgets = await _context.Budgets
+                    .Include(b => b.Barangay)
+                    .Where(b => b.Term_ID == activeTerm.Term_ID) // Filter by Term
+                    .OrderBy(b => b.Barangay.Barangay_Name)
+                    .ToListAsync();
+            }
+            else 
+            {
+                budgets = new List<Budget>();
+            }
 
             // barangays for the dropdown
             ViewBag.Barangays = new SelectList(

@@ -376,10 +376,34 @@ namespace BMS_project.Controllers
             return File(memory, contentType, downloadName);
         }
 
-        public IActionResult Dashboard()
+        public async Task<IActionResult> Dashboard()
         {
             ViewData["Title"] = "Dashboard";
-            return View();
+
+            var barangayId = GetBarangayIdFromClaims();
+            if (!barangayId.HasValue)
+            {
+                // If user is not associated with a barangay, return a default budget
+                return View(new Budget { budget = 0, disbursed = 0, balance = 0 });
+            }
+
+            // 1. Get Active Term
+            var activeTerm = await _context.KabataanTermPeriods
+                                            .FirstOrDefaultAsync(t => t.IsActive);
+
+            if (activeTerm == null)
+            {
+                // No active term, return a default budget
+                return View(new Budget { budget = 0, disbursed = 0, balance = 0 });
+            }
+
+            // 2. Filter Budget by Barangay_ID and Active Term_ID
+            var budget = await _context.Budgets
+                                        .FirstOrDefaultAsync(b => b.Barangay_ID == barangayId.Value &&
+                                                                b.Term_ID == activeTerm.Term_ID);
+
+            // 3. Handle Null: If no budget found for the active term, pass a default one.
+            return View(budget ?? new Budget { budget = 0, disbursed = 0, balance = 0 });
         }
 
         public IActionResult Documents()
@@ -558,19 +582,29 @@ namespace BMS_project.Controllers
         {
             ViewData["Title"] = "Budget & Finance";
 
-            var username = User.Identity?.Name;
-            var login = await _context.Login
-                .Include(l => l.User)
-                .FirstOrDefaultAsync(l => l.Username == username);
-
-            if (login == null || login.User == null || login.User.Barangay_ID == null)
+            var barangayId = GetBarangayIdFromClaims();
+            if (!barangayId.HasValue)
             {
+                // If user is not associated with a barangay, return a default budget
                 return View(new Budget { budget = 0, disbursed = 0, balance = 0 });
             }
 
-            var budget = await _context.Budgets
-                .FirstOrDefaultAsync(b => b.Barangay_ID == login.User.Barangay_ID);
+            // 1. Get Active Term
+            var activeTerm = await _context.KabataanTermPeriods
+                                            .FirstOrDefaultAsync(t => t.IsActive);
 
+            if (activeTerm == null)
+            {
+                // No active term, return a default budget
+                return View(new Budget { budget = 0, disbursed = 0, balance = 0 });
+            }
+
+            // 2. Filter Budget by Barangay_ID and Active Term_ID
+            var budget = await _context.Budgets
+                                        .FirstOrDefaultAsync(b => b.Barangay_ID == barangayId.Value &&
+                                                                b.Term_ID == activeTerm.Term_ID);
+
+            // 3. Handle Null: If no budget found for the active term, pass a default one.
             return View(budget ?? new Budget { budget = 0, disbursed = 0, balance = 0 });
         }
 

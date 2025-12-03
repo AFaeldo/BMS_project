@@ -103,33 +103,59 @@ public class AccountController : Controller
 
         if (!isSuperAdmin && user.User != null)
         {
-            var activeRecord = user.User.ServiceRecords?.FirstOrDefault(r => r.Status == "Active");
-            
-            // If they have an active record, check date
-            if (activeRecord != null && activeRecord.KabataanTermPeriod != null)
+            // 1. Get System's Global Active Term
+            var activeTerm = await _context.KabataanTermPeriods.FirstOrDefaultAsync(t => t.IsActive);
+
+            if (activeTerm != null)
             {
-                if (activeRecord.KabataanTermPeriod.Official_End_Date < DateTime.Today)
+                // 2. Check if user has a Service Record for THIS active term
+                var userActiveRecord = user.User.ServiceRecords?
+                    .FirstOrDefault(r => r.Term_ID == activeTerm.Term_ID && r.Status == "Active");
+
+                if (userActiveRecord == null)
                 {
-                    // Term Ended -> Auto Archive
-                    user.User.IsArchived = true;
-                    activeRecord.Status = "Term Ended";
+                    // No record for the current term -> Archive User and Deny Login
                     
+                    // Archive User
+                    user.User.IsArchived = true;
                     _context.Users.Update(user.User);
-                    _context.KabataanServiceRecords.Update(activeRecord);
+
+                    // Mark old active records as "Term Ended"
+                    var oldRecords = user.User.ServiceRecords?.Where(r => r.Status == "Active").ToList();
+                    if (oldRecords != null && oldRecords.Any())
+                    {
+                        foreach (var oldRecord in oldRecords)
+                        {
+                            oldRecord.Status = "Term Ended";
+                            oldRecord.Actual_End_Date = DateTime.Now;
+                            _context.KabataanServiceRecords.Update(oldRecord);
+                        }
+                    }
+
                     await _context.SaveChangesAsync();
 
-                    ViewBag.Error = "Invalid username or password.";
+                    ViewBag.Error = "Your term has ended. Please contact the administrator for re-election.";
                     return View();
                 }
+                else
+                {
+                    // User has an active record for the current term.
+                    // Ensure they are NOT archived (in case they were re-elected but IsArchived wasn't cleared)
+                    if (user.User.IsArchived)
+                    {
+                        user.User.IsArchived = false;
+                        _context.Users.Update(user.User);
+                        await _context.SaveChangesAsync();
+                    }
+                }
             }
-            else if (!isSuperAdmin)
+            else
             {
-                // Non-admin users MUST have an active term record to login? 
-                // Or if they are just created but no term assigned (unlikely with new logic), let them in?
-                // Requirement: "When a new user is created... assign them the Current Active Term ID."
-                // So if they exist and are not archived, they should have one. 
-                // If missing, it might be legacy data. We'll allow login but maybe warn? 
-                // For strictness, let's allow but log or ignore. 
+                // No active term defined in system.
+                // Decision: Deny access to prevent operations in undefined state? Or allow limited access?
+                // Safe bet: Deny with message.
+                ViewBag.Error = "No active term is currently set in the system. Please contact SuperAdmin.";
+                return View();
             }
         }
 
