@@ -146,6 +146,21 @@ namespace BMS_project.Controllers
                 try
                 {
                     // Create a new Compliance object
+                    var activeTerm = await _context.KabataanTermPeriods.FirstOrDefaultAsync(t => t.IsActive);
+                    if (activeTerm == null)
+                    {
+                         TempData["ErrorMessage"] = "No active term found. Cannot create compliance.";
+                         ViewBag.Barangays = await _context.barangays
+                            .OrderBy(b => b.Barangay_Name)
+                            .Select(b => new SelectListItem
+                            {
+                                Value = b.Barangay_ID.ToString(),
+                                Text = b.Barangay_Name
+                            })
+                            .ToListAsync();
+                         return View("~/Views/FederationPresident/ComplianceMonitoring.cshtml", await _context.Compliances.Include(c => c.Barangay).OrderByDescending(c => c.Due_Date).ToListAsync());
+                    }
+
                     var compliance = new Compliance
                     {
                         // Map fields
@@ -153,6 +168,7 @@ namespace BMS_project.Controllers
                         Title = model.Title,
                         Type = model.DocumentType,
                         Due_Date = model.DueDate, // Fixed: Using single Due_Date property
+                        Term_ID = activeTerm.Term_ID,
 
                         // Set defaults
                         Status = "Not Submitted",

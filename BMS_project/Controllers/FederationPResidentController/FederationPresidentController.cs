@@ -134,7 +134,7 @@ namespace BMS_project.Controllers
             return View(viewModel);
         }
 
-        public async Task<IActionResult> ComplianceMonitoring()
+        public async Task<IActionResult> ComplianceMonitoring(int? termId)
         {
             ViewData["Title"] = "Compliance Monitoring";
 
@@ -148,10 +148,31 @@ namespace BMS_project.Controllers
                 })
                 .ToListAsync();
 
+            // 1. Get All Terms for Filter Dropdown
+            var terms = await _context.KabataanTermPeriods
+                .OrderByDescending(t => t.Start_Date)
+                .ToListAsync();
+            
+            ViewBag.Terms = new SelectList(terms, "Term_ID", "Term_Name");
+
+            // 2. Determine Active/Selected Term
+            int selectedTermId;
+            if (termId.HasValue)
+            {
+                selectedTermId = termId.Value;
+            }
+            else
+            {
+                var activeTerm = terms.FirstOrDefault(t => t.IsActive);
+                selectedTermId = activeTerm?.Term_ID ?? (terms.FirstOrDefault()?.Term_ID ?? 0);
+            }
+
+            ViewBag.SelectedTermId = selectedTermId;
+
             // Fetch Compliances for the View Model
             var compliances = await _context.Compliances
                 .Include(c => c.Barangay)
-                .Where(c => !c.IsArchived)
+                .Where(c => !c.IsArchived && c.Term_ID == selectedTermId)
                 .OrderByDescending(c => c.Due_Date)
                 .ToListAsync();
 
@@ -196,15 +217,36 @@ namespace BMS_project.Controllers
             return View(projects);
         }
 
-        public async Task<IActionResult> ProjectHistory()
+        public async Task<IActionResult> ProjectHistory(int? termId)
         {
             ViewData["Title"] = "Project History";
+
+            // 1. Get All Terms for Filter Dropdown
+            var terms = await _context.KabataanTermPeriods
+                .OrderByDescending(t => t.Start_Date)
+                .ToListAsync();
+
+            ViewBag.Terms = new SelectList(terms, "Term_ID", "Term_Name");
+
+            // 2. Determine Active/Selected Term
+            int selectedTermId;
+            if (termId.HasValue)
+            {
+                selectedTermId = termId.Value;
+            }
+            else
+            {
+                var activeTerm = terms.FirstOrDefault(t => t.IsActive);
+                selectedTermId = activeTerm?.Term_ID ?? (terms.FirstOrDefault()?.Term_ID ?? 0);
+            }
+
+            ViewBag.SelectedTermId = selectedTermId;
 
             var projects = await _context.Projects
                 .Include(p => p.User)
                 .ThenInclude(u => u.Barangay)
                 .Include(p => p.Allocations)
-                .Where(p => p.Project_Status != "Pending")
+                .Where(p => p.Project_Status != "Pending" && p.Term_ID == selectedTermId) // Filter by Term
                 .OrderByDescending(p => p.Date_Submitted)
                 .Select(p => new ProjectApprovalListViewModel
                 {

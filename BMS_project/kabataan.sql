@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 03, 2025 at 04:22 PM
+-- Generation Time: Dec 03, 2025 at 07:33 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -137,15 +137,9 @@ CREATE TABLE `compliance` (
   `Status` varchar(50) NOT NULL,
   `due_date` date NOT NULL,
   `Date_Submitted` datetime DEFAULT NULL,
+  `Term_ID` int(11) NOT NULL,
   `IsArchived` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `compliance`
---
-
-INSERT INTO `compliance` (`com_id`, `Barangay_id`, `File_ID`, `Title`, `Type`, `Status`, `due_date`, `Date_Submitted`, `IsArchived`) VALUES
-(3, 7, NULL, 'Liga Reportasdasdasdsad', 'Proposal', 'Not Submitted', '2025-12-07', NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -190,7 +184,8 @@ CREATE TABLE `file_upload` (
 INSERT INTO `file_upload` (`File_ID`, `File_Name`, `File`, `User_ID`, `Timestamp`) VALUES
 (9, 'LabExercise5.pdf', '/UploadedFiles/Instructions/LabExercise5_20251203224815.pdf', 7, '2025-12-03 22:48:15'),
 (10, 'LabExercise5.pdf', '/UploadedFiles/Instructions/LabExercise5_20251203225605.pdf', 7, '2025-12-03 22:56:05'),
-(11, 'Exercise 8.pdf', '/UploadedFiles/Instructions/Exercise 8_20251203225721.pdf', 7, '2025-12-03 22:57:21');
+(11, 'Exercise 8.pdf', '/UploadedFiles/Instructions/Exercise 8_20251203225721.pdf', 7, '2025-12-03 22:57:21'),
+(12, 'Exercise 8.pdf', '/UploadedFiles/Submissions/4_20251204012105_209e6c.pdf', 9, '2025-12-04 01:21:05');
 
 -- --------------------------------------------------------
 
@@ -338,36 +333,6 @@ CREATE TABLE `project_log` (
   `Changed_On` datetime DEFAULT current_timestamp(),
   `Remarks` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `project_log`
---
-
-INSERT INTO `project_log` (`Log_ID`, `Project_ID`, `User_ID`, `Status`, `Changed_On`, `Remarks`) VALUES
-(1, 1, 9, 'Pending', '2025-11-30 05:39:05', 'Project created and submitted for approval.'),
-(2, 1, 9, 'Approved', '2025-11-30 05:56:31', 'Project status updated to Approved by Federation President'),
-(3, 2, 9, 'Pending', '2025-11-30 05:58:43', 'Project created and submitted for approval.'),
-(4, 3, 6, 'Pending', '2025-11-30 06:10:50', 'Project created and submitted for approval.'),
-(5, 2, 9, 'Pending', '2025-11-30 06:11:17', 'Project status updated to Pending by Federation President'),
-(6, 2, 9, 'Approved', '2025-11-30 06:11:24', 'Project status updated to Approved by Federation President'),
-(7, 3, 6, 'Approved', '2025-11-30 06:11:35', 'Project status updated to Approved by Federation President'),
-(8, 4, 9, 'Pending', '2025-11-30 11:04:27', 'Project created and submitted for approval.'),
-(9, 4, 9, 'Pending', '2025-11-30 12:42:03', 'Project status updated to Pending by Federation President'),
-(10, 4, 9, 'Pending', '2025-11-30 12:42:09', 'Project status updated to Pending by Federation President'),
-(11, 4, 9, 'Pending', '2025-11-30 12:42:12', 'Project status updated to Pending by Federation President'),
-(12, 10, 9, 'Pending', '2025-11-30 16:29:44', 'Project created and submitted for approval.'),
-(13, 11, 9, 'Pending', '2025-11-30 21:22:19', 'Project created and submitted for approval.'),
-(14, 12, 9, 'Pending', '2025-11-30 23:41:16', 'Project created and submitted for approval.'),
-(15, 4, 9, 'Pending', '2025-12-01 12:44:55', 'Project status updated to Pending by Federation President'),
-(16, 10, 9, 'Approved', '2025-12-01 12:52:54', 'Project status updated to Approved by Federation President'),
-(17, 11, 9, 'Pending', '2025-12-01 12:53:14', 'Project status updated to Pending by Federation President'),
-(18, 11, 9, 'Pending', '2025-12-01 12:53:18', 'Project status updated to Pending by Federation President'),
-(19, 11, 9, 'Pending', '2025-12-01 12:53:37', 'Project status updated to Pending by Federation President'),
-(20, 4, 9, 'Approved', '2025-12-01 12:54:07', 'Project status updated to Approved by Federation President'),
-(21, 11, 9, 'Pending', '2025-12-01 12:54:43', 'Project status updated to Pending by Federation President'),
-(22, 11, 9, 'Approved', '2025-12-01 12:54:57', 'Project status updated to Approved by Federation President'),
-(23, 12, 9, 'Pending', '2025-12-01 23:58:44', 'Project status updated to Pending by Federation President'),
-(24, 12, 9, 'Approved', '2025-12-01 23:58:51', 'Project status updated to Approved by Federation President');
 
 -- --------------------------------------------------------
 
@@ -553,7 +518,39 @@ INSERT INTO `system_log` (`SysLog_id`, `User_ID`, `Action`, `Table_Name`, `Recor
 (141, 7, 'Create Compliance', NULL, NULL, 'Created new requirement: Liga Report', '2025-12-03 22:56:05'),
 (142, 7, 'Create Compliance', NULL, NULL, 'Created new requirement: Liga Reportasdasdasdsad', '2025-12-03 22:57:21'),
 (143, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 23:18:00'),
-(144, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 23:21:31');
+(144, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 23:21:31'),
+(145, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 23:28:11'),
+(146, 7, 'Create Compliance', NULL, NULL, 'Created new requirement: Liga Reportasdasdasdsad', '2025-12-03 23:28:26'),
+(147, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 23:37:28'),
+(148, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 23:55:02'),
+(149, 7, 'Create Compliance', NULL, NULL, 'Created new requirement: ayaw ko na', '2025-12-03 23:55:21'),
+(150, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-03 23:58:35'),
+(151, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 00:04:57'),
+(152, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 00:07:11'),
+(153, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 00:13:37'),
+(154, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 00:16:32'),
+(155, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 00:25:17'),
+(156, 7, 'Create Compliance', 'Compliance', 6, 'Created requirement: asdasdasdasd', '2025-12-04 00:25:31'),
+(157, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 00:27:14'),
+(158, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 00:34:52'),
+(159, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 00:38:54'),
+(160, 7, 'Archive Compliance', 'Compliance', 3, 'Archived requirement: Liga Reportasdasdasdsad', '2025-12-04 00:48:00'),
+(161, 7, 'Archive Compliance', 'Compliance', 6, 'Archived requirement: asdasdasdasd', '2025-12-04 00:49:07'),
+(162, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 00:53:03'),
+(163, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 00:56:07'),
+(164, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 00:57:41'),
+(165, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 00:58:20'),
+(166, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 01:00:41'),
+(167, 7, 'Create Compliance', 'Compliance', 7, 'Created requirement: Secret', '2025-12-04 01:01:05'),
+(168, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 01:03:38'),
+(169, 7, 'Create Compliance', 'Compliance', 8, 'Created requirement: Secret', '2025-12-04 01:03:51'),
+(170, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 01:20:20'),
+(171, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 01:20:57'),
+(172, 9, 'Submit Compliance', 'Compliance', 4, 'Submitted compliance for: Liga Reportasdasdasdsad', '2025-12-04 01:21:05'),
+(173, 7, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 01:21:34'),
+(174, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 01:24:13'),
+(175, 5, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 01:28:53'),
+(176, 9, 'Login', NULL, NULL, 'User Logged In', '2025-12-04 01:34:26');
 
 -- --------------------------------------------------------
 
@@ -634,7 +631,8 @@ ALTER TABLE `budget`
 ALTER TABLE `compliance`
   ADD PRIMARY KEY (`com_id`),
   ADD KEY `fk_barangay_id` (`Barangay_id`),
-  ADD KEY `fk_file_id` (`File_ID`);
+  ADD KEY `fk_file_id` (`File_ID`),
+  ADD KEY `fk_term_id` (`Term_ID`);
 
 --
 -- Indexes for table `federation_fund`
@@ -747,7 +745,7 @@ ALTER TABLE `budget`
 -- AUTO_INCREMENT for table `compliance`
 --
 ALTER TABLE `compliance`
-  MODIFY `com_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `com_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `federation_fund`
@@ -759,7 +757,7 @@ ALTER TABLE `federation_fund`
 -- AUTO_INCREMENT for table `file_upload`
 --
 ALTER TABLE `file_upload`
-  MODIFY `File_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `File_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `kabataan_service_record`
@@ -795,7 +793,7 @@ ALTER TABLE `project_allocation`
 -- AUTO_INCREMENT for table `project_log`
 --
 ALTER TABLE `project_log`
-  MODIFY `Log_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `Log_ID` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `role`
@@ -807,7 +805,7 @@ ALTER TABLE `role`
 -- AUTO_INCREMENT for table `system_log`
 --
 ALTER TABLE `system_log`
-  MODIFY `SysLog_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=145;
+  MODIFY `SysLog_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=177;
 
 --
 -- AUTO_INCREMENT for table `user`
@@ -837,7 +835,8 @@ ALTER TABLE `budget`
 --
 ALTER TABLE `compliance`
   ADD CONSTRAINT `fk_barangay_id` FOREIGN KEY (`Barangay_id`) REFERENCES `barangay` (`Barangay_ID`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_file_id` FOREIGN KEY (`File_ID`) REFERENCES `file_upload` (`File_ID`) ON DELETE SET NULL ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_file_id` FOREIGN KEY (`File_ID`) REFERENCES `file_upload` (`File_ID`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_term_id` FOREIGN KEY (`Term_ID`) REFERENCES `kabataan_term_period` (`Term_ID`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `federation_fund`

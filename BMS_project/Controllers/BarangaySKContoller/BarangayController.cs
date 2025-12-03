@@ -182,24 +182,32 @@ namespace BMS_project.Controllers
                         return RedirectToAction(nameof(Projects));
                     }
         
-                    var user = loginRecord.User;
-                    if (user.Barangay_ID == null)
-                    {
-                        TempData["ErrorMessage"] = "User is not assigned to a Barangay.";
-                        return RedirectToAction(nameof(Projects));
-                    }
-        
-                    var budget = await _context.Budgets
-                        .FirstOrDefaultAsync(b => b.Barangay_ID == user.Barangay_ID);
-        
-                    if (budget == null)
-                    {
-                        TempData["ErrorMessage"] = "No budget found for this Barangay.";
-                        return RedirectToAction(nameof(Projects));
-                    }
-        
-                    // PART C Logic: Barangay SK - Create Project Validation
-                    // Validation: Project Cost cannot exceed BarangayBudget.Balance
+                                var user = loginRecord.User;
+                                if (user.Barangay_ID == null)
+                                {
+                                    TempData["ErrorMessage"] = "User is not assigned to a Barangay.";
+                                    return RedirectToAction(nameof(Projects));
+                                }
+                    
+                                // 1. Get Active Term
+                                var activeTerm = await _context.KabataanTermPeriods.FirstOrDefaultAsync(t => t.IsActive);
+                                if (activeTerm == null)
+                                {
+                                    TempData["ErrorMessage"] = "No active term found in the system.";
+                                    return RedirectToAction(nameof(Projects));
+                                }
+                    
+                                // 2. Get Budget for Active Term
+                                var budget = await _context.Budgets
+                                    .FirstOrDefaultAsync(b => b.Barangay_ID == user.Barangay_ID && b.Term_ID == activeTerm.Term_ID);
+                    
+                                if (budget == null)
+                                {
+                                    TempData["ErrorMessage"] = $"No budget found for this Barangay for the current term ({activeTerm.Term_Name}).";
+                                    return RedirectToAction(nameof(Projects));
+                                }
+                    
+                                // PART C Logic: Barangay SK - Create Project Validation                    // Validation: Project Cost cannot exceed BarangayBudget.Balance
                     if (model.Allocated_Amount > budget.balance)
                     {
                         TempData["ErrorMessage"] = $"Barangay funds insufficient. You are trying to allocate {model.Allocated_Amount:C}, but the available balance is {budget.balance:C}.";

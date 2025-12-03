@@ -28,7 +28,28 @@
 
     <!-- Filter Section (Optional, keeping UI consistent) -->
     <div class="row mb-3">
-        <div class="col d-flex justify-content-end align-items-end gap-3 flex-wrap">
+        <div class="col-md-6">
+            <form method="get" action="@Url.Action("ComplianceMonitoring")" id="termForm">
+                <label class="form-label fw-bold" style="color: white !important;">Select Term:</label>
+                <select name="termId" class="form-select w-auto d-inline-block" onchange="document.getElementById('termForm').submit()">
+                    @if (ViewBag.Terms != null)
+                    {
+                        foreach (var item in (SelectList)ViewBag.Terms)
+                        {
+                            if (item.Value == ViewBag.SelectedTermId.ToString())
+                            {
+                                <option value="@item.Value" selected>@item.Text</option>
+                            }
+                            else
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        }
+                    }
+                </select>
+            </form>
+        </div>
+        <div class="col-md-6 d-flex justify-content-end align-items-end gap-3 flex-wrap">
             <div class="mt-4 text-end">
                 <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#createComplianceModal">
                     Add Compliance

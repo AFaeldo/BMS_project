@@ -41,6 +41,12 @@ namespace BMS_project.Models
         [ForeignKey("File_ID")]
         public FileUpload SubmissionFile { get; set; }
 
+        [Column("Term_ID")]
+        public int Term_ID { get; set; }
+
+        [ForeignKey("Term_ID")]
+        public KabataanTermPeriod KabataanTermPeriod { get; set; }
+
         [Column("IsArchived")]
         public bool IsArchived { get; set; } = false;
     }

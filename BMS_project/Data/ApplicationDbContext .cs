@@ -42,6 +42,13 @@ namespace BMS_project.Data
             modelBuilder.Entity<FederationFund>().ToTable("federation_fund").HasKey(f => f.Fund_ID);
             modelBuilder.Entity<Compliance>().ToTable("compliance").HasKey(c => c.Compliance_ID);
 
+            modelBuilder.Entity<Compliance>()
+                .HasOne(c => c.KabataanTermPeriod)
+                .WithMany()
+                .HasForeignKey(c => c.Term_ID)
+                .HasConstraintName("fk_term_id")
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<SystemLog>()
                 .HasOne(s => s.User)
                 .WithMany() // Or WithMany(u => u.SystemLogs) if added to User
