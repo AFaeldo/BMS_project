@@ -22,9 +22,9 @@ namespace BMS_project.ViewModels
         public DateTime? End_Date { get; set; }
 
         // New properties for file upload
-        [Required(ErrorMessage = "Please upload a project document (PDF).")]
-        public IFormFile UploadedFile { get; set; }
+        [Required(ErrorMessage = "Please upload at least one project document (PDF).")]
+        public List<IFormFile> UploadedFiles { get; set; } = new List<IFormFile>();
         
-        public string DocumentName { get; set; }
+        public string? DocumentName { get; set; }
     }
 }

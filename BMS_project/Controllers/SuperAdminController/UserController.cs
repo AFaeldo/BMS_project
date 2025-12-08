@@ -140,8 +140,17 @@ namespace BMS_project.Controllers.SuperAdminController
             if (string.IsNullOrWhiteSpace(dto.Username)) return BadRequest("Username required.");
             if (string.IsNullOrWhiteSpace(dto.Password)) return BadRequest("Password required.");
             if (dto.RoleId == null) return BadRequest("Role is required.");
-            if (dto.BarangayId == null) return BadRequest("Barangay is required.");
             if (string.IsNullOrWhiteSpace(dto.Email)) return BadRequest("Email Is Required");
+
+            // Fetch Role to check for SuperAdmin
+            var role = await _context.Roles.FindAsync(dto.RoleId);
+            if (role == null) return BadRequest("Invalid Role.");
+            
+            bool isSuperAdmin = role.Role_Name.Equals("SuperAdmin", StringComparison.OrdinalIgnoreCase);
+
+            // Enforce Barangay requirement only for non-SuperAdmin users
+            if (!isSuperAdmin && dto.BarangayId == null) 
+                return BadRequest("Barangay is required.");
 
             // Check active term
             var activeTerm = await _context.KabataanTermPeriods.FirstOrDefaultAsync(t => t.IsActive);
@@ -154,7 +163,10 @@ namespace BMS_project.Controllers.SuperAdminController
             if (await _context.Login.AnyAsync(l => l.Username == dto.Username))
                 return BadRequest("Username already exists.");
 
-                await using var tx = await _context.Database.BeginTransactionAsync();
+            var strategy = _context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
+            {
+                using var tx = await _context.Database.BeginTransactionAsync();
                 try
                 {
                     // create user
@@ -208,6 +220,7 @@ namespace BMS_project.Controllers.SuperAdminController
                     await tx.RollbackAsync();
                     return StatusCode(500, ex.Message);
                 }
+            });
         }
 
         // PUT: api/users/5
@@ -231,7 +244,10 @@ namespace BMS_project.Controllers.SuperAdminController
                     return BadRequest("Username already exists.");
             }
 
-                await using var tx = await _context.Database.BeginTransactionAsync();
+            var strategy = _context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
+            {
+                using var tx = await _context.Database.BeginTransactionAsync();
                 try
                 {
                     // update user fields
@@ -239,14 +255,19 @@ namespace BMS_project.Controllers.SuperAdminController
                     user.Last_Name = dto.LastName;
                     user.Email = dto.Email;
                     user.Barangay_ID = dto.BarangayId;
-                    user.Role_ID = dto.RoleId;
+                    
+                    // Only update Role_ID if provided (handles hidden dropdown case)
+                    if (dto.RoleId.HasValue)
+                    {
+                        user.Role_ID = dto.RoleId;
+                        login.Role_ID = dto.RoleId.Value;
+                    }
 
                     _context.Users.Update(user);
                     await _context.SaveChangesAsync();
 
                     // update login fields
                     login.Username = dto.Username;
-                    login.Role_ID = dto.RoleId ?? login.Role_ID;
 
                     if (!string.IsNullOrWhiteSpace(dto.Password))
                     {
@@ -287,10 +308,10 @@ namespace BMS_project.Controllers.SuperAdminController
             if (login == null || login.User == null) return NotFound();
 
             // Role Restriction: This archiving action is only allowed for users with the "Barangay" role.
-            //if (login.Role == null || !login.Role.Role_Name.Contains("Barangay", StringComparison.OrdinalIgnoreCase))
-            //{
-            //    return BadRequest("Only users with the 'Barangay' role can be archived.");
-            //}
+            if (login.Role == null || !login.Role.Role_Name.Contains("Barangay", StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest("Only users with the 'Barangay' role can be archived.");
+            }
 
             // Constraint: A user cannot resign if they have any projects with status 'Pending' or 'Approved'.
             var hasOngoingProjects = await _context.Projects.AnyAsync(p => 
@@ -305,7 +326,7 @@ namespace BMS_project.Controllers.SuperAdminController
             var strategy = _context.Database.CreateExecutionStrategy();
             return await strategy.ExecuteAsync(async () =>
             {
-                await using var tx = await _context.Database.BeginTransactionAsync();
+                using var tx = await _context.Database.BeginTransactionAsync();
                 try 
                 {
                     // 1. Set User to Archived
@@ -360,7 +381,7 @@ namespace BMS_project.Controllers.SuperAdminController
             var strategy = _context.Database.CreateExecutionStrategy();
             return await strategy.ExecuteAsync(async () =>
             {
-                await using var tx = await _context.Database.BeginTransactionAsync();
+                using var tx = await _context.Database.BeginTransactionAsync();
                 try
                 {
                     var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -419,7 +440,6 @@ namespace BMS_project.Controllers.SuperAdminController
         public async Task<IActionResult> Roles()
         {
             var list = await _context.Roles
-                .Where(r => r.Role_Name != "SuperAdmin")
                 .OrderBy(r => r.Role_Name)
                 .Select(r => new { id = r.Role_ID, text = r.Role_Name })
                 .ToListAsync();

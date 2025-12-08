@@ -28,6 +28,7 @@
                             <tr>
                                 <th>Title</th>
                                 <th>Type</th>
+                                <th>Template</th>
                                 <th>Due Date</th>
                                 <th>Status</th>
                                 <th>Submission Date</th>
@@ -40,26 +41,67 @@
                                 <tr>
                                     <td>@item.Title</td>
                                     <td>@item.Type</td>
-                                    <td>@item.DueDate.ToShortDateString()</td>
                                     <td>
-                                        @if (item.Date_Submitted.HasValue)
+                                        @if (item.TemplateFileId.HasValue)
                                         {
-                                            <span class="badge bg-success">Submitted</span>
+                                            <a href="@Url.Action("Download", "Compliance", new { fileId = item.TemplateFileId })" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-file-earmark-arrow-down"></i> Template
+                                            </a>
                                         }
                                         else
                                         {
-                                            <span class="badge bg-danger">Not Submitted</span>
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>@item.DueDate.ToShortDateString()</td>
+                                    <td>
+                                        @if (item.Status == "Completed" || item.Status == "Approved")
+                                        {
+                                            <span class="badge bg-success">@item.Status</span>
+                                        }
+                                        else if (item.Status == "Returned" || item.Status == "Rejected")
+                                        {
+                                            <span class="badge bg-danger">@item.Status</span>
+                                        }
+                                        else if (item.Date_Submitted.HasValue)
+                                        {
+                                            <span class="badge bg-warning text-dark">For Review</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Not Submitted</span>
                                         }
                                     </td>
                                     <td>@(item.Date_Submitted.HasValue ? item.Date_Submitted.Value.ToShortDateString() : "-")</td>
                                     <td class="text-center">
-                                        <button class="btn btn-sm btn-primary btn-upload" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#uploadModal"
-                                                data-id="@item.Compliance_ID"
-                                                data-title="@item.Title">
-                                            @(item.Date_Submitted.HasValue ? "Resubmit" : "Submit")
-                                        </button>
+                                        @if (item.Status == "Returned" || item.Status == "Rejected")
+                                        {
+                                            <button class="btn btn-sm btn-warning text-dark btn-upload" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#uploadModal"
+                                                    data-id="@item.Compliance_ID"
+                                                    data-title="@item.Title">
+                                                Resubmit
+                                            </button>
+                                        }
+                                        else if (item.Date_Submitted.HasValue)
+                                        {
+                                            <button class="btn btn-sm btn-info text-white btn-view" 
+                                                    disabled
+                                                    title="View functionality not yet implemented for Barangay">
+                                                View
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-sm btn-primary btn-upload" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#uploadModal"
+                                                    data-id="@item.Compliance_ID"
+                                                    data-title="@item.Title">
+                                                Submit
+                                            </button>
+                                        }
                                     </td>
                                 </tr>
                             }
@@ -79,7 +121,7 @@
             <input type="hidden" name="ComplianceId" id="modalComplianceId" />
             
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">Submit Compliance Document</h5>
+                <h5 class="modal-title">Submit Compliance Documents</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -88,11 +130,18 @@
                     <input type="text" class="form-control-plaintext" id="modalTitle" readonly />
                 </div>
                 
-                <div class="mb-3">
-                    <label for="SubmissionFile" class="form-label fw-bold">Upload PDF</label>
-                    <input type="file" name="SubmissionFile" class="form-control" accept="application/pdf" required />
-                    <div class="form-text">Please upload a PDF file (Max 25MB).</div>
+                <label class="form-label fw-bold">Upload Documents (PDF)</label>
+                <div id="fileInputsContainer">
+                    <div class="mb-2">
+                        <input type="file" name="SubmissionFiles" class="form-control" accept="application/pdf" required />
+                    </div>
                 </div>
+                
+                <button type="button" class="btn btn-outline-secondary btn-sm mb-3" id="addFileBtn">
+                    <i class="bi bi-plus-circle me-1"></i> Add Another Document
+                </button>
+                
+                <div class="form-text">Max 25MB per file. Only PDF files allowed.</div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -113,6 +162,25 @@
                 
                 document.getElementById("modalComplianceId").value = id;
                 document.getElementById("modalTitle").value = title;
+            }
+        });
+
+        // Add dynamic file input
+        document.getElementById("addFileBtn").addEventListener("click", function() {
+            let container = document.getElementById("fileInputsContainer");
+            let div = document.createElement("div");
+            div.className = "mb-2 d-flex gap-2";
+            div.innerHTML = `
+                <input type="file" name="SubmissionFiles" class="form-control" accept="application/pdf" required />
+                <button type="button" class="btn btn-danger btn-sm remove-file"><i class="bi bi-trash"></i></button>
+            `;
+            container.appendChild(div);
+        });
+
+        // Remove file input
+        document.getElementById("fileInputsContainer").addEventListener("click", function(e) {
+            if (e.target.closest(".remove-file")) {
+                e.target.closest(".remove-file").parentElement.remove();
             }
         });
     </script>

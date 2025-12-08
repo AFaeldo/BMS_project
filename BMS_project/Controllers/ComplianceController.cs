@@ -13,16 +13,18 @@ using System.Security.Claims;
 
 namespace BMS_project.Controllers
 {
-    [Authorize(Roles = "FederationPresident,SuperAdmin")]
+    [Authorize]
     public class ComplianceController : Controller
     {
         private readonly ApplicationDbContext _context;
         private readonly ISystemLogService _systemLogService;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public ComplianceController(ApplicationDbContext context, ISystemLogService systemLogService)
+        public ComplianceController(ApplicationDbContext context, ISystemLogService systemLogService, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
             _systemLogService = systemLogService;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         private int? GetCurrentUserId()
@@ -32,6 +34,7 @@ namespace BMS_project.Controllers
         }
 
         // 1. Index() (GET)
+        [Authorize(Roles = "FederationPresident,SuperAdmin")]
         public async Task<IActionResult> Index()
         {
             // Populate ViewBag.Barangays for the modal
@@ -68,6 +71,7 @@ namespace BMS_project.Controllers
 
         // 2. Create() (GET)
         [HttpGet]
+        [Authorize(Roles = "FederationPresident,SuperAdmin")]
         public async Task<IActionResult> Create()
         {
             // Query _context.Barangays to get SelectListItem list
@@ -98,10 +102,9 @@ namespace BMS_project.Controllers
                 DueDate = DateTime.Today.AddDays(7) // Default to 1 week from now
             };
 
-            // Return the PartialView/Modal
-            // Assuming this is loaded into a modal, typically strictly a PartialView.
-            // If it's a full page acting as a modal content or just a partial.
-            return PartialView("_CreateComplianceModal", model);
+            // Since we are using a shared view with a modal, just redirect to the main monitoring page
+            // This GET action is effectively disabled/redirects for safety
+            return RedirectToAction("ComplianceMonitoring", "FederationPresident");
         }
 
         // GET: Compliance/Details/5
@@ -127,6 +130,7 @@ namespace BMS_project.Controllers
         // POST: Compliance/Archive/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "FederationPresident,SuperAdmin")]
         public async Task<IActionResult> Archive(int id)
         {
             var compliance = await _context.Compliances.FindAsync(id);
@@ -157,99 +161,145 @@ namespace BMS_project.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // 3. Create(CreateComplianceViewModel model) (POST)
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateComplianceViewModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                try
+                // 3. Create(CreateComplianceViewModel model) (POST)
+                [HttpPost]
+                [ValidateAntiForgeryToken]
+                [Authorize(Roles = "FederationPresident,SuperAdmin")]
+                public async Task<IActionResult> Create(CreateComplianceViewModel model)
                 {
-                    // Create a new Compliance object
-                    var activeTerm = await _context.KabataanTermPeriods.FirstOrDefaultAsync(t => t.IsActive);
-                    if (activeTerm == null)
+                    // Custom validation for TemplateFile (due to [Required] on ViewModel)
+                    if (model.TemplateFile == null || model.TemplateFile.Length == 0)
                     {
-                         TempData["ErrorMessage"] = "No active term found. Cannot create compliance.";
-                         ViewBag.Barangays = await _context.barangays
-                            .OrderBy(b => b.Barangay_Name)
-                            .Select(b => new SelectListItem
+                        ModelState.AddModelError("TemplateFile", "Template file is required.");
+                    }
+        
+                    if (ModelState.IsValid)
+                    {
+                        try
+                        {
+                            // Create a new Compliance object
+                            var activeTerm = await _context.KabataanTermPeriods.FirstOrDefaultAsync(t => t.IsActive);
+                            if (activeTerm == null)
                             {
-                                Value = b.Barangay_ID.ToString(),
-                                Text = b.Barangay_Name
-                            })
-                            .ToListAsync();
-                         return View("~/Views/FederationPresident/ComplianceMonitoring.cshtml", await _context.Compliances.Include(c => c.Barangay).OrderByDescending(c => c.Due_Date).ToListAsync());
+                                 TempData["ErrorMessage"] = "No active term found. Cannot create compliance.";
+                                 // Reload dropdowns and return view (handled below in the catch/else block)
+                                 ModelState.AddModelError("", "No active term found. Cannot create compliance."); // Add to model state to trigger error path
+                            }
+        
+                            if (ModelState.IsValid) // Re-check after potential activeTerm validation
+                            {
+                                var compliance = new Compliance
+                                {
+                                    // Map fields
+                                    Barangay_ID = model.SelectedBarangayId,
+                                    Title = model.Title,
+                                    Type = model.DocumentType,
+                                    Due_Date = model.DueDate, 
+                                    Term_ID = activeTerm!.Term_ID, // Use ! since we checked ModelState.IsValid after activeTerm check
+                                    // Instructions removed
+        
+                                    // Set defaults
+                                    Status = "Not Submitted",
+                                    File_ID = null
+                                };
+        
+                                // Handle Template File Upload
+                                var baseFolder = !string.IsNullOrEmpty(_webHostEnvironment.WebRootPath)
+                                   ? _webHostEnvironment.WebRootPath
+                                   : _webHostEnvironment.ContentRootPath;
+        
+                                string uploadFolder = Path.Combine(baseFolder, "UploadedFiles", "Templates");
+                                if (!Directory.Exists(uploadFolder))
+                                {
+                                    Directory.CreateDirectory(uploadFolder);
+                                }
+        
+                                string uniqueFileName = $"Template_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid().ToString("N").Substring(0, 6)}{Path.GetExtension(model.TemplateFile!.FileName)}"; // ! because it's required
+                                string filePath = Path.Combine(uploadFolder, uniqueFileName);
+        
+                                using (var stream = new FileStream(filePath, FileMode.Create))
+                                {
+                                    await model.TemplateFile.CopyToAsync(stream);
+                                }
+        
+                                var templateUpload = new FileUpload
+                                {
+                                    User_ID = GetCurrentUserId(),
+                                    File_Name = model.TemplateFile.FileName,
+                                    File = "/UploadedFiles/Templates/" + uniqueFileName,
+                                    Timestamp = DateTime.Now
+                                };
+                                _context.FileUploads.Add(templateUpload);
+                                await _context.SaveChangesAsync();
+        
+                                compliance.TemplateFile_ID = templateUpload.File_ID;
+                                
+                                // Save Compliance
+                                _context.Add(compliance);
+                                await _context.SaveChangesAsync();
+        
+                                // Log
+                                var userId = GetCurrentUserId();
+                                if (userId.HasValue)
+                                {
+                                    await _systemLogService.LogAsync(userId.Value, "Create Compliance", $"Created requirement: {model.Title}", "Compliance", compliance.Compliance_ID);
+                                }
+        
+                                TempData["SuccessMessage"] = "Compliance requirement created successfully.";
+                                return RedirectToAction("ComplianceMonitoring", "FederationPresident");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // Log exception (console or logger)
+                            Console.WriteLine("Error creating compliance: " + ex.Message);
+                            var innerMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                            TempData["ErrorMessage"] = "Error saving to database: " + innerMessage;
+                            ModelState.AddModelError("", "An unexpected error occurred: " + innerMessage); // Add to model state to trigger error path
+                        }
                     }
-
-                    var compliance = new Compliance
+                    // If ModelState is not valid, or an exception occurred, or active term not found
+                    // Reload dropdowns and return view
+                    ViewBag.Barangays = await _context.barangays
+                        .OrderBy(b => b.Barangay_Name)
+                        .Select(b => new SelectListItem
+                        {
+                            Value = b.Barangay_ID.ToString(),
+                            Text = b.Barangay_Name
+                        })
+                        .ToListAsync();
+        
+                    ViewBag.DocumentTypes = new List<SelectListItem>
                     {
-                        // Map fields
-                        Barangay_ID = model.SelectedBarangayId,
-                        Title = model.Title,
-                        Type = model.DocumentType,
-                        Due_Date = model.DueDate, // Fixed: Using single Due_Date property
-                        Term_ID = activeTerm.Term_ID,
-
-                        // Set defaults
-                        Status = "Not Submitted",
-                        File_ID = null
+                        new SelectListItem { Value = "Report", Text = "Report" },
+                        new SelectListItem { Value = "Financial Statement", Text = "Financial Statement" },
+                        new SelectListItem { Value = "Minutes of Meeting", Text = "Minutes of Meeting" },
+                        new SelectListItem { Value = "Proposal", Text = "Proposal" },
+                        new SelectListItem { Value = "Project Documentation", Text = "Project Documentation" }
                     };
-
-                    // Save
-                    _context.Add(compliance);
-                    await _context.SaveChangesAsync();
-
-                    // Log
-                    var userId = GetCurrentUserId();
-                    if (userId.HasValue)
+        
+                    // Reload Terms for the filter on the main page
+                    var terms = await _context.KabataanTermPeriods
+                        .OrderByDescending(t => t.Start_Date)
+                        .ToListAsync();
+                    ViewBag.Terms = new SelectList(terms, "Term_ID", "Term_Name");
+                    
+                    // Default selected term (active)
+                    var activeTermForView = terms.FirstOrDefault(t => t.IsActive);
+                    ViewBag.SelectedTermId = activeTermForView?.Term_ID ?? 0;
+        
+                    // Capture validation errors for TempData if not already done
+                    if (!ModelState.IsValid && TempData["ErrorMessage"] == null)
                     {
-                        await _systemLogService.LogAsync(userId.Value, "Create Compliance", $"Created requirement: {model.Title}", "Compliance", compliance.Compliance_ID);
+                         var errors = string.Join("; ", ModelState.Values
+                                                .SelectMany(v => v.Errors)
+                                                .Select(e => e.ErrorMessage));
+                         TempData["ErrorMessage"] = "Validation failed: " + errors;
                     }
-
-                    TempData["SuccessMessage"] = "Compliance requirement created successfully.";
-                    return RedirectToAction("ComplianceMonitoring", "FederationPresident");
+                    
+                    // Return to the Federation view
+                    return View("~/Views/FederationPresident/ComplianceMonitoring.cshtml", await _context.Compliances.Include(c => c.Barangay).OrderByDescending(c => c.Due_Date).ToListAsync()); 
                 }
-                catch (Exception ex)
-                {
-                    // Log exception (console or logger)
-                    Console.WriteLine("Error creating compliance: " + ex.Message);
-                    var innerMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
-                    TempData["ErrorMessage"] = "Error saving to database: " + innerMessage;
-                }
-            }
-            else
-            {
-                 // Capture validation errors
-                 var errors = string.Join("; ", ModelState.Values
-                                        .SelectMany(v => v.Errors)
-                                        .Select(e => e.ErrorMessage));
-                 TempData["ErrorMessage"] = "Validation failed: " + errors;
-            }
-
-            // If failed, reload dropdown
-            ViewBag.Barangays = await _context.barangays
-                .OrderBy(b => b.Barangay_Name)
-                .Select(b => new SelectListItem
-                {
-                    Value = b.Barangay_ID.ToString(),
-                    Text = b.Barangay_Name
-                })
-                .ToListAsync();
-
-            ViewBag.DocumentTypes = new List<SelectListItem>
-            {
-                new SelectListItem { Value = "Report", Text = "Report" },
-                new SelectListItem { Value = "Financial Statement", Text = "Financial Statement" },
-                new SelectListItem { Value = "Minutes of Meeting", Text = "Minutes of Meeting" },
-                new SelectListItem { Value = "Proposal", Text = "Proposal" },
-                new SelectListItem { Value = "Project Documentation", Text = "Project Documentation" }
-            };
-
-            // Return to the Federation view
-            return View("~/Views/FederationPresident/ComplianceMonitoring.cshtml", await _context.Compliances.Include(c => c.Barangay).OrderByDescending(c => c.Due_Date).ToListAsync()); 
-        }
-
         // Helper for API if needed still
         [HttpGet]
         public async Task<IActionResult> GetCompliancesForFederation(int? barangayId)
@@ -286,10 +336,47 @@ namespace BMS_project.Controllers
         // Download action
         public async Task<IActionResult> Download(int fileId)
         {
-            // ... (Keep existing logic if needed, referencing _webHostEnvironment)
-            // For brevity and strict adherence to the prompt, I focused on the 3 requested methods.
-            // Re-adding minimal download to avoid breaking existing links if any.
-            return NotFound(); 
+            var fileUpload = await _context.FileUploads.FindAsync(fileId);
+            if (fileUpload == null)
+            {
+                return NotFound();
+            }
+
+            string filePath;
+
+            if (!string.IsNullOrEmpty(fileUpload.File) && (fileUpload.File.StartsWith("/UploadedFiles/") || fileUpload.File.StartsWith("UploadedFiles/")))
+            {
+                var trimmed = fileUpload.File.TrimStart('/');
+                filePath = Path.Combine(_webHostEnvironment.WebRootPath ?? _webHostEnvironment.ContentRootPath, trimmed);
+            }
+            else
+            {
+                // fallback: treat DB value as relative to content root
+                var relativePath = fileUpload.File ?? string.Empty;
+                if (!relativePath.StartsWith("UploadedFiles") && !relativePath.Contains("/") && !relativePath.Contains("\\"))
+                {
+                    relativePath = Path.Combine("UploadedFiles", relativePath);
+                }
+                filePath = Path.Combine(_webHostEnvironment.ContentRootPath, relativePath);
+            }
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound("File not found on server.");
+            }
+
+            var memory = new MemoryStream();
+            using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                await stream.CopyToAsync(memory);
+            }
+            memory.Position = 0;
+
+            string contentType = "application/pdf";
+            string downloadName = !string.IsNullOrEmpty(fileUpload.File_Name) ? fileUpload.File_Name : "document.pdf";
+            if (!downloadName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase)) downloadName += ".pdf";
+
+            return File(memory, contentType, downloadName);
         }
     }
 }

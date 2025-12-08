@@ -197,6 +197,100 @@ namespace BMS_project.Controllers
             return View(compliances);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetComplianceDetails(int id)
+        {
+            var compliance = await _context.Compliances
+                .Include(c => c.Barangay)
+                .Include(c => c.Documents)
+                    .ThenInclude(d => d.File)
+                .FirstOrDefaultAsync(c => c.Compliance_ID == id);
+
+            if (compliance == null) return NotFound();
+
+            var viewModel = new ComplianceDetailsViewModel
+            {
+                ComplianceId = compliance.Compliance_ID,
+                BarangayName = compliance.Barangay?.Barangay_Name ?? "Unknown",
+                ComplianceType = compliance.Type,
+                DueDate = compliance.Due_Date,
+                ComplianceStatus = compliance.Status,
+                Documents = compliance.Documents.Select(d => new SubmittedDocumentViewModel
+                {
+                    DocumentId = d.Document_ID,
+                    FileName = d.File?.File_Name ?? "Unknown",
+                    FileUrl = d.File?.File,
+                    Status = d.Status,
+                    Remarks = d.Remarks,
+                    DateSubmitted = d.Date_Submitted
+                }).ToList()
+            };
+
+            return Ok(viewModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ReviewDocument(int documentId, string status, string remarks)
+        {
+            var strategy = _context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
+            {
+                using var tx = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    var doc = await _context.ComplianceDocuments
+                        .Include(d => d.Compliance)
+                        .FirstOrDefaultAsync(d => d.Document_ID == documentId);
+
+                    if (doc == null) return NotFound("Document not found");
+
+                    doc.Status = status;
+                    doc.Remarks = remarks;
+
+                    _context.ComplianceDocuments.Update(doc);
+
+                    // Optional: Update Parent Compliance Status logic?
+                    // For now, we just track per document. 
+                    // But if all docs are Approved, maybe set Compliance to Approved?
+                    // If any is Rejected, maybe set Compliance to "Needs Revision"?
+                    
+                    var allDocs = await _context.ComplianceDocuments
+                        .Where(d => d.Compliance_ID == doc.Compliance_ID)
+                        .ToListAsync();
+
+                    // Logic Refined:
+                    // 1. If ANY document is Pending, the review is incomplete -> Status: "Pending".
+                    // 2. If NO Pending docs, and at least ONE is Approved -> Status: "Completed" (Assumes rejected ones are superseded).
+                    // 3. If NO Pending and NO Approved (i.e., all Rejected) -> Status: "Returned".
+
+                    if (allDocs.Any(d => d.Status == "Pending"))
+                    {
+                        doc.Compliance.Status = "Pending";
+                    }
+                    else if (allDocs.Any(d => d.Status == "Approved"))
+                    {
+                        doc.Compliance.Status = "Completed";
+                    }
+                    else
+                    {
+                        doc.Compliance.Status = "Returned";
+                    }
+                    
+                    _context.Compliances.Update(doc.Compliance);
+
+                    await _context.SaveChangesAsync();
+                    await tx.CommitAsync();
+
+                    return Ok(new { success = true });
+                }
+                catch (Exception ex)
+                {
+                    await tx.RollbackAsync();
+                    return StatusCode(500, ex.Message);
+                }
+            });
+        }
+
         public IActionResult ReportGeneration()
         {
             ViewData["Title"] = "Report Generation";
@@ -287,6 +381,10 @@ namespace BMS_project.Controllers
         {
             var project = await _context.Projects
                 .Include(p => p.Allocations)
+                .Include(p => p.Documents)
+                    .ThenInclude(d => d.File)
+                .Include(p => p.User)
+                    .ThenInclude(u => u.Barangay)
                 .FirstOrDefaultAsync(p => p.Project_ID == id);
 
             if (project == null)
@@ -295,11 +393,42 @@ namespace BMS_project.Controllers
             }
 
             var amount = project.Allocations.FirstOrDefault()?.Amount_Allocated ?? 0;
+            
+            // Map Documents
+            var documents = project.Documents.Select(d => new 
+            {
+                id = d.Document_ID,
+                fileName = d.File?.File_Name ?? "Unknown",
+                fileId = d.File_ID,
+                dateAdded = d.Date_Added.ToString("yyyy-MM-dd")
+            }).ToList();
+
+            // Handle legacy single file attachment (File_ID on Project table)
+            // If there are no entries in project_document table, check the legacy File_ID column
+            if (!documents.Any() && project.File_ID != 0)
+            {
+                var legacyFile = await _context.FileUploads.FindAsync(project.File_ID);
+                if (legacyFile != null)
+                {
+                    documents.Add(new 
+                    {
+                        id = 0, // No document ID
+                        fileName = legacyFile.File_Name,
+                        fileId = legacyFile.File_ID,
+                        dateAdded = project.Date_Submitted?.ToString("yyyy-MM-dd") ?? ""
+                    });
+                }
+            }
 
             return Json(new
             {
+                title = project.Project_Title,
+                description = project.Project_Description,
+                barangay = project.User?.Barangay?.Barangay_Name ?? "Unknown",
                 amount = amount,
-                status = project.Project_Status
+                dateSubmitted = project.Date_Submitted?.ToString("yyyy-MM-dd") ?? "-",
+                status = project.Project_Status,
+                documents = documents
             });
         }
 
@@ -408,7 +537,7 @@ namespace BMS_project.Controllers
             return result;
         }
 
-        public async Task<IActionResult> DownloadFile(int id)
+        public async Task<IActionResult> DownloadFile(int id, bool inline = false)
         {
             var fileUpload = await _context.FileUploads.FindAsync(id);
             if (fileUpload == null)
@@ -455,12 +584,23 @@ namespace BMS_project.Controllers
             // basic mime type check if needed
             if (filePath.EndsWith(".jpg") || filePath.EndsWith(".jpeg")) contentType = "image/jpeg";
             else if (filePath.EndsWith(".png")) contentType = "image/png";
+            else if (filePath.EndsWith(".xlsx")) contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            else if (filePath.EndsWith(".docx")) contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            else if (filePath.EndsWith(".pptx")) contentType = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
             
-            // Use the original file name for download
             string downloadName = !string.IsNullOrEmpty(fileUpload.File_Name) ? fileUpload.File_Name : "document.pdf";
-            if (!downloadName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase)) downloadName += ".pdf";
 
-            return File(memory, contentType, downloadName);
+            if (inline)
+            {
+                Response.Headers.Add("Content-Disposition", $"inline; filename={downloadName}");
+                return File(memory, contentType);
+            }
+            else
+            {
+                // Use the original file name for download
+                if (!downloadName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase)) downloadName += ".pdf"; // Ensure extension for download
+                return File(memory, contentType, downloadName);
+            }
         }
 
         // Load list of budgets and pass to view

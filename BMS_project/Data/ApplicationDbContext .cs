@@ -26,6 +26,8 @@ namespace BMS_project.Data
         public DbSet<Compliance> Compliances { get; set; }
         public DbSet<Sitio> Sitios { get; set; }
         public DbSet<Announcement> Announcements { get; set; }
+        public DbSet<ComplianceDocument> ComplianceDocuments { get; set; }
+        public DbSet<ProjectDocument> ProjectDocuments { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -45,6 +47,20 @@ namespace BMS_project.Data
             modelBuilder.Entity<Compliance>().ToTable("compliance").HasKey(c => c.Compliance_ID);
             modelBuilder.Entity<Sitio>().ToTable("sitio").HasKey(s => s.Sitio_ID);
             modelBuilder.Entity<Announcement>().ToTable("announcement").HasKey(a => a.Announcement_ID);
+            
+            modelBuilder.Entity<ComplianceDocument>().ToTable("compliance_document").HasKey(cd => cd.Document_ID);
+
+            modelBuilder.Entity<ComplianceDocument>()
+                .HasOne(cd => cd.Compliance)
+                .WithMany(c => c.Documents)
+                .HasForeignKey(cd => cd.Compliance_ID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ComplianceDocument>()
+                .HasOne(cd => cd.File)
+                .WithMany()
+                .HasForeignKey(cd => cd.File_ID)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Announcement>()
                 .HasOne(a => a.User)
@@ -179,6 +195,23 @@ namespace BMS_project.Data
                 .WithMany()
                 .HasForeignKey(f => f.User_ID)
                 .OnDelete(DeleteBehavior.SetNull); // file_upload_ibfk_2
+
+            // --- Project Document ---
+            modelBuilder.Entity<ProjectDocument>()
+                .ToTable("project_document")
+                .HasKey(pd => pd.Document_ID);
+
+            modelBuilder.Entity<ProjectDocument>()
+                .HasOne(pd => pd.Project)
+                .WithMany(p => p.Documents)
+                .HasForeignKey(pd => pd.Project_ID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ProjectDocument>()
+                .HasOne(pd => pd.File)
+                .WithMany()
+                .HasForeignKey(pd => pd.File_ID)
+                .OnDelete(DeleteBehavior.Cascade);
 
         }
     }

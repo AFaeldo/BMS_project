@@ -49,5 +49,13 @@ namespace BMS_project.Models
 
         [Column("IsArchived")]
         public bool IsArchived { get; set; } = false;
+
+        [Column("TemplateFile_ID")]
+        public int? TemplateFile_ID { get; set; }
+
+        [ForeignKey("TemplateFile_ID")]
+        public FileUpload? TemplateFile { get; set; }
+
+        public ICollection<ComplianceDocument> Documents { get; set; } = new List<ComplianceDocument>();
     }
 }

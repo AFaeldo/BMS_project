@@ -25,5 +25,9 @@ namespace BMS_project.ViewModels
         public DateTime? Date_Submitted { get; set; }
         public string? SubmissionFilePath { get; set; }
         public int? SubmissionFileId { get; set; }
+
+        // Template Info
+        public string? TemplateFileName { get; set; }
+        public int? TemplateFileId { get; set; }
     }
 }
