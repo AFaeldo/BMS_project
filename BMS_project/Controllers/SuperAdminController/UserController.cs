@@ -143,13 +143,6 @@ namespace BMS_project.Controllers.SuperAdminController
             if (dto.BarangayId == null) return BadRequest("Barangay is required.");
             if (string.IsNullOrWhiteSpace(dto.Email)) return BadRequest("Email Is Required");
 
-            // Prevent creation of SuperAdmin
-            var role = await _context.Roles.FindAsync(dto.RoleId);
-            if (role != null && role.Role_Name == "SuperAdmin")
-            {
-                return BadRequest("Cannot create SuperAdmin users.");
-            }
-
             // Check active term
             var activeTerm = await _context.KabataanTermPeriods.FirstOrDefaultAsync(t => t.IsActive);
             if (activeTerm == null)
@@ -161,9 +154,6 @@ namespace BMS_project.Controllers.SuperAdminController
             if (await _context.Login.AnyAsync(l => l.Username == dto.Username))
                 return BadRequest("Username already exists.");
 
-            var strategy = _context.Database.CreateExecutionStrategy();
-            return await strategy.ExecuteAsync(async () =>
-            {
                 await using var tx = await _context.Database.BeginTransactionAsync();
                 try
                 {
@@ -218,7 +208,6 @@ namespace BMS_project.Controllers.SuperAdminController
                     await tx.RollbackAsync();
                     return StatusCode(500, ex.Message);
                 }
-            });
         }
 
         // PUT: api/users/5
@@ -242,19 +231,6 @@ namespace BMS_project.Controllers.SuperAdminController
                     return BadRequest("Username already exists.");
             }
 
-            // Prevent escalation to SuperAdmin
-            if (dto.RoleId.HasValue)
-            {
-                var role = await _context.Roles.FindAsync(dto.RoleId.Value);
-                if (role != null && role.Role_Name == "SuperAdmin")
-                {
-                    return BadRequest("Cannot assign SuperAdmin role.");
-                }
-            }
-
-            var strategy = _context.Database.CreateExecutionStrategy();
-            return await strategy.ExecuteAsync(async () =>
-            {
                 await using var tx = await _context.Database.BeginTransactionAsync();
                 try
                 {
