@@ -45,20 +45,20 @@ namespace BMS_project.Controllers
             return null;
         }
 
-        public async Task<IActionResult> Dashboard(int? termId)
+        public async Task<IActionResult> Dashboard()
         {
             ViewData["Title"] = "Dashboard";
 
             var viewModel = new FederationDashboardViewModel();
 
-            // 1. Get All Terms for Dropdown
-            viewModel.AllTerms = await _context.KabataanTermPeriods.OrderByDescending(t => t.Start_Date).ToListAsync();
-
-            // 2. Determine Active/Selected Term
-            var activeTerm = viewModel.AllTerms.FirstOrDefault(t => t.IsActive);
-            int targetTermId = termId ?? (activeTerm?.Term_ID ?? 0);
+            // 1. Get Active Term (ignoring selection logic)
+            var activeTerm = await _context.KabataanTermPeriods.FirstOrDefaultAsync(t => t.IsActive);
+            
+            // If no active term, maybe fallback to latest? For now, logic implies active term.
+            // If strictly active:
+            int targetTermId = activeTerm?.Term_ID ?? 0;
             viewModel.SelectedTermId = targetTermId;
-            viewModel.CurrentTermName = viewModel.AllTerms.FirstOrDefault(t => t.Term_ID == targetTermId)?.Term_Name ?? "Unknown Term";
+            viewModel.CurrentTermName = activeTerm?.Term_Name ?? "No Active Term";
 
             if (targetTermId != 0)
             {
@@ -142,7 +142,7 @@ namespace BMS_project.Controllers
             return View(viewModel);
         }
 
-        public async Task<IActionResult> ComplianceMonitoring(int? termId)
+        public async Task<IActionResult> ComplianceMonitoring()
         {
             ViewData["Title"] = "Compliance Monitoring";
 
@@ -166,24 +166,9 @@ namespace BMS_project.Controllers
                 new SelectListItem { Value = "Project Documentation", Text = "Project Documentation" }
             };
 
-            // 1. Get All Terms for Filter Dropdown
-            var terms = await _context.KabataanTermPeriods
-                .OrderByDescending(t => t.Start_Date)
-                .ToListAsync();
-            
-            ViewBag.Terms = new SelectList(terms, "Term_ID", "Term_Name");
-
-            // 2. Determine Active/Selected Term
-            int selectedTermId;
-            if (termId.HasValue)
-            {
-                selectedTermId = termId.Value;
-            }
-            else
-            {
-                var activeTerm = terms.FirstOrDefault(t => t.IsActive);
-                selectedTermId = activeTerm?.Term_ID ?? (terms.FirstOrDefault()?.Term_ID ?? 0);
-            }
+            // 1. Get Active Term only
+            var activeTerm = await _context.KabataanTermPeriods.FirstOrDefaultAsync(t => t.IsActive);
+            int selectedTermId = activeTerm?.Term_ID ?? 0;
 
             ViewBag.SelectedTermId = selectedTermId;
 
@@ -211,6 +196,7 @@ namespace BMS_project.Controllers
             var viewModel = new ComplianceDetailsViewModel
             {
                 ComplianceId = compliance.Compliance_ID,
+                Title = compliance.Title,
                 BarangayName = compliance.Barangay?.Barangay_Name ?? "Unknown",
                 ComplianceType = compliance.Type,
                 DueDate = compliance.Due_Date,

@@ -22,40 +22,11 @@
     }
 
     <!-- PAGE HEADER -->
-    <div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold">Compliance Monitoring</h2>
-    </div>
-
-    <!-- Filter Section (Optional, keeping UI consistent) -->
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <form method="get" action="@Url.Action("ComplianceMonitoring")" id="termForm">
-                <label class="form-label fw-bold" style="color: white !important;">Select Term:</label>
-                <select name="termId" class="form-select w-auto d-inline-block" onchange="document.getElementById('termForm').submit()">
-                    @if (ViewBag.Terms != null)
-                    {
-                        foreach (var item in (SelectList)ViewBag.Terms)
-                        {
-                            if (item.Value == ViewBag.SelectedTermId.ToString())
-                            {
-                                <option value="@item.Value" selected>@item.Text</option>
-                            }
-                            else
-                            {
-                                <option value="@item.Value">@item.Text</option>
-                            }
-                        }
-                    }
-                </select>
-            </form>
-        </div>
-        <div class="col-md-6 d-flex justify-content-end align-items-end gap-3 flex-wrap">
-            <div class="mt-4 text-end">
-                <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#createComplianceModal">
-                    Add Compliance
-                </button>
-            </div>
-        </div>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createComplianceModal">
+            <i class="bi bi-plus-circle me-2"></i>Add Compliance
+        </button>
     </div>
 
     <!-- Compliance Table -->
@@ -104,6 +75,10 @@
                                         {
                                             <span class="badge bg-warning text-dark">For Review</span>
                                         }
+                                        else if (item.Due_Date < DateTime.Today)
+                                        {
+                                            <span class="badge bg-danger">Overdue</span>
+                                        }
                                         else
                                         {
                                             <span class="badge bg-secondary">Not Submitted</span>
@@ -115,9 +90,6 @@
                                                 data-id="@item.Compliance_ID"
                                                 onclick="openDetailsModal(this)">
                                             View
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-danger" onclick="confirmArchive(@item.Compliance_ID)">
-                                            Archive
                                         </button>
                                     </td>
                                 </tr>
@@ -272,6 +244,15 @@
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
     <script>
+        // Set Min Date for Due Date Input
+        document.addEventListener("DOMContentLoaded", function() {
+            var today = new Date().toISOString().split('T')[0];
+            var dueDateInput = document.querySelector('input[name="DueDate"]');
+            if (dueDateInput) {
+                dueDateInput.setAttribute('min', today);
+            }
+        });
+
         function confirmArchive(id) {
             var form = document.getElementById('archiveForm');
             form.action = '/Compliance/Archive/' + id;

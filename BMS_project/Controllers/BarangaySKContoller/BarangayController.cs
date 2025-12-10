@@ -974,6 +974,45 @@ namespace BMS_project.Controllers
             return View(compliances);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetComplianceDetails(int id)
+        {
+            var barangayId = GetBarangayIdFromClaims();
+            if (!barangayId.HasValue) return Unauthorized();
+
+            var compliance = await _context.Compliances
+                .Include(c => c.Barangay)
+                .Include(c => c.Documents)
+                    .ThenInclude(d => d.File)
+                .FirstOrDefaultAsync(c => c.Compliance_ID == id);
+
+            if (compliance == null) return NotFound();
+
+            // Security check: Ensure compliance belongs to this barangay
+            if (compliance.Barangay_ID != barangayId.Value) return Unauthorized();
+
+            var viewModel = new ComplianceDetailsViewModel
+            {
+                ComplianceId = compliance.Compliance_ID,
+                Title = compliance.Title,
+                BarangayName = compliance.Barangay?.Barangay_Name ?? "Unknown",
+                ComplianceType = compliance.Type,
+                DueDate = compliance.Due_Date,
+                ComplianceStatus = compliance.Status,
+                Documents = compliance.Documents.Select(d => new SubmittedDocumentViewModel
+                {
+                    DocumentId = d.Document_ID,
+                    FileName = d.File?.File_Name ?? "Unknown",
+                    FileUrl = d.File?.File,
+                    Status = d.Status,
+                    Remarks = d.Remarks,
+                    DateSubmitted = d.Date_Submitted
+                }).ToList()
+            };
+
+            return Ok(viewModel);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitCompliance(int ComplianceId, List<IFormFile> SubmissionFiles)
@@ -1110,6 +1149,22 @@ namespace BMS_project.Controllers
             var budget = await _context.Budgets
                                         .FirstOrDefaultAsync(b => b.Barangay_ID == barangayId.Value &&
                                                                 b.Term_ID == activeTerm.Term_ID);
+
+            if (budget != null)
+            {
+                // Fetch Allocations for this Budget
+                var allocations = await _context.ProjectAllocations
+                    .Include(a => a.Project)
+                    .Where(a => a.Budget_ID == budget.Budget_ID)
+                    .OrderByDescending(a => a.Project.Date_Submitted)
+                    .ToListAsync();
+                
+                ViewBag.Allocations = allocations;
+            }
+            else
+            {
+                ViewBag.Allocations = new List<ProjectAllocation>();
+            }
 
             // 3. Handle Null: If no budget found for the active term, pass a default one.
             return View(budget ?? new Budget { budget = 0, disbursed = 0, balance = 0 });

@@ -84,19 +84,44 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- TODO: Bind this to a real list of projects/allocations if available -->
-                    <tr>
-                        <td>Community Clean-up Drive</td>
-                        <td><span class="badge bg-success">Approved</span></td>
-                        <td>₱15,000.00</td>
-                        <td>Sept 28, 2025</td>
-                    </tr>
-                    <tr>
-                        <td>Sports Equipment Purchase</td>
-                        <td><span class="badge bg-warning text-dark">Pending</span></td>
-                        <td>₱25,000.00</td>
-                        <td>Oct 3, 2025</td>
-                    </tr>
+                    @{
+                        var allocations = ViewBag.Allocations as IEnumerable<BMS_project.Models.ProjectAllocation>;
+                    }
+                    @if (allocations != null && allocations.Any())
+                    {
+                        foreach (var item in allocations)
+                        {
+                            <tr>
+                                <td>@(item.Project?.Project_Title ?? "Unknown Project")</td>
+                                <td>
+                                    @if (item.Project?.Project_Status == "Approved" || item.Project?.Project_Status == "Ongoing")
+                                    {
+                                        <span class="badge bg-success">@item.Project.Project_Status</span>
+                                    }
+                                    else if (item.Project?.Project_Status == "Pending")
+                                    {
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                    }
+                                    else if (item.Project?.Project_Status == "Rejected")
+                                    {
+                                        <span class="badge bg-danger">Rejected</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">@(item.Project?.Project_Status ?? "-")</span>
+                                    }
+                                </td>
+                                <td>@item.Amount_Allocated.ToString("C", new System.Globalization.CultureInfo("en-PH"))</td>
+                                <td>@(item.Project?.Date_Submitted?.ToString("MMM dd, yyyy") ?? "-")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">No budget allocations found for this term.</td>
+                        </tr>
+                    }
                 </tbody>
             </table>
         </div>

@@ -67,6 +67,10 @@
                                         {
                                             <span class="badge bg-warning text-dark">For Review</span>
                                         }
+                                        else if (item.DueDate < DateTime.Today)
+                                        {
+                                            <span class="badge bg-danger">Overdue</span>
+                                        }
                                         else
                                         {
                                             <span class="badge bg-secondary">Not Submitted</span>
@@ -86,9 +90,8 @@
                                         }
                                         else if (item.Date_Submitted.HasValue)
                                         {
-                                            <button class="btn btn-sm btn-info text-white btn-view" 
-                                                    disabled
-                                                    title="View functionality not yet implemented for Barangay">
+                                            <button class="btn btn-sm btn-info text-white" 
+                                                    onclick="openDetailsModal(@item.Compliance_ID)">
                                                 View
                                             </button>
                                         }
@@ -151,6 +154,56 @@
     </div>
 </div>
 
+<!-- View Details Modal -->
+<div class="modal fade" id="viewComplianceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0 rounded-3">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">Compliance Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4 border-bottom pb-2">
+                    <h5 class="fw-bold text-primary mb-3" id="modalDetailsTitle"></h5>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4 text-muted">Compliance Type</dt>
+                        <dd class="col-sm-8 fw-bold" id="modalDetailsType"></dd>
+
+                        <dt class="col-sm-4 text-muted">Due Date</dt>
+                        <dd class="col-sm-8 fw-bold" id="modalDetailsDueDate"></dd>
+
+                        <dt class="col-sm-4 text-muted">Overall Status</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge" id="modalDetailsStatus"></span>
+                        </dd>
+                    </dl>
+                </div>
+
+                <div class="mb-2">
+                    <h6 class="fw-bold">Submitted Documents</h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle" id="modalDocumentsTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Document Name</th>
+                                <th style="width: 120px;">Status</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Documents injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         // Pass data to modal
@@ -183,5 +236,74 @@
                 e.target.closest(".remove-file").parentElement.remove();
             }
         });
+
+        // View Details Logic
+        function openDetailsModal(id) {
+            // Clear previous data
+            document.getElementById('modalDetailsTitle').innerText = 'Loading...';
+            document.getElementById('modalDetailsType').innerText = '';
+            document.getElementById('modalDetailsDueDate').innerText = '';
+            document.getElementById('modalDetailsStatus').innerText = '';
+            document.getElementById('modalDocumentsTable').querySelector('tbody').innerHTML = '<tr><td colspan="3" class="text-center">Loading...</td></tr>';
+
+            var modal = new bootstrap.Modal(document.getElementById('viewComplianceModal'));
+            modal.show();
+
+            fetch('@Url.Action("GetComplianceDetails", "BarangaySk")/' + id)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    // Populate Header
+                    // Use camelCase properties from JSON response
+                    var title = data.title || "Compliance Details";
+                    document.getElementById('modalDetailsTitle').innerText = title;
+                    
+                    document.getElementById('modalDetailsType').innerText = data.complianceType || '-';
+                    
+                    var dateStr = data.dueDate;
+                    if(dateStr) {
+                        document.getElementById('modalDetailsDueDate').innerText = new Date(dateStr).toLocaleDateString();
+                    }
+
+                    var status = data.complianceStatus;
+                    var badge = document.getElementById('modalDetailsStatus');
+                    badge.innerText = status;
+                    badge.className = 'badge';
+                    if(status === 'Approved' || status === 'Completed') badge.classList.add('bg-success');
+                    else if(status === 'Rejected' || status === 'Returned') badge.classList.add('bg-danger');
+                    else badge.classList.add('bg-warning', 'text-dark');
+
+                    // Populate Documents
+                    var tbody = document.getElementById('modalDocumentsTable').querySelector('tbody');
+                    tbody.innerHTML = '';
+                    var docs = data.documents || [];
+                    
+                    if(docs.length > 0) {
+                        docs.forEach(doc => {
+                            var statusClass = 'bg-secondary';
+                            if(doc.status === 'Approved') statusClass = 'bg-success';
+                            else if(doc.status === 'Rejected') statusClass = 'bg-danger';
+                            else if(doc.status === 'Pending') statusClass = 'bg-warning text-dark';
+
+                            var row = `
+                                <tr>
+                                    <td><a href="${doc.fileUrl}" target="_blank"><i class="bi bi-file-earmark-pdf"></i> ${doc.fileName}</a></td>
+                                    <td><span class="badge ${statusClass}">${doc.status}</span></td>
+                                    <td class="small text-muted">${doc.remarks || ''}</td>
+                                </tr>
+                            `;
+                            tbody.innerHTML += row;
+                        });
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="3" class="text-center">No documents found.</td></tr>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('modalDocumentsTable').querySelector('tbody').innerHTML = '<tr><td colspan="3" class="text-danger text-center">Failed to load details.</td></tr>';
+                });
+        }
     </script>
 }

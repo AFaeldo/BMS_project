@@ -7,12 +7,26 @@
 
 <div class="container-fluid">
 
-    <!-- PAGE HEADER -->
-    <div class="mb-4 d-flex justify-content-between align-items-center">
-        <h2 class="fw-bold">Registered Youth Members</h2>
-        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#manageSitioModal">
-            <i class="bi bi-geo-alt-fill me-1"></i> Manage Sitios
-        </button>
+    <!-- PAGE HEADER & FILTER -->
+    <div class="row align-items-center mb-4">
+        <div class="col-md-6">
+            <h2 class="fw-bold">Registered Youth Members</h2>
+        </div>
+        <div class="col-md-6 d-flex justify-content-md-end align-items-center gap-2">
+            <select id="sitioFilter" class="form-select w-auto">
+                <option value="">-- Filter by Sitio --</option>
+                @if (ViewBag.SitioList != null)
+                {
+                    foreach (var item in (IEnumerable<SelectListItem>)ViewBag.SitioList)
+                    {
+                        <option value="@item.Text">@item.Text</option>
+                    }
+                }
+            </select>
+            <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#manageSitioModal">
+                <i class="bi bi-geo-alt-fill me-1"></i> Manage Sitios
+            </button>
+        </div>
     </div>
 
     <div class="col-12 text-end mb-3">
@@ -28,7 +42,7 @@
     <div class="card shadow-sm border-0">
         <div class="card-body">
             <h5 class="card-title mb-3 fw-semibold">Members List</h5>
-            <table class="table table-bordered table-hover align-middle mb-0">
+            <table class="table table-bordered table-hover align-middle mb-0" id="youthTable">
                 <thead class="table-primary text-center">
                     <tr>
                         <th>Member ID</th>
@@ -52,7 +66,7 @@
                                 <td>@y.LastName</td>
                                 <td>@y.Age</td>
                                 <td>@y.Sex</td>
-                                <td>@(y.Sitio != null ? y.Sitio.Sitio_Name : "N/A")</td>
+                                <td class="sitio-cell">@(y.Sitio != null ? y.Sitio.Sitio_Name : "N/A")</td>
                                 <td>@y.Birthday.ToString("yyyy-MM-dd")</td>
                                 <td>
                                     <button class="btn btn-sm btn-warning me-1 btn-edit"
@@ -218,22 +232,26 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content shadow border-0 rounded-3">
             <div class="modal-header bg-info text-white">
-                <h5 class="modal-title"><i class="bi bi-geo-alt-fill"></i> Add New Sitio</h5>
+                <h5 class="modal-title"><i class="bi bi-geo-alt-fill"></i> Manage Sitios</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form asp-controller="Youth" asp-action="AddSitio" method="post">
-                @Html.AntiForgeryToken()
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Sitio Name</label>
-                        <input type="text" name="SitioName" class="form-control" placeholder="Enter new Sitio name" required />
+            <div class="modal-body">
+                <!-- List -->
+                <h6 class="fw-bold mb-2">Existing Sitios</h6>
+                <ul class="list-group mb-4" id="sitioListGroup" style="max-height: 200px; overflow-y: auto;">
+                    <li class="list-group-item text-muted text-center">Loading...</li>
+                </ul>
+
+                <!-- Add Form -->
+                <h6 class="fw-bold mb-2">Add New Sitio</h6>
+                <form id="addSitioForm">
+                    <div class="input-group">
+                        <input type="text" id="newSitioName" class="form-control" placeholder="Enter new Sitio name" required />
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add</button>
                     </div>
-                    <div class="text-end">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save Sitio</button>
-                    </div>
-                </div>
-            </form>
+                    <div id="sitioError" class="text-danger small mt-1 d-none"></div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
@@ -378,6 +396,91 @@
                 }
             });
         }
+
+        // --- SITIO MANAGEMENT LOGIC ---
+        const manageSitioModal = document.getElementById('manageSitioModal');
+        manageSitioModal.addEventListener('show.bs.modal', function () {
+            loadSitios();
+        });
+
+        function loadSitios() {
+            const list = document.getElementById('sitioListGroup');
+            list.innerHTML = '<li class="list-group-item text-center text-muted">Loading...</li>';
+            
+            fetch('/api/Sitio/List')
+                .then(res => res.json())
+                .then(data => {
+                    list.innerHTML = '';
+                    if (data.length === 0) {
+                        list.innerHTML = '<li class="list-group-item text-center text-muted">No sitios found.</li>';
+                    } else {
+                        data.forEach(s => {
+                            const li = document.createElement('li');
+                            li.className = 'list-group-item';
+                            li.textContent = s.name;
+                            list.appendChild(li);
+                        });
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    list.innerHTML = '<li class="list-group-item text-center text-danger">Error loading list.</li>';
+                });
+        }
+
+        document.getElementById('addSitioForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const input = document.getElementById('newSitioName');
+            const name = input.value.trim();
+            const errorDiv = document.getElementById('sitioError');
+            
+            if(!name) return;
+
+            errorDiv.classList.add('d-none');
+            
+            fetch('/api/Sitio/Add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name: name })
+            })
+            .then(res => {
+                if(res.ok) return res.json();
+                return res.text().then(text => { throw new Error(text || res.statusText); });
+            })
+            .then(data => {
+                input.value = ''; // Clear
+                loadSitios(); // Refresh list
+                
+                // Optional: Update the filter and edit dropdowns without reload? 
+                // For simplicity, user can reload page to see new sitio in main dropdowns, 
+                // or we could append to them via JS.
+                // Let's assume page reload or next visit is fine for main dropdowns.
+            })
+            .catch(err => {
+                errorDiv.textContent = err.message;
+                errorDiv.classList.remove('d-none');
+            });
+        });
+
+        // --- SITIO FILTER LOGIC ---
+        document.getElementById('sitioFilter').addEventListener('change', function() {
+            const filterValue = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#youthTable tbody tr');
+
+            rows.forEach(row => {
+                if (row.children.length === 1) return; // Skip "No records" row
+                const cell = row.querySelector('.sitio-cell');
+                const sitioName = cell ? cell.textContent.trim().toLowerCase() : "";
+                
+                if (filterValue === "" || sitioName === filterValue) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        });
 
     </script>
     @{

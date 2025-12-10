@@ -6,6 +6,7 @@ namespace BMS_project.ViewModels
     public class ComplianceDetailsViewModel
     {
         public int ComplianceId { get; set; }
+        public string Title { get; set; } // Added Title
         public string BarangayName { get; set; }
         public string ComplianceType { get; set; }
         public DateTime DueDate { get; set; }
