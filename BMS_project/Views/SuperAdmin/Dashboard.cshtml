@@ -4,6 +4,21 @@
     ViewData["Title"] = "Dashboard";
 }
 
+@functions {
+    public string FormatCurrency(decimal amount)
+    {
+        if (amount >= 1000000)
+        {
+            return (amount / 1000000).ToString("0.##") + "m";
+        }
+        if (amount >= 1000)
+        {
+            return (amount / 1000).ToString("0.##") + "k";
+        }
+        return amount.ToString("N0");
+    }
+}
+
 <div class="container-fluid">
 
     <!-- PAGE HEADER -->
@@ -51,7 +66,7 @@ else if (TempData["DashboardErrorMessage"] != null)
                 <div class="card-body">
                     <i class="fa-solid fa-sack-dollar fs-2 text-warning mb-2"></i>
                     <h6 class="text-muted mb-1">Federation Fund</h6>
-                    <h3 class="fw-bold mb-0">@Model.FederationFundAmount.ToString("C", new System.Globalization.CultureInfo("en-PH"))</h3>
+                    <h3 class="fw-bold mb-0">@FormatCurrency(Model?.FederationFundAmount ?? 0)</h3>
                 </div>
             </div>
         </div>

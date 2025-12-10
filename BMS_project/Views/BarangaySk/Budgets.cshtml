@@ -3,6 +3,22 @@
     Layout = "~/Views/Shared/_BarangayLayout.cshtml";
     ViewData["Title"] = "Budget & Finance";
 }
+
+@functions {
+    public string FormatCurrency(decimal amount)
+    {
+        if (amount >= 1000000)
+        {
+            return (amount / 1000000).ToString("0.##") + "m";
+        }
+        if (amount >= 1000)
+        {
+            return (amount / 1000).ToString("0.##") + "k";
+        }
+        return amount.ToString("N0");
+    }
+}
+
 <div class="mb-4">
     <h2 class="fw-bold"> Budget Auditing</h2>
 </div>
@@ -18,7 +34,7 @@
                         <div>
                             <h6 class="text-muted fw-semibold mb-1">Total Allocation</h6>
                             <h3 class="fw-bold text-primary mb-0">
-                                @(Model?.budget.ToString("C", new System.Globalization.CultureInfo("en-PH")) ?? "₱0.00")
+                                @FormatCurrency(Model?.budget ?? 0)
                             </h3>
                         </div>
                         <div class="bg-primary bg-opacity-10 p-3 rounded-circle">
@@ -37,7 +53,7 @@
                         <div>
                             <h6 class="text-muted fw-semibold mb-1">Total Disbursed</h6>
                             <h3 class="fw-bold text-warning mb-0">
-                                @(Model?.disbursed.ToString("C", new System.Globalization.CultureInfo("en-PH")) ?? "₱0.00")
+                                @FormatCurrency(Model?.disbursed ?? 0)
                             </h3>
                         </div>
                         <div class="bg-warning bg-opacity-10 p-3 rounded-circle">
@@ -56,7 +72,7 @@
                         <div>
                             <h6 class="text-muted fw-semibold mb-1">Remaining Balance</h6>
                             <h3 class="fw-bold text-success mb-0">
-                                @(Model?.balance.ToString("C", new System.Globalization.CultureInfo("en-PH")) ?? "₱0.00")
+                                @FormatCurrency(Model?.balance ?? 0)
                             </h3>
                         </div>
                         <div class="bg-success bg-opacity-10 p-3 rounded-circle">
