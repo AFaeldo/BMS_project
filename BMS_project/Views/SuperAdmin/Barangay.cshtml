@@ -57,7 +57,6 @@
                     <thead class="table-dark">
                         <tr>
                             <th>Barangay Name</th>
-                            <th class="text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -67,19 +66,13 @@
                             {
                                 <tr>
                                     <td>@b.Barangay_Name</td>
-                                    <td class="text-center">
-                                        <button class="btn btn-sm btn-warning text-white btn-edit" disabled>
-                                            <i class="bi bi-pencil-square"></i> Edit </button>
-                                        <button class="btn btn-sm btn-danger btn-delete" disabled>
-                                            <i class="bi bi-trash"></i> Delete</button>
-                                    </td>
                                 </tr>
                             }
                         }
                         else
                         {
                             <tr>
-                                <td colspan="2" class="text-center text-muted">No barangays found.</td>
+                                <td class="text-center text-muted">No barangays found.</td>
                             </tr>
                         }
                     </tbody>
