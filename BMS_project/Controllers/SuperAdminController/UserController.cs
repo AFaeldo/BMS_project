@@ -6,6 +6,8 @@ using BMS_project.Models;
 using BMS_project.Models.Dto;
 using System.Security.Claims;
 using BMS_project.Services;
+using System.Net;
+using System.Net.Mail;
 
 namespace BMS_project.Controllers.SuperAdminController
 {
@@ -16,11 +18,13 @@ namespace BMS_project.Controllers.SuperAdminController
         private readonly ApplicationDbContext _context;
         private readonly PasswordHasher<User> _passwordHasher;
         private readonly ISystemLogService _systemLogService;
+        private readonly IEmailService _emailService;
 
-        public UsersController(ApplicationDbContext context, ISystemLogService systemLogService)
+        public UsersController(ApplicationDbContext context, ISystemLogService systemLogService, IEmailService emailService)
         {
             _context = context;
             _systemLogService = systemLogService;
+            _emailService = emailService;
             _passwordHasher = new PasswordHasher<User>();
         }
 
@@ -169,6 +173,9 @@ namespace BMS_project.Controllers.SuperAdminController
                 using var tx = await _context.Database.BeginTransactionAsync();
                 try
                 {
+                    // Generate Token
+                    var token = Guid.NewGuid().ToString();
+
                     // create user
                     var user = new User
                     {
@@ -177,7 +184,9 @@ namespace BMS_project.Controllers.SuperAdminController
                         Email = dto.Email,
                         Barangay_ID = dto.BarangayId,
                         Role_ID = dto.RoleId,
-                        IsArchived = false
+                        IsArchived = false,
+                        IsEmailVerified = false,
+                        VerificationToken = token
                     };
                     _context.Users.Add(user);
                     await _context.SaveChangesAsync();
@@ -211,8 +220,30 @@ namespace BMS_project.Controllers.SuperAdminController
                     }
 
                     await _context.SaveChangesAsync();
-
                     await tx.CommitAsync();
+
+                    // Send Email AFTER Commit to avoid issues if email fails but DB succeeded (or handle inside if atomic)
+                    // Construct Link
+                    var verificationLink = $"{Request.Scheme}://{Request.Host}/Account/VerifyEmail?token={token}";
+                    var message = $"<h3>Welcome to the SK Federation System</h3><p>Please verify your email by clicking the link below:</p><a href='{verificationLink}'>Verify Email</a>";
+
+                    try
+                    {
+                        await _emailService.SendEmailAsync(user.Email, "Email Verification", message);
+                    }
+                    catch (Exception emailEx)
+                    {
+                        // Log email error, but don't fail the user creation. User can request re-send later (if we implement that).
+                        // For now, we'll just log it.
+                        // _logger.LogError(emailEx, "Failed to send verification email");
+                        // We don't have logger injected in this controller yet, so we skip explicit logging or use SystemLog?
+                        // Using SystemLog for error might be okay.
+                         if (int.TryParse(userIdStr, out int aid))
+                         {
+                            await _systemLogService.LogAsync(aid, "Email Error", $"Failed to send verification email to {user.Email}: {emailEx.Message}", "User", user.User_ID);
+                         }
+                    }
+
                     return Ok(new { success = true });
                 }
                 catch (Exception ex)

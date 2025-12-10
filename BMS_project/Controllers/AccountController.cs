@@ -13,11 +13,13 @@ public class AccountController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly ISystemLogService _systemLogService;
+    private readonly IEmailService _emailService;
 
-    public AccountController(ApplicationDbContext context, ISystemLogService systemLogService)
+    public AccountController(ApplicationDbContext context, ISystemLogService systemLogService, IEmailService emailService)
     {
         _context = context;
         _systemLogService = systemLogService;
+        _emailService = emailService;
     }
 
     [HttpGet]
@@ -70,6 +72,13 @@ public class AccountController : Controller
         if (user.User != null && user.User.IsArchived)
         {
             ViewBag.Error = "Invalid username or password.";
+            return View();
+        }
+
+        // Check Email Verification
+        if (user.User != null && !user.User.IsEmailVerified)
+        {
+            ViewBag.Error = "Please verify your email address before logging in.";
             return View();
         }
 
@@ -264,35 +273,94 @@ public class AccountController : Controller
     }
 
     [HttpGet]
+    public async Task<IActionResult> VerifyEmail(string token)
+    {
+        if (string.IsNullOrEmpty(token))
+        {
+            return BadRequest("Token is required.");
+        }
+
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.VerificationToken == token);
+        if (user == null)
+        {
+            return NotFound("Invalid verification token.");
+        }
+
+        user.IsEmailVerified = true;
+        user.VerificationToken = null; // Clear token after use
+
+        await _context.SaveChangesAsync();
+
+        ViewBag.Success = "Email verified successfully! You can now login.";
+        return View("Login");
+    }
+
+    [HttpGet]
     public IActionResult AccessDenied()
     {
         return Content("Access Denied — You don’t have permission to view this page.");
     }
 
-
-    // FORGOT PASSWORD 
-
     [HttpGet]
-    public IActionResult ForgotPassword() => View();
+    public IActionResult ResendVerification()
+    {
+        return View();
+    }
 
     [HttpPost]
-    public async Task<IActionResult> ForgotPassword(string username)
+    public async Task<IActionResult> ResendVerification(string email)
     {
-        if (string.IsNullOrEmpty(username))
+        if (string.IsNullOrEmpty(email))
         {
-            ViewBag.Message = "Please enter your username.";
+            ViewBag.Message = "Please enter your email address.";
             return View();
         }
 
-        var user = await _context.Login.FirstOrDefaultAsync(u => u.Username == username);
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
         if (user == null)
         {
-            ViewBag.Message = "No account found with this username.";
+            // Don't reveal if user exists or not for security, or do? 
+            // Existing code reveals username existence in ForgotPassword, so we might as well be consistent or better.
+            // But standard practice is "If an account exists, an email has been sent."
+            // However, for verification, if they are already verified, we should tell them "Account already verified."
+            ViewBag.Message = "If an account with that email exists and is unverified, a verification link has been sent.";
             return View();
         }
 
-        ViewBag.Message = "Username found. Please contact your administrator to reset your password.";
+        if (user.IsEmailVerified)
+        {
+            ViewBag.Message = "This account is already verified. Please login.";
+            return View();
+        }
+
+        // Generate new token
+        var token = Guid.NewGuid().ToString();
+        user.VerificationToken = token;
+        _context.Update(user);
+        await _context.SaveChangesAsync();
+
+        // Send Email
+        var verifyUrl = Url.Action("VerifyEmail", "Account", new { token = token }, Request.Scheme);
+        var message = $"Please verify your email by clicking <a href='{verifyUrl}'>here</a>.";
+        
+        try
+        {
+            await _emailService.SendEmailAsync(user.Email, "Resend Email Verification", message);
+            ViewBag.Message = "Verification link sent! Please check your email.";
+            
+            // Log the resend verification event
+            if (user.User_ID > 0) // Assuming User_ID is populated
+            {
+                await _systemLogService.LogAsync(user.User_ID, "Resend Verification", $"Verification email resent to {user.Email}");
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log error?
+            ViewBag.Message = "Error sending email. Please try again later. " + ex.Message;
+        }
+
         return View();
     }
 

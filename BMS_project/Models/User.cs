@@ -37,5 +37,8 @@ namespace BMS_project.Models
 
         [Column("IsArchived")]
         public bool IsArchived { get; set; } = false;
+
+        public bool IsEmailVerified { get; set; } = false;
+        public string? VerificationToken { get; set; }
     }
 }

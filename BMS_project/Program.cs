@@ -8,10 +8,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 builder.Services.AddControllersWithViews();
+builder.Services.AddEndpointsApiExplorer(); // Required for Swagger
+builder.Services.AddSwaggerGen(); // Add Swagger Generator
 builder.Services.AddSession(); // Add Session
 builder.Services.AddHttpContextAccessor(); // Add HttpContextAccessor
 builder.Services.AddScoped<ISystemLogService, SystemLogService>();
 builder.Services.AddScoped<ITermService, TermService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Configure Cookie Authentication (only once)
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -51,6 +54,9 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

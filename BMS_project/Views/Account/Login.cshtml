@@ -13,7 +13,13 @@
 
     @if (ViewBag.Error != null)
     {
-        <div class="alert alert-danger text-center py-2">@ViewBag.Error</div>
+        <div class="alert alert-danger text-center py-2">
+            @ViewBag.Error
+            @if (ViewBag.Error.ToString().Contains("verify your email address"))
+            {
+                <br /><a asp-action="ResendVerification" class="small text-decoration-none text-danger">Click here to resend verification.</a>
+            }
+        </div>
     }
 
     <form method="post" asp-action="Login">
