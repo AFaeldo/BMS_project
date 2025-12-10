@@ -2,6 +2,7 @@
 using BMS_project.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization; // Added for culture configuration
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +13,7 @@ builder.Services.AddHttpContextAccessor(); // Add HttpContextAccessor
 builder.Services.AddScoped<ISystemLogService, SystemLogService>();
 builder.Services.AddScoped<ITermService, TermService>();
 
-//  Configure Cookie Authentication (only once)
+// Configure Cookie Authentication (only once)
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -28,6 +29,20 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         mySqlOptions => mySqlOptions.EnableRetryOnFailure()
     ));
 
+// Configure localization for currency formatting
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[]
+    {
+        new CultureInfo("en-PH"),
+        new CultureInfo("fil-PH")
+    };
+
+    options.DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture("en-PH");
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
@@ -41,6 +56,9 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+// Use localization middleware
+app.UseRequestLocalization(); // Added for culture configuration
 
 // Authentication before Authorization
 app.UseAuthentication();

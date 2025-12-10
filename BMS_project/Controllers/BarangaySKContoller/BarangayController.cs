@@ -258,10 +258,24 @@ namespace BMS_project.Controllers
                 return RedirectToAction(nameof(Projects));
             }
 
-            // PART C Logic: Barangay SK - Create Project Validation                    // Validation: Project Cost cannot exceed BarangayBudget.Balance
-            if (model.Allocated_Amount > budget.balance)
+            // PART C Logic: Barangay SK - Create Project Validation
+            // Validation: Check (Pending Allocations + New Amount) vs Balance
+            decimal pendingAllocations = await _context.Projects
+                .Where(p => p.User.Barangay_ID == user.Barangay_ID 
+                            && p.Term_ID == activeTerm.Term_ID 
+                            && p.Project_Status == "Pending" 
+                            && !p.IsArchived)
+                .SelectMany(p => p.Allocations)
+                .SumAsync(a => a.Amount_Allocated);
+
+            if (pendingAllocations + model.Allocated_Amount > budget.balance)
             {
-                TempData["ErrorMessage"] = $"Barangay funds insufficient. You are trying to allocate {model.Allocated_Amount:C}, but the available balance is {budget.balance:C}.";
+                decimal availableForNew = budget.balance - pendingAllocations;
+                // Ensure we don't show negative available if pending > balance (shouldn't happen normally)
+                if (availableForNew < 0) availableForNew = 0;
+
+                var phCulture = new System.Globalization.CultureInfo("en-PH");
+                TempData["ErrorMessage"] = string.Format(phCulture, "Barangay funds insufficient. Balance: {0:C}, Pending Requests: {1:C}. Available for new projects: {2:C}.", budget.balance, pendingAllocations, availableForNew);
                 return RedirectToAction(nameof(Projects));
             }
 

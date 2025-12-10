@@ -673,7 +673,8 @@ namespace BMS_project.Controllers
             if (fedFund.Allocated_To_Barangays + Allotment > fedFund.Total_Amount)
             {
                 var remaining = fedFund.Total_Amount - fedFund.Allocated_To_Barangays;
-                TempData["ErrorMessage"] = $"Insufficient Federation Funds. Only {remaining:C} is available for distribution.";
+                var phCulture = new System.Globalization.CultureInfo("en-PH");
+                TempData["ErrorMessage"] = string.Format(phCulture, "Insufficient Federation Funds. Only {0:C} is available for distribution.", remaining);
                 return RedirectToAction("Budget");
             }
 
