@@ -329,36 +329,48 @@ namespace BMS_project.Controllers
             return View(projects);
         }
 
-        public async Task<IActionResult> ProjectHistory(int? termId)
+        public async Task<IActionResult> ProjectHistory(int? barangayId, string status)
         {
             ViewData["Title"] = "Project History";
 
-            // 1. Get All Terms for Filter Dropdown
-            var terms = await _context.KabataanTermPeriods
-                .OrderByDescending(t => t.Start_Date)
-                .ToListAsync();
-
-            ViewBag.Terms = new SelectList(terms, "Term_ID", "Term_Name");
-
-            // 2. Determine Active/Selected Term
-            int selectedTermId;
-            if (termId.HasValue)
+            // Populate Barangay Dropdown
+            var barangays = await _context.barangays.OrderBy(b => b.Barangay_Name).ToListAsync();
+            ViewBag.Barangays = barangays.Select(b => new SelectListItem
             {
-                selectedTermId = termId.Value;
-            }
-            else
+                Value = b.Barangay_ID.ToString(),
+                Text = b.Barangay_Name,
+                Selected = barangayId.HasValue && b.Barangay_ID == barangayId.Value
+            }).ToList();
+
+            // Populate Status Dropdown
+            var statusList = new List<string> { "Approved", "Rejected", "Completed", "Ongoing" };
+            ViewBag.Statuses = statusList.Select(s => new SelectListItem
             {
-                var activeTerm = terms.FirstOrDefault(t => t.IsActive);
-                selectedTermId = activeTerm?.Term_ID ?? (terms.FirstOrDefault()?.Term_ID ?? 0);
-            }
+                Value = s,
+                Text = s,
+                Selected = !string.IsNullOrEmpty(status) && s.Equals(status, StringComparison.OrdinalIgnoreCase)
+            }).ToList();
 
-            ViewBag.SelectedTermId = selectedTermId;
+            ViewBag.SelectedBarangayId = barangayId;
+            ViewBag.SelectedStatus = status;
 
-            var projects = await _context.Projects
+            var query = _context.Projects
                 .Include(p => p.User)
                 .ThenInclude(u => u.Barangay)
                 .Include(p => p.Allocations)
-                .Where(p => p.Project_Status != "Pending" && p.Term_ID == selectedTermId) // Filter by Term
+                .Where(p => p.Project_Status != "Pending"); // Base filter: only processed projects
+
+            if (barangayId.HasValue)
+            {
+                query = query.Where(p => p.User.Barangay_ID == barangayId.Value);
+            }
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(p => p.Project_Status == status.Trim());
+            }
+
+            var projects = await query
                 .OrderByDescending(p => p.Date_Submitted)
                 .Select(p => new ProjectApprovalListViewModel
                 {

@@ -81,6 +81,42 @@
         </div>
     }
 
+    @* -- REJECTION NOTIFICATION MODAL -- *@
+    @if (ViewBag.RejectedProject != null)
+    {
+        var rejected = ViewBag.RejectedProject as BMS_project.Models.Project;
+        <div class="modal fade" id="rejectionModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg border-start border-danger border-5">
+                    <div class="modal-header bg-white">
+                        <h5 class="modal-title text-danger fw-bold"><i class="bi bi-x-circle-fill me-2"></i>Project Rejected</h5>
+                    </div>
+                    <div class="modal-body">
+                        <h5 class="fw-bold mb-1">@rejected.Project_Title</h5>
+                        <p class="text-muted small mb-3">Submission Rejected by Federation President</p>
+                        <div class="alert alert-danger bg-opacity-10 border-danger border-opacity-25">
+                            <strong class="text-danger">Reason:</strong> <br/>
+                            <span class="text-dark">@ViewBag.RejectionReason</span>
+                        </div>
+                        <p class="text-muted small fst-italic"><i class="bi bi-info-circle me-1"></i>Please review the feedback and submit a new proposal or edit if allowed.</p>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <form method="post" asp-action="AcknowledgeRejection">
+                            <input type="hidden" name="projectId" value="@rejected.Project_ID" />
+                            <button type="submit" class="btn btn-danger px-4">Acknowledge</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                var rejectionModal = new bootstrap.Modal(document.getElementById('rejectionModal'));
+                rejectionModal.show();
+            });
+        </script>
+    }
+
     <div class="col-12 text-end mb-3">
         <button class="btn btn-secondary me-2" data-bs-toggle="modal" data-bs-target="#archivedProjectsModal">
             <i class="bi bi-archive"></i> View Archived Projects

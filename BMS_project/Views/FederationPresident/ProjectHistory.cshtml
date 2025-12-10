@@ -13,26 +13,40 @@
     </div>
 
     <!-- Filter Section -->
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <form method="get" action="@Url.Action("ProjectHistory")" id="termForm">
-                <label class="form-label fw-bold" style="color: white !important;">Select Term:</label>
-                <select name="termId" class="form-select w-auto d-inline-block" onchange="document.getElementById('termForm').submit()">
-                    @if (ViewBag.Terms != null)
-                    {
-                        foreach (var item in (SelectList)ViewBag.Terms)
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body bg-light">
+            <form method="get" action="@Url.Action("ProjectHistory")" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Filter by Barangay:</label>
+                    <select name="barangayId" class="form-select">
+                        <option value="" selected="@(ViewBag.SelectedBarangayId == null ? "selected" : null)">-- All Barangays --</option>
+                        @if (ViewBag.Barangays != null)
                         {
-                            if (item.Value == ViewBag.SelectedTermId.ToString())
+                            foreach (var item in (IEnumerable<SelectListItem>)ViewBag.Barangays)
                             {
-                                <option value="@item.Value" selected>@item.Text</option>
-                            }
-                            else
-                            {
-                                <option value="@item.Value">@item.Text</option>
+                                <option value="@item.Value" selected="@(item.Selected ? "selected" : null)">@item.Text</option>
                             }
                         }
-                    }
-                </select>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Filter by Status:</label>
+                    <select name="status" class="form-select">
+                        <option value="" selected="@(string.IsNullOrEmpty(ViewBag.SelectedStatus as string) ? "selected" : null)">-- All Statuses --</option>
+                        @if (ViewBag.Statuses != null)
+                        {
+                            foreach (var item in (IEnumerable<SelectListItem>)ViewBag.Statuses)
+                            {
+                                <option value="@item.Value" selected="@(item.Selected ? "selected" : null)">@item.Text</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-filter"></i> Apply Filters
+                    </button>
+                </div>
             </form>
         </div>
     </div>
@@ -49,7 +63,6 @@
                             <th>Status</th>
                             <th>Allocated Budget</th>
                             <th>Date Submitted</th>
-                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -85,18 +98,15 @@
                                         @project.Amount.ToString("C", new System.Globalization.CultureInfo("en-PH"))
                                     </td>
                                     <td>@project.DateSubmitted.ToString("MMM dd, yyyy")</td>
-                                    <td>
-                                        <span class="text-muted small">N/A</span>
-                                    </td>
                                 </tr>
                             }
                         }
                         else
                         {
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-4">
+                                <td colspan="5" class="text-center text-muted py-4">
                                     <i class="bi bi-inbox display-6 d-block mb-2"></i>
-                                    No project history found.
+                                    No project history found matching the criteria.
                                 </td>
                             </tr>
                         }

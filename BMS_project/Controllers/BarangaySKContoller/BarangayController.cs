@@ -751,7 +751,48 @@ namespace BMS_project.Controllers
 
             ViewBag.CarryOverCandidates = carryOverCandidates;
 
+            // 3. Check for New Rejections
+            // Logic: Status is Rejected AND the latest Log entry is NOT "Rejection Acknowledged"
+            var rejectedProjects = await _context.Projects
+                .Include(p => p.Logs)
+                .Where(p => p.User_ID == currentUserId && p.Project_Status == "Rejected" && !p.IsArchived)
+                .ToListAsync();
+
+            foreach (var proj in rejectedProjects)
+            {
+                var latestLog = proj.Logs.OrderByDescending(l => l.Changed_On).FirstOrDefault();
+                if (latestLog != null && latestLog.Remarks != "Rejection Acknowledged")
+                {
+                    // Found an unacknowledged rejection
+                    ViewBag.RejectedProject = proj;
+                    ViewBag.RejectionReason = latestLog.Remarks;
+                    break; // Show one at a time
+                }
+            }
+
             return View(projects);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AcknowledgeRejection(int projectId)
+        {
+            var project = await _context.Projects.FindAsync(projectId);
+            if (project != null)
+            {
+                // Add acknowledgment log
+                var log = new ProjectLog
+                {
+                    Project_ID = projectId,
+                    User_ID = project.User_ID,
+                    Status = "Rejected",
+                    Changed_On = DateTime.Now,
+                    Remarks = "Rejection Acknowledged"
+                };
+                _context.ProjectLogs.Add(log);
+                await _context.SaveChangesAsync();
+            }
+            return RedirectToAction(nameof(Projects));
         }
 
         [HttpPost]
