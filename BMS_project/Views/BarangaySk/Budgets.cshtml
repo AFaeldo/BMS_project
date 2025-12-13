@@ -26,19 +26,44 @@
 <div class="container-fluid">
     <!-- FINANCIAL STATUS CARDS -->
     <div class="row mb-4">
-        <!-- Total Allocation -->
+        <!-- Barangay Budget -->
         <div class="col-md-3 mb-3 mb-md-0">
             <div class="card shadow-sm border-0 h-100 border-start border-4 border-primary">
                 <div class="card-body">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
-                            <h6 class="text-muted fw-semibold mb-1">Total Allocation</h6>
+                            <h6 class="text-muted fw-semibold mb-1">Barangay Budget</h6>
                             <h3 class="fw-bold text-primary mb-0">
                                 @FormatCurrency(Model?.budget ?? 0)
                             </h3>
                         </div>
                         <div class="bg-primary bg-opacity-10 p-3 rounded-circle">
                             <i class="bi bi-wallet2 fs-3 text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @{
+            var skBudget = (Model?.budget ?? 0) * 0.10m;
+            var remainingBalance = Model?.balance ?? 0;
+            var totalDisbursed = Model?.disbursed ?? 0;
+        }
+
+        <!-- Barangay SK Budget (10% of Total Allocation) -->
+        <div class="col-md-3 mb-3 mb-md-0">
+            <div class="card shadow-sm border-0 h-100 border-start border-4 border-info">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="text-muted fw-semibold mb-1">Barangay SK Budget</h6>
+                            <h3 class="fw-bold text-info mb-0">
+                                @FormatCurrency(skBudget)
+                            </h3>
+                        </div>
+                        <div class="bg-info bg-opacity-10 p-3 rounded-circle">
+                            <i class="bi bi-bank fs-3 text-info"></i>
                         </div>
                     </div>
                 </div>
@@ -53,33 +78,11 @@
                         <div>
                             <h6 class="text-muted fw-semibold mb-1">Total Disbursed</h6>
                             <h3 class="fw-bold text-warning mb-0">
-                                @FormatCurrency(Model?.disbursed ?? 0)
+                                @FormatCurrency(totalDisbursed)
                             </h3>
                         </div>
                         <div class="bg-warning bg-opacity-10 p-3 rounded-circle">
                             <i class="bi bi-cash-stack fs-3 text-warning"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Barangay SK Budget (10% of Total Allocation) -->
-        <div class="col-md-3 mb-3 mb-md-0">
-            <div class="card shadow-sm border-0 h-100 border-start border-4 border-info">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <h6 class="text-muted fw-semibold mb-1">Barangay SK Budget</h6>
-                            <h3 class="fw-bold text-info mb-0">
-                                @{
-                                    var skBudget = (Model?.budget ?? 0) * 0.10m;
-                                }
-                                @FormatCurrency(skBudget)
-                            </h3>
-                        </div>
-                        <div class="bg-info bg-opacity-10 p-3 rounded-circle">
-                            <i class="bi bi-bank fs-3 text-info"></i>
                         </div>
                     </div>
                 </div>
@@ -94,9 +97,6 @@
                         <div>
                             <h6 class="text-muted fw-semibold mb-1">Remaining Balance</h6>
                             <h3 class="fw-bold text-success mb-0">
-                                @{
-                                    var remainingBalance = (Model?.budget ?? 0) - (Model?.disbursed ?? 0) - skBudget;
-                                }
                                 @FormatCurrency(remainingBalance)
                             </h3>
                         </div>

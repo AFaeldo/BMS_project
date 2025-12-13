@@ -40,9 +40,10 @@
                     <thead class="table-light">
                         <tr>
                             <th>Barangay</th>
-                            <th class="text-end">Allotment</th>
-                            <th class="text-end">Disbursed</th>
-                            <th class="text-end">Balance</th>
+                            <th class="text-end">Barangay Budget</th>
+                            <th class="text-end">Barangay SK Budget</th>
+                            <th class="text-end">Remaining Balance</th>
+                            <th class="text-end">Total Disbursed</th>
                             <th class="text-center">Actions</th>
                         </tr>
                     </thead>
@@ -51,11 +52,15 @@
                         {
                             foreach (var item in Model)
                             {
+                                var skBudget = item.budget * 0.10m;
+                                var remainingBalance = item.balance;
+                                var totalDisbursed = item.disbursed;
                                 <tr>
                                     <td>@(item.Barangay?.Barangay_Name ?? "—")</td>
                                     <td class="text-end">₱@String.Format("{0:N2}", item.budget)</td>
-                                    <td class="text-end">₱@String.Format("{0:N2}", item.disbursed)</td>
-                                    <td class="text-end">₱@String.Format("{0:N2}", item.balance)</td>
+                                    <td class="text-end">₱@String.Format("{0:N2}", skBudget)</td>
+                                    <td class="text-end">₱@String.Format("{0:N2}", remainingBalance)</td>
+                                    <td class="text-end">₱@String.Format("{0:N2}", totalDisbursed)</td>
                                     <td class="text-center">
                                         <button class="btn btn-sm btn-outline-primary me-1" 
                                                 onclick="printCashReceipts('@(item.Barangay?.Barangay_Name)', '@String.Format("{0:N2}", item.budget)', '@String.Format("{0:N2}", item.balance)')" 
@@ -79,7 +84,7 @@
                         else
                         {
                             <tr>
-                                <td colspan="5" class="text-center text-muted py-4">
+                                <td colspan="6" class="text-center text-muted py-4">
                                     No budget data found.
                                 </td>
                             </tr>
@@ -112,7 +117,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Allotment</label>
+                        <label class="form-label fw-bold">Barangay Budget</label>
                         <input type="number" step="0.01" class="form-control" name="Allotment" required>
                     </div>
 
