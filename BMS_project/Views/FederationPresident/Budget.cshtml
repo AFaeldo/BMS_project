@@ -54,7 +54,7 @@
                             {
                                 var skBudget = item.budget * 0.10m;
                                 var remainingBalance = item.balance;
-                                var totalDisbursed = item.disbursed;
+                                var totalDisbursed = skBudget - remainingBalance;
                                 <tr>
                                     <td>@(item.Barangay?.Barangay_Name ?? "—")</td>
                                     <td class="text-end">₱@String.Format("{0:N2}", item.budget)</td>
@@ -119,6 +119,12 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold">Barangay Budget</label>
                         <input type="number" step="0.01" class="form-control" name="Allotment" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Initial Balance</label>
+                        <input type="number" step="0.01" class="form-control" name="InitialBalance" placeholder="0.00" value="0">
+                        <div class="form-text">This amount will be added to the Barangay SK Budget (optional).</div>
                     </div>
 
                 </div>

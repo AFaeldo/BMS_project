@@ -42,6 +42,7 @@
                             <th>Barangay</th>
                             <th>Title</th>
                             <th>Type</th>
+                            <th>Document Type</th>
                             <th>Status</th>
                             <th>Due Date</th>
                             <th class="text-center">Action</th>
@@ -51,7 +52,7 @@
                         @if (!Model.Any())
                         {
                             <tr>
-                                <td colspan="6" class="text-center">No records found</td>
+                                <td colspan="7" class="text-center">No records found</td>
                             </tr>
                         }
                         else
@@ -62,6 +63,7 @@
                                     <td>@item.Barangay.Barangay_Name</td>
                                     <td>@item.Title</td>
                                     <td>@item.Type</td>
+                                    <td>@(string.IsNullOrEmpty(item.Annex_Type) ? "-" : item.Annex_Type)</td>
                                     <td>
                                         @if (item.Status == "Completed" || item.Status == "Approved")
                                         {
@@ -183,6 +185,9 @@
                         <dt class="col-sm-4 text-muted">Compliance Type</dt>
                         <dd class="col-sm-8 fw-bold" id="modalDetailsType"></dd>
 
+                        <dt class="col-sm-4 text-muted">Document Type</dt>
+                        <dd class="col-sm-8 fw-bold" id="modalDetailsAnnexType"></dd>
+
                         <dt class="col-sm-4 text-muted">Due Date</dt>
                         <dd class="col-sm-8 fw-bold" id="modalDetailsDueDate"></dd>
 
@@ -287,6 +292,7 @@
                     var title = data.title || data.Title || "";
                     var barangayName = data.barangayName || data.BarangayName || "";
                     var type = data.complianceType || data.ComplianceType || "";
+                    var annexType = data.annexType || data.Annex_Type || "-";
                     var dueDateStr = data.dueDate || data.DueDate;
                     var status = data.complianceStatus || data.ComplianceStatus || "";
                     var documents = data.documents || data.Documents || [];
@@ -295,6 +301,7 @@
                     document.getElementById('modalDetailsTitle').innerText = 'Compliance Details';
                     document.getElementById('modalDetailsBarangay').innerText = barangayName;
                     document.getElementById('modalDetailsType').innerText = type;
+                    document.getElementById('modalDetailsAnnexType').innerText = annexType;
                     
                     // Format Due Date
                     if (dueDateStr) {

@@ -15,6 +15,8 @@ namespace BMS_project.Models
         public decimal disbursed { get; set; }
         public decimal balance { get; set; }
 
+        public bool InitialBalanceSet { get; set; } = false;
+
         public int? Term_ID { get; set; }
 
         public virtual Barangay Barangay { get; set; }

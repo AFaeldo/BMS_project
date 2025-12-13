@@ -1,0 +1,118 @@
+@model IEnumerable<dynamic>
+@{
+    Layout = "~/Views/Shared/_LayoutFederation.cshtml";
+    ViewData["Title"] = "Downloadable Template Document";
+}
+
+<div class="container-fluid">
+
+    <div class="mb-4">
+        <h2 class="fw-bold">Downloadable Template Document</h2>
+    </div>
+
+    <div class="card-body">
+
+        <h5 class="fw-bold">Annex Templates</h5>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-secondary">
+                    <tr>
+                        <th>Template Name</th>
+                        <th style="text-align:center;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>ANNEX TEMPLATE A</td>
+                        <td style="text-align:center;">
+                            <button onclick="downloadAnnexA()" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download"></i> Download
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>ANNEX TEMPLATE B</td>
+                        <td class="text-center">
+                            <button onclick="downloadAnnexB()" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download"></i> Download
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>ANNEX TEMPLATE C</td>
+                        <td class="text-center">
+                            <button onclick="downloadAnnexC()" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download"></i> Download
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>ANNEX TEMPLATE D</td>
+                        <td class="text-center">
+                            <button onclick="downloadAnnexD()" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download"></i> Download
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>ANNEX TEMPLATE E</td>
+                        <td class="text-center">
+                            <button onclick="downloadAnnexE()" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download"></i> Download
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>ANNEX TEMPLATE F</td>
+                        <td class="text-center">
+                            <button onclick="downloadAnnexF()" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download"></i> Download
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>ANNEX TEMPLATE G</td>
+                        <td class="text-center">
+                            <button onclick="downloadAnnexG()" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download"></i> Download
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>ANNEX TEMPLATE H</td>
+                        <td class="text-center">
+                            <button onclick="downloadAnnexH()" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download"></i> Download
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+
+        <div class="mt-5">
+            <h5 class="fw-bold">Project Proposal Templates</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-secondary">
+                        <tr>
+                            <th>Template Name</th>
+                            <th style="text-align:center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>PROJECT PROPOSAL TEMPLATES</td>
+                            <td style="text-align:center;">
+                                <button onclick="downloadProjectProposal()" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-download"></i> Download
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
