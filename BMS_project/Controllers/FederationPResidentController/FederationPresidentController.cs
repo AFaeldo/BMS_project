@@ -730,7 +730,7 @@ namespace BMS_project.Controllers
         // Accept form post and create or update a budget record (add allotment to existing barangay budget)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddBarangayBudget(int BarangayId, decimal Allotment)
+        public async Task<IActionResult> AddBarangayBudget(int BarangayId, decimal Allotment, decimal InitialBalance = 0)
         {
             if (Allotment <= 0)
             {
@@ -796,7 +796,7 @@ namespace BMS_project.Controllers
                     {
                         oldBudget = existingBudget.budget;
                         existingBudget.budget += Allotment;
-                        existingBudget.balance += Allotment;
+                        existingBudget.balance += (Allotment * 0.10m) + InitialBalance;
                         newBudget = existingBudget.budget;
                         budgetId = existingBudget.Budget_ID;
                         logAction = "Update Budget";
@@ -810,7 +810,7 @@ namespace BMS_project.Controllers
                             Term_ID = activeTerm.Term_ID, // Strictly set Term ID
                             budget = Allotment,
                             disbursed = 0m,
-                            balance = Allotment
+                            balance = (Allotment * 0.10m) + InitialBalance
                         };
                         _context.Budgets.Add(budget);
                         await _context.SaveChangesAsync(); // Save to get Budget_ID
@@ -917,6 +917,12 @@ namespace BMS_project.Controllers
         {
             TempData["SuccessMessage"] = "Profile saved successfully!";
             return RedirectToAction("Profile");
+        }
+
+        public IActionResult Documents()
+        {
+            ViewData["Title"] = "Downloadable Template Document";
+            return View();
         }
     }
 }

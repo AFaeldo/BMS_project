@@ -77,6 +77,12 @@
                         <i class="bi bi-clipboard-check me-2"></i> Compliance Monitoring
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a asp-controller="FederationPresident" asp-action="Documents"
+                       class="nav-link @(ViewData["Title"]?.ToString() == "Downloadable Template Document" ? "active" : "")">
+                        <i class="bi bi-file-earmark-text me-2"></i> Documents
+                    </a>
+                </li>
             </ul>
         </div>
 

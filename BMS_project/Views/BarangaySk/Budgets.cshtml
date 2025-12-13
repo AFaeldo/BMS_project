@@ -19,8 +19,20 @@
     }
 }
 
-<div class="mb-4">
+<div class="mb-4 d-flex justify-content-between align-items-center">
     <h2 class="fw-bold"> Budget Auditing</h2>
+    @if (Model?.InitialBalanceSet == true)
+    {
+        <button class="btn btn-secondary" disabled>
+            <i class="bi bi-check-circle me-2"></i>Initial Balance Set
+        </button>
+    }
+    else
+    {
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addInitialBalanceModal">
+            <i class="bi bi-plus-circle me-2"></i>Add Initial Balance
+        </button>
+    }
 </div>
 
 <div class="container-fluid">
@@ -48,7 +60,7 @@
         @{
             var skBudget = (Model?.budget ?? 0) * 0.10m;
             var remainingBalance = Model?.balance ?? 0;
-            var totalDisbursed = Model?.disbursed ?? 0;
+            var totalDisbursed = skBudget - remainingBalance;
         }
 
         <!-- Barangay SK Budget (10% of Total Allocation) -->
@@ -191,6 +203,45 @@
     </div>
 </div>
 
+<!-- ADD INITIAL BALANCE MODAL -->
+<div class="modal fade" id="addInitialBalanceModal" tabindex="-1" aria-labelledby="addInitialBalanceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" asp-action="AddInitialBalance">
+                @Html.AntiForgeryToken()
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="addInitialBalanceModalLabel">
+                        <i class="bi bi-wallet2 me-2"></i>Add Initial Balance
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="initialBalance" class="form-label fw-bold">Initial Balance Amount</label>
+                        <div class="input-group">
+                            <span class="input-group-text">₱</span>
+                            <input type="number" 
+                                   class="form-control" 
+                                   id="initialBalance" 
+                                   name="InitialBalance" 
+                                   step="0.01" 
+                                   min="0" 
+                                   placeholder="Enter amount" 
+                                   required />
+                        </div>
+                        <div class="form-text">This amount will be added to the Barangay SK Budget.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-1"></i>Add Balance
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <!-- BUDGET REQUEST MODAL -->
 <div class="modal fade" id="budgetModal" tabindex="-1" aria-labelledby="budgetModalLabel" aria-hidden="true">

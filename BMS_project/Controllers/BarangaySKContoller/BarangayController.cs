@@ -1522,5 +1522,89 @@ namespace BMS_project.Controllers
                 return RedirectToAction(nameof(Projects));
             }
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddInitialBalance(decimal InitialBalance)
+        {
+            try
+            {
+                if (InitialBalance <= 0)
+                {
+                    TempData["ErrorMessage"] = "Initial balance must be greater than zero.";
+                    return RedirectToAction(nameof(Budgets));
+                }
+
+                var barangayId = GetBarangayIdFromClaims();
+                if (!barangayId.HasValue)
+                {
+                    TempData["ErrorMessage"] = "Unauthorized action.";
+                    return RedirectToAction(nameof(Budgets));
+                }
+
+                // Get Active Term
+                var activeTerm = await _context.KabataanTermPeriods
+                                                .FirstOrDefaultAsync(t => t.IsActive);
+
+                if (activeTerm == null)
+                {
+                    TempData["ErrorMessage"] = "No active term found.";
+                    return RedirectToAction(nameof(Budgets));
+                }
+
+                // Get or Create Budget
+                var budget = await _context.Budgets
+                                            .FirstOrDefaultAsync(b => b.Barangay_ID == barangayId.Value &&
+                                                                    b.Term_ID == activeTerm.Term_ID);
+
+                if (budget == null)
+                {
+                    // Create new budget record if it doesn't exist
+                    budget = new Budget
+                    {
+                        Barangay_ID = barangayId.Value,
+                        Term_ID = activeTerm.Term_ID,
+                        budget = 0,
+                        disbursed = 0,
+                        balance = InitialBalance,
+                        InitialBalanceSet = true
+                    };
+                    _context.Budgets.Add(budget);
+                }
+                else
+                {
+                    // Check if initial balance was already set
+                    if (budget.InitialBalanceSet)
+                    {
+                        TempData["ErrorMessage"] = "Initial balance has already been set for this term.";
+                        return RedirectToAction(nameof(Budgets));
+                    }
+
+                    // Add to existing balance
+                    budget.balance += InitialBalance;
+                    budget.InitialBalanceSet = true;
+                    _context.Budgets.Update(budget);
+                }
+
+                // Log the action
+                var userId = GetCurrentUserId();
+                if (userId.HasValue)
+                {
+                    await _systemLogService.LogAsync(userId.Value, "Add Initial Balance", 
+                        $"Added initial balance of ₱{InitialBalance:N2} to Barangay SK Budget", 
+                        "Budget", budget.Budget_ID);
+                }
+
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Initial balance of ₱{InitialBalance:N2} has been added successfully.";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding initial balance");
+                TempData["ErrorMessage"] = "An error occurred while adding initial balance: " + ex.Message;
+            }
+
+            return RedirectToAction(nameof(Budgets));
+        }
     }
 }
