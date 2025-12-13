@@ -21,9 +21,15 @@ namespace BMS_project.ViewModels
         [DataType(DataType.Date)]
         public DateTime? End_Date { get; set; }
 
-        // New properties for file upload
-        [Required(ErrorMessage = "Please upload at least one project document (PDF).")]
-        public List<IFormFile> UploadedFiles { get; set; } = new List<IFormFile>();
+        // Project Proposal Files (Required - goes through original process)
+        [Required(ErrorMessage = "Please upload at least one project proposal document (PDF).")]
+        public List<IFormFile> ProjectProposalFiles { get; set; } = new List<IFormFile>();
+        
+        // Annex Files (Optional - goes to Project Documents)
+        public List<IFormFile>? AnnexFiles { get; set; } = new List<IFormFile>();
+        
+        // Annex Types corresponding to each annex file
+        public List<string>? AnnexTypes { get; set; } = new List<string>();
         
         public string? DocumentName { get; set; }
     }

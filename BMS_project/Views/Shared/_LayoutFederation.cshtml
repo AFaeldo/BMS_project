@@ -35,14 +35,14 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link d-flex align-items-center justify-content-between @(ViewData["Title"]?.ToString() == "Project Approvals" || ViewData["Title"]?.ToString() == "Project History" ? "active" : "collapsed")"
+                    <a class="nav-link d-flex align-items-center justify-content-between @(ViewData["Title"]?.ToString() == "Project Approvals" || ViewData["Title"]?.ToString() == "Project History" || ViewData["Title"]?.ToString() == "Project Documents" ? "active" : "collapsed")"
                        data-bs-toggle="collapse" href="#projectMonitoringSubmenu" role="button" aria-expanded="false" aria-controls="projectMonitoringSubmenu">
                         <span>
                             <i class="bi bi-check2-square me-2"></i> Project Monitoring
                         </span>
                         <i class="bi bi-chevron-down small"></i>
                     </a>
-                    <div class="collapse @(ViewData["Title"]?.ToString() == "Project Approvals" || ViewData["Title"]?.ToString() == "Project History" ? "show" : "")" id="projectMonitoringSubmenu">
+                    <div class="collapse @(ViewData["Title"]?.ToString() == "Project Approvals" || ViewData["Title"]?.ToString() == "Project History" || ViewData["Title"]?.ToString() == "Project Documents" ? "show" : "")" id="projectMonitoringSubmenu">
                         <ul class="nav flex-column ms-3 border-start border-secondary ps-2">
                             <li class="nav-item">
                                 <a asp-controller="FederationPresident" asp-action="ProjectApprovals"
@@ -54,6 +54,12 @@
                                 <a asp-controller="FederationPresident" asp-action="ProjectHistory"
                                    class="nav-link py-1 @(ViewData["Title"]?.ToString() == "Project History" ? "text-warning fw-bold" : "text-light")">
                                     Project History
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a asp-controller="FederationPresident" asp-action="ProjectDocuments"
+                                   class="nav-link py-1 @(ViewData["Title"]?.ToString() == "Project Documents" ? "text-warning fw-bold" : "text-light")">
+                                    Project Documents
                                 </a>
                             </li>
                         </ul>

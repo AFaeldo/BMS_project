@@ -28,7 +28,6 @@
                             <tr>
                                 <th>Title</th>
                                 <th>Type</th>
-                                <th>Template</th>
                                 <th>Due Date</th>
                                 <th>Status</th>
                                 <th>Submission Date</th>
@@ -41,18 +40,6 @@
                                 <tr>
                                     <td>@item.Title</td>
                                     <td>@item.Type</td>
-                                    <td>
-                                        @if (item.TemplateFileId.HasValue)
-                                        {
-                                            <a href="@Url.Action("Download", "Compliance", new { fileId = item.TemplateFileId })" class="btn btn-sm btn-outline-secondary">
-                                                <i class="bi bi-file-earmark-arrow-down"></i> Template
-                                            </a>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">-</span>
-                                        }
-                                    </td>
                                     <td>@item.DueDate.ToShortDateString()</td>
                                     <td>
                                         @if (item.Status == "Completed" || item.Status == "Approved")

@@ -122,7 +122,7 @@
             <i class="bi bi-archive"></i> View Archived Projects
         </button>
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProjectModal">
-            <i class="bi bi-plus-circle"></i> Add Project
+            <i class="bi bi-file-earmark-arrow-up"></i> Submit Project Proposal
         </button>
     </div>
 
@@ -210,7 +210,7 @@
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header bg-primary text-white rounded-top-4">
                 <h5 class="modal-title fw-bold">
-                    <i class="bi bi-plus-circle me-2"></i> Add New Project
+                    <i class="bi bi-file-earmark-arrow-up me-2"></i> Submit Project Proposal
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -239,18 +239,81 @@
                         <input type="number" step="0.01" name="Allocated_Amount" class="form-control" placeholder="Enter a Budget" required>
                     </div>
                     <hr />
-                    <h6 class="fw-bold text-primary"><i class="bi bi-paperclip me-2"></i>Attach Documents (Required)</h6>
-                    <div class="mb-2">
-                        <label class="form-label fw-semibold">Upload Documents (PDF)</label>
-                        <div id="fileInputsContainer">
-                            <div class="mb-2">
-                                <input type="file" name="UploadedFiles" class="form-control" accept="application/pdf" required />
-                            </div>
+                    <h6 class="fw-bold text-primary"><i class="bi bi-paperclip me-2"></i>Project Proposal Documents (Required)</h6>
+                    <div class="mb-3">
+                        <p class="text-muted small">Upload your main project proposal documents.</p>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm" id="proposalTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="85%">Upload File (PDF)</th>
+                                        <th width="15%" class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="proposalTableBody">
+                                    <tr class="proposal-row">
+                                        <td>
+                                            <input type="file" name="ProjectProposalFiles" class="form-control form-control-sm" accept="application/pdf" required />
+                                        </td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-danger btn-sm remove-proposal-row" disabled>
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
-                        <button type="button" class="btn btn-outline-secondary btn-sm" id="addFileBtn">
-                            <i class="bi bi-plus-circle me-1"></i> Add Another Document
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="addProposalBtn">
+                            <i class="bi bi-plus-circle me-1"></i> Add Another Proposal File
                         </button>
                         <div class="form-text mt-2">Only .pdf files are allowed. Max 25MB per file.</div>
+                    </div>
+
+                    <hr />
+                    <h6 class="fw-bold text-primary"><i class="bi bi-folder-plus me-2"></i>Annex Documents (Optional)</h6>
+                    <div class="mb-2">
+                        <p class="text-muted small">Add supporting annex documents for your project proposal.</p>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm" id="annexTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="40%">Annex Type</th>
+                                        <th width="50%">Upload File</th>
+                                        <th width="10%" class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="annexTableBody">
+                                    <tr class="annex-row">
+                                        <td>
+                                            <select name="AnnexTypes" class="form-select form-select-sm">
+                                                <option value="" selected disabled>Choose Annex...</option>
+                                                <option value="Annex A">Annex A - Project Proposal</option>
+                                                <option value="Annex B">Annex B - Budget Breakdown</option>
+                                                <option value="Annex C">Annex C - Timeline/Schedule</option>
+                                                <option value="Annex D">Annex D - Supporting Documents</option>
+                                                <option value="Annex E">Annex E - Resolutions</option>
+                                                <option value="Annex F">Annex F - Technical Details</option>
+                                                <option value="Annex G">Annex G - Financial Documents</option>
+                                                <option value="Annex H">Annex H - Other Documents</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="file" name="AnnexFiles" class="form-control form-control-sm" accept="application/pdf" />
+                                        </td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-danger btn-sm remove-annex-row" disabled>
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="addAnnexBtn">
+                            <i class="bi bi-plus-circle me-1"></i> Add Another Annex
+                        </button>
+                        <div class="form-text mt-2">Only .pdf files are allowed for annexes. Max 25MB per file.</div>
                     </div>
                 </div>
                 <div class="modal-footer border-0">
@@ -405,21 +468,123 @@
 
 @section Scripts {
     <script>
-        // Dynamic File Inputs
-        document.getElementById("addFileBtn").addEventListener("click", function() {
-            let container = document.getElementById("fileInputsContainer");
-            let div = document.createElement("div");
-            div.className = "mb-2 d-flex gap-2";
-            div.innerHTML = `
-                <input type="file" name="UploadedFiles" class="form-control" accept="application/pdf" required />
-                <button type="button" class="btn btn-danger btn-sm remove-file"><i class="bi bi-trash"></i></button>
+        // Dynamic Project Proposal Table Rows
+        document.getElementById("addProposalBtn").addEventListener("click", function() {
+            let tbody = document.getElementById("proposalTableBody");
+            let row = document.createElement("tr");
+            row.className = "proposal-row";
+            row.innerHTML = `
+                <td>
+                    <input type="file" name="ProjectProposalFiles" class="form-control form-control-sm" accept="application/pdf" required />
+                </td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-danger btn-sm remove-proposal-row">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
             `;
-            container.appendChild(div);
+            tbody.appendChild(row);
+            updateProposalRemoveButtons();
         });
 
-        document.getElementById("fileInputsContainer").addEventListener("click", function(e) {
-            if (e.target.closest(".remove-file")) {
-                e.target.closest(".remove-file").parentElement.remove();
+        // Handle remove button clicks for proposals
+        document.getElementById("proposalTableBody").addEventListener("click", function(e) {
+            if (e.target.closest(".remove-proposal-row")) {
+                e.target.closest(".proposal-row").remove();
+                updateProposalRemoveButtons();
+            }
+        });
+
+        // Update proposal remove button state (disable if only one row remains)
+        function updateProposalRemoveButtons() {
+            const rows = document.querySelectorAll(".proposal-row");
+            const removeButtons = document.querySelectorAll(".remove-proposal-row");
+            
+            if (rows.length === 1) {
+                removeButtons[0].disabled = true;
+            } else {
+                removeButtons.forEach(btn => btn.disabled = false);
+            }
+        }
+
+        // Dynamic Annex Table Rows
+        document.getElementById("addAnnexBtn").addEventListener("click", function() {
+            let tbody = document.getElementById("annexTableBody");
+            let row = document.createElement("tr");
+            row.className = "annex-row";
+            row.innerHTML = `
+                <td>
+                    <select name="AnnexTypes" class="form-select form-select-sm">
+                        <option value="" selected disabled>Choose Annex...</option>
+                        <option value="Annex A">Annex A - Project Proposal</option>
+                        <option value="Annex B">Annex B - Budget Breakdown</option>
+                        <option value="Annex C">Annex C - Timeline/Schedule</option>
+                        <option value="Annex D">Annex D - Supporting Documents</option>
+                        <option value="Annex E">Annex E - Resolutions</option>
+                        <option value="Annex F">Annex F - Technical Details</option>
+                        <option value="Annex G">Annex G - Financial Documents</option>
+                        <option value="Annex H">Annex H - Other Documents</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="file" name="AnnexFiles" class="form-control form-control-sm" accept="application/pdf" />
+                </td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-danger btn-sm remove-annex-row">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+            updateRemoveButtons();
+        });
+
+        // Handle remove button clicks
+        document.getElementById("annexTableBody").addEventListener("click", function(e) {
+            if (e.target.closest(".remove-annex-row")) {
+                e.target.closest(".annex-row").remove();
+                updateRemoveButtons();
+            }
+        });
+
+        // Update remove button state (disable if only one row remains)
+        function updateRemoveButtons() {
+            const rows = document.querySelectorAll(".annex-row");
+            const removeButtons = document.querySelectorAll(".remove-annex-row");
+            
+            if (rows.length === 1) {
+                removeButtons[0].disabled = true;
+            } else {
+                removeButtons.forEach(btn => btn.disabled = false);
+            }
+        }
+
+        // Form validation: Ensure annex type is selected when file is uploaded
+        document.querySelector('form[action*="CreateProject"]').addEventListener('submit', function(e) {
+            const annexRows = document.querySelectorAll('.annex-row');
+            let hasError = false;
+            let errorMessage = '';
+
+            annexRows.forEach(function(row, index) {
+                const fileInput = row.querySelector('input[type="file"]');
+                const selectInput = row.querySelector('select[name="AnnexTypes"]');
+                
+                // Check if file is selected but no annex type
+                if (fileInput && fileInput.files.length > 0) {
+                    if (!selectInput || !selectInput.value) {
+                        hasError = true;
+                        errorMessage = 'Please select an annex type for each file you upload.';
+                        selectInput.classList.add('is-invalid');
+                    } else {
+                        selectInput.classList.remove('is-invalid');
+                    }
+                }
+            });
+
+            if (hasError) {
+                e.preventDefault();
+                alert(errorMessage);
+                return false;
             }
         });
 

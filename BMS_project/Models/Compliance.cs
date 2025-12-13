@@ -26,6 +26,10 @@ namespace BMS_project.Models
         [StringLength(100)]
         public string Type { get; set; } = string.Empty;
 
+        [Column("Annex_Type")]
+        [StringLength(50)]
+        public string? Annex_Type { get; set; }
+
         [Column("Status")]
         [StringLength(50)]
         public string Status { get; set; } = "Not Submitted";

@@ -176,19 +176,45 @@ namespace BMS_project.Controllers
                 return RedirectToAction(nameof(Projects));
             }
 
-            if (model.UploadedFiles == null || model.UploadedFiles.Count == 0)
+            if (model.ProjectProposalFiles == null || model.ProjectProposalFiles.Count == 0)
             {
-                TempData["ErrorMessage"] = "Please upload at least one project document (PDF).";
+                TempData["ErrorMessage"] = "Please upload at least one project proposal document (PDF).";
                 return RedirectToAction(nameof(Projects));
             }
 
-            foreach (var file in model.UploadedFiles)
+            // Validate proposal files
+            foreach (var file in model.ProjectProposalFiles)
             {
                 var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
                 if (ext != ".pdf" || file.ContentType != "application/pdf")
                 {
-                    TempData["ErrorMessage"] = "Only PDF files are allowed.";
+                    TempData["ErrorMessage"] = "Only PDF files are allowed for project proposals.";
                     return RedirectToAction(nameof(Projects));
+                }
+            }
+
+            // Validate annex files if any
+            if (model.AnnexFiles != null && model.AnnexFiles.Count > 0)
+            {
+                // Validate that annex types match annex files count
+                if (model.AnnexTypes == null || model.AnnexTypes.Count != model.AnnexFiles.Count)
+                {
+                    TempData["ErrorMessage"] = "Please select annex type for each annex file.";
+                    return RedirectToAction(nameof(Projects));
+                }
+
+                // Validate each annex file
+                foreach (var file in model.AnnexFiles)
+                {
+                    if (file != null)
+                    {
+                        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+                        if (ext != ".pdf" || file.ContentType != "application/pdf")
+                        {
+                            TempData["ErrorMessage"] = "Only PDF files are allowed for annexes.";
+                            return RedirectToAction(nameof(Projects));
+                        }
+                    }
                 }
             }
 
@@ -259,7 +285,13 @@ namespace BMS_project.Controllers
             }
 
             // PART C Logic: Barangay SK - Create Project Validation
-            // Validation: Check (Pending Allocations + New Amount) vs Balance
+            // Calculate 10% SK Budget that must be reserved
+            decimal skBudget = budget.budget * 0.10m;
+            
+            // Calculate actual available balance (Total - Disbursed - 10% SK Budget)
+            decimal actualAvailableBalance = budget.budget - budget.disbursed - skBudget;
+            
+            // Validation: Check (Pending Allocations + New Amount) vs Actual Available Balance
             decimal pendingAllocations = await _context.Projects
                 .Where(p => p.User.Barangay_ID == user.Barangay_ID 
                             && p.Term_ID == activeTerm.Term_ID 
@@ -268,14 +300,16 @@ namespace BMS_project.Controllers
                 .SelectMany(p => p.Allocations)
                 .SumAsync(a => a.Amount_Allocated);
 
-            if (pendingAllocations + model.Allocated_Amount > budget.balance)
+            if (pendingAllocations + model.Allocated_Amount > actualAvailableBalance)
             {
-                decimal availableForNew = budget.balance - pendingAllocations;
+                decimal availableForNew = actualAvailableBalance - pendingAllocations;
                 // Ensure we don't show negative available if pending > balance (shouldn't happen normally)
                 if (availableForNew < 0) availableForNew = 0;
 
                 var phCulture = new System.Globalization.CultureInfo("en-PH");
-                TempData["ErrorMessage"] = string.Format(phCulture, "Barangay funds insufficient. Balance: {0:C}, Pending Requests: {1:C}. Available for new projects: {2:C}.", budget.balance, pendingAllocations, availableForNew);
+                TempData["ErrorMessage"] = string.Format(phCulture, 
+                    "Insufficient funds. Available Balance (after 10% SK reserve): {0:C}, Pending Requests: {1:C}. Available for new projects: {2:C}.", 
+                    actualAvailableBalance, pendingAllocations, availableForNew);
                 return RedirectToAction(nameof(Projects));
             }
 
@@ -306,8 +340,8 @@ namespace BMS_project.Controllers
                     int mainFileId = 0;
                     List<int> allFileIds = new List<int>();
 
-                    // 1. Process all files
-                    foreach (var file in model.UploadedFiles)
+                    // 1. Process all PROPOSAL files (original workflow)
+                    foreach (var file in model.ProjectProposalFiles)
                     {
                         string safeDocName = Path.GetFileNameWithoutExtension(file.FileName);
                         safeDocName = string.Join("_", safeDocName.Split(Path.GetInvalidFileNameChars()));
@@ -353,18 +387,68 @@ namespace BMS_project.Controllers
                     _context.Projects.Add(project);
                     await _context.SaveChangesAsync(); // Save to get Project_ID
 
-                    // 3. Create ProjectDocuments
+                    // 3. Create ProjectDocuments for PROPOSAL files
                     foreach (var fid in allFileIds)
                     {
                         var projDoc = new ProjectDocument
                         {
                             Project_ID = project.Project_ID,
                             File_ID = fid,
-                            Date_Added = DateTime.Now
+                            Date_Added = DateTime.Now,
+                            Description = "Project Proposal" // Mark as proposal
                         };
                         _context.ProjectDocuments.Add(projDoc);
                     }
                     await _context.SaveChangesAsync();
+
+                    // 3.5. Process ANNEX files (store with annex type in Description)
+                    if (model.AnnexFiles != null && model.AnnexFiles.Count > 0)
+                    {
+                        for (int i = 0; i < model.AnnexFiles.Count; i++)
+                        {
+                            var annexFile = model.AnnexFiles[i];
+                            if (annexFile != null)
+                            {
+                                string annexType = model.AnnexTypes != null && i < model.AnnexTypes.Count 
+                                    ? model.AnnexTypes[i] 
+                                    : "Annex - No Type";
+
+                                string safeDocName = Path.GetFileNameWithoutExtension(annexFile.FileName);
+                                safeDocName = string.Join("_", safeDocName.Split(Path.GetInvalidFileNameChars()));
+
+                                var extension = Path.GetExtension(annexFile.FileName).ToLowerInvariant();
+                                string uniqueFileName = $"{safeDocName}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid().ToString("N").Substring(0, 6)}{extension}";
+                                string savedFilePath = Path.Combine(uploadFolder, uniqueFileName);
+
+                                using (var stream = new FileStream(savedFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
+                                {
+                                    await annexFile.CopyToAsync(stream);
+                                }
+                                savedFilePaths.Add(savedFilePath);
+
+                                var annexFileUpload = new FileUpload
+                                {
+                                    User_ID = user.User_ID,
+                                    File_Name = annexFile.FileName,
+                                    File = "/UploadedFiles/" + uniqueFileName,
+                                    Timestamp = DateTime.Now
+                                };
+                                _context.FileUploads.Add(annexFileUpload);
+                                await _context.SaveChangesAsync(); // Save to get ID
+
+                                // Create ProjectDocument with annex type in Description
+                                var annexDoc = new ProjectDocument
+                                {
+                                    Project_ID = project.Project_ID,
+                                    File_ID = annexFileUpload.File_ID,
+                                    Date_Added = DateTime.Now,
+                                    Description = annexType // Store annex type
+                                };
+                                _context.ProjectDocuments.Add(annexDoc);
+                            }
+                        }
+                        await _context.SaveChangesAsync();
+                    }
 
                     // 4. Create Allocation
                     var allocation = new ProjectAllocation
@@ -374,6 +458,7 @@ namespace BMS_project.Controllers
                         Amount_Allocated = model.Allocated_Amount
                     };
                     _context.ProjectAllocations.Add(allocation);
+                    await _context.SaveChangesAsync(); // Ensure allocation is saved
 
                     // 5. Create Log
                     var log = new ProjectLog
@@ -387,7 +472,7 @@ namespace BMS_project.Controllers
                     _context.ProjectLogs.Add(log);
 
                     // LOGGING (System Log)
-                    await _systemLogService.LogAsync(user.User_ID, "Create Project", $"Created Project: {project.Project_Title} with {allFileIds.Count} documents", "Project", project.Project_ID);
+                    await _systemLogService.LogAsync(user.User_ID, "Create Project", $"Created Project: {project.Project_Title} with {allFileIds.Count} proposal documents and {(model.AnnexFiles?.Count ?? 0)} annex documents", "Project", project.Project_ID);
 
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
@@ -941,6 +1026,112 @@ namespace BMS_project.Controllers
             return RedirectToAction(nameof(Projects));
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(25 * 1024 * 1024)] // 25 MB
+        [RequestFormLimits(MultipartBodyLengthLimit = 25 * 1024 * 1024)] // 25 MB
+        public async Task<IActionResult> SubmitAnnexDocument(string AnnexType, List<IFormFile> AnnexDocuments)
+        {
+            if (AnnexDocuments == null || !AnnexDocuments.Any())
+            {
+                TempData["ErrorMessage"] = "Please select at least one file to upload.";
+                return RedirectToAction(nameof(Projects));
+            }
+
+            // Validate all files
+            foreach (var file in AnnexDocuments)
+            {
+                if (!file.ContentType.Equals("application/pdf", StringComparison.OrdinalIgnoreCase))
+                {
+                    TempData["ErrorMessage"] = $"File '{file.FileName}' is not a PDF. Only PDF files are allowed.";
+                    return RedirectToAction(nameof(Projects));
+                }
+
+                if (file.Length > 25 * 1024 * 1024)
+                {
+                    TempData["ErrorMessage"] = $"File '{file.FileName}' exceeds the 25MB limit.";
+                    return RedirectToAction(nameof(Projects));
+                }
+            }
+
+            try
+            {
+                // Get current user
+                var username = User.Identity?.Name;
+                var loginRecord = await _context.Login
+                    .Include(l => l.User)
+                    .FirstOrDefaultAsync(l => l.Username == username);
+
+                if (loginRecord == null || loginRecord.User == null)
+                {
+                    TempData["ErrorMessage"] = "User not found.";
+                    return RedirectToAction(nameof(Projects));
+                }
+
+                var user = loginRecord.User;
+                if (user.Barangay_ID == null)
+                {
+                    TempData["ErrorMessage"] = "User is not assigned to a Barangay.";
+                    return RedirectToAction(nameof(Projects));
+                }
+
+                // Set up file storage
+                var baseFolder = !string.IsNullOrEmpty(_webHostEnvironment.WebRootPath)
+                    ? _webHostEnvironment.WebRootPath
+                    : _webHostEnvironment.ContentRootPath;
+
+                var uploadsFolder = Path.Combine(baseFolder, "UploadedFiles", "Annexes");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                int uploadedCount = 0;
+                var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                var sanitizedAnnexType = AnnexType.Replace(" ", "_");
+
+                // Process each file
+                foreach (var annexDocument in AnnexDocuments)
+                {
+                    // Generate unique filename
+                    var fileName = $"{sanitizedAnnexType}_{timestamp}_{annexDocument.FileName}";
+                    var filePath = Path.Combine(uploadsFolder, fileName);
+
+                    // Save file
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await annexDocument.CopyToAsync(stream);
+                    }
+
+                    // Save to database (FileUpload table)
+                    var fileUpload = new FileUpload
+                    {
+                        File_Name = fileName,
+                        File = Path.Combine("UploadedFiles", "Annexes", fileName).Replace("\\", "/"),
+                        User_ID = user.User_ID,
+                        Timestamp = DateTime.Now
+                    };
+
+                    _context.FileUploads.Add(fileUpload);
+                    await _context.SaveChangesAsync();
+
+                    uploadedCount++;
+                }
+
+                // LOGGING
+                await _systemLogService.LogAsync(user.User_ID, "Upload Annex Documents", $"Uploaded {uploadedCount} file(s) for {AnnexType}", "Annex", null);
+
+                TempData["SuccessMessage"] = $"{uploadedCount} file(s) uploaded successfully for {AnnexType}!";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading annex documents");
+                TempData["ErrorMessage"] = "An error occurred while uploading the documents.";
+            }
+
+            return RedirectToAction(nameof(Projects));
+        }
+
         public async Task<IActionResult> Compliance()
         {
             ViewData["Title"] = "Compliance";
@@ -1015,7 +1206,7 @@ namespace BMS_project.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SubmitCompliance(int ComplianceId, List<IFormFile> SubmissionFiles)
+        public async Task<IActionResult> SubmitCompliance(int ComplianceId, string AnnexType, List<IFormFile> SubmissionFiles)
         {
             if (SubmissionFiles == null || SubmissionFiles.Count == 0)
             {
@@ -1100,6 +1291,7 @@ namespace BMS_project.Controllers
                     // Update Compliance Parent Status
                     compliance.Date_Submitted = DateTime.Now;
                     compliance.Status = "Pending"; // Indicates it's under review
+                    compliance.Annex_Type = AnnexType; // Save the selected Annex Type
                     
                     _context.Compliances.Update(compliance);
 
@@ -1164,6 +1356,17 @@ namespace BMS_project.Controllers
             else
             {
                 ViewBag.Allocations = new List<ProjectAllocation>();
+            }
+
+            // Get Barangay Name for print documents
+            var user = await _context.Login
+                .Include(l => l.User)
+                    .ThenInclude(u => u.Barangay)
+                .FirstOrDefaultAsync(l => l.Username == User.Identity.Name);
+
+            if (user?.User?.Barangay != null)
+            {
+                ViewBag.BarangayName = user.User.Barangay.Barangay_Name;
             }
 
             // 3. Handle Null: If no budget found for the active term, pass a default one.
@@ -1265,10 +1468,19 @@ namespace BMS_project.Controllers
                         return RedirectToAction(nameof(Projects));
                     }
 
+                    // Calculate 10% SK Budget that must be reserved
+                    decimal skBudget = budget.budget * 0.10m;
+                    
+                    // Calculate actual available balance (Total - Disbursed - 10% SK Budget)
+                    decimal actualAvailableBalance = budget.budget - budget.disbursed - skBudget;
+
                     // Check Funds
-                    if (budget.balance < project.Estimated_Cost)
+                    if (actualAvailableBalance < project.Estimated_Cost)
                     {
-                        TempData["ErrorMessage"] = "Insufficient funds in new term to continue this project.";
+                        var phCulture = new System.Globalization.CultureInfo("en-PH");
+                        TempData["ErrorMessage"] = string.Format(phCulture, 
+                            "Insufficient funds in new term to continue this project. Required: {0:C}, Available (after 10% SK reserve): {1:C}", 
+                            project.Estimated_Cost, actualAvailableBalance);
                         return RedirectToAction(nameof(Projects));
                     }
 

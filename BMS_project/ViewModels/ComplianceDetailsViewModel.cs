@@ -9,6 +9,7 @@ namespace BMS_project.ViewModels
         public string Title { get; set; } // Added Title
         public string BarangayName { get; set; }
         public string ComplianceType { get; set; }
+        public string? AnnexType { get; set; } // Added AnnexType
         public DateTime DueDate { get; set; }
         public string ComplianceStatus { get; set; }
         public List<SubmittedDocumentViewModel> Documents { get; set; } = new List<SubmittedDocumentViewModel>();

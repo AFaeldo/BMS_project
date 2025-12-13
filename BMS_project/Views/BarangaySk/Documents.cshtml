@@ -1,204 +1,2400 @@
 ﻿@model IEnumerable<dynamic>
 @{
     Layout = "~/Views/Shared/_BarangayLayout.cshtml";
-    ViewData["Title"] = "Document Uploads";
+    ViewData["Title"] = "Downloadable Template Document";
 }
 
 <div class="container-fluid">
 
     <div class="mb-4">
-        <h2 class="fw-bold">Document & Records Management</h2>
+        <h2 class="fw-bold">Downloadable Template Document</h2>
     </div>
 
     <div class="card-body">
 
-        <form asp-action="UploadFile"
-              asp-controller="BarangaySk"
-              enctype="multipart/form-data"
-              method="post"
-              class="border rounded p-3 mb-4 bg-light">
+        <h5 class="fw-bold">Annex Templates</h5>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-secondary">
+                    <tr>
+                        <th>Template Name</th>
+                        <th style="text-align:center;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>ANNEX TEMPLATE A</td>
+                        <td style="text-align:center;">
+                            <button onclick="downloadAnnexA()" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download"></i> Download
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>ANNEX TEMPLATE B</td>
+                        <td class="text-center">
+                            <button onclick="downloadAnnexB()" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download"></i> Download
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>ANNEX TEMPLATE C</td>
+                        <td class="text-center">
+                            <button onclick="downloadAnnexC()" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download"></i> Download
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>ANNEX TEMPLATE D</td>
+                        <td class="text-center">
+                            <button onclick="downloadAnnexD()" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download"></i> Download
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>ANNEX TEMPLATE E</td>
+                        <td class="text-center">
+                            <button onclick="downloadAnnexE()" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download"></i> Download
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>ANNEX TEMPLATE F</td>
+                        <td class="text-center">
+                            <button onclick="downloadAnnexF()" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download"></i> Download
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>ANNEX TEMPLATE G</td>
+                        <td class="text-center">
+                            <button onclick="downloadAnnexG()" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download"></i> Download
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>ANNEX TEMPLATE H</td>
+                        <td class="text-center">
+                            <button onclick="downloadAnnexH()" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download"></i> Download
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
-            @Html.AntiForgeryToken()
 
-            <div class="row g-3">
-
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Document Title</label>
-                    <input type="text" name="Title" class="form-control" required />
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Category</label>
-                    <select id="fileCategory" name="File_Category" class="form-select" required>
-                        <option value="">-- Select Category --</option>
-                        <option>Meeting Minutes</option>
-                        <option>Project Proposal</option>
-                        <option>Project Report</option>
-                        <option>Budget Document</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-
-                <div class="col-md-8">
-                    <label class="form-label fw-semibold">Select Document</label>
-                    <input id="fileInput" type="file" name="File" class="form-control" required />
-                    <div id="selectedFileName" class="small text-muted mt-1" style="display:none;"></div>
-                </div>
-
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold">Description / Notes</label>
-                    <textarea name="Description" class="form-control" rows="3"></textarea>
-                </div>
-
-                <div class="col-12 d-grid mt-2">
-                    <button type="submit" class="btn btn-secondary text-white">
-                        <i class="bi bi-upload me-1"></i> Upload Document
-                    </button>
-                </div>
-            </div>
-        </form>
-
-        @if (Model != null && Model.Any())
-        {
+        <div class="mt-5">
+            <h5 class="fw-bold">Project Proposal Templates</h5>
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead class="table-secondary">
                         <tr>
-                            <th>File ID</th>
-                            <th>Title</th>
-                            <th class="text-truncate">File Name</th>
-                            <th>Category</th>
-                            <th>User ID</th>
-                            <th>Date Uploaded</th>
-                            <th class="text-center">Actions</th>
+                            <th>Template Name</th>
+                            <th style="text-align:center;">Action</th>
                         </tr>
                     </thead>
-
                     <tbody>
-                        @foreach (var file in Model)
-                        {
-                            <tr>
-                                <td>@file.File_ID</td>
-                                <td>@file.Title</td>
-
-                                <td style="max-width:260px;" class="text-truncate">
-                                    <a asp-action="DownloadFile"
-                                       asp-controller="BarangaySk"
-                                       asp-route-id="@file.File_ID">
-                                        @file.File_Name
-                                    </a>
-                                </td>
-
-                                <td>@file.File_Category</td>
-                                <td>@file.User_ID</td>
-                                <td>@file.Timestamp.ToString("MMM dd, yyyy - hh:mm tt")</td>
-
-                                <td class="text-center">
-                                    <a asp-action="DownloadFile"
-                                       asp-controller="BarangaySk"
-                                       asp-route-id="@file.File_ID"
-                                       class="btn btn-sm btn-outline-primary me-1">
-                                        <i class="bi bi-download"></i> Download
-                                    </a>
-
-                                    <form asp-action="DeleteFile"
-                                          asp-controller="BarangaySk"
-                                          method="post"
-                                          asp-route-id="@file.File_ID"
-                                          class="d-inline-block"
-                                          onsubmit="return confirm('Delete this file?');">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">
-                                            <i class="bi bi-trash"></i> Delete
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        }
+                        <tr>
+                            <td>PROJECT PROPOSAL TEMPLATES</td>
+                            <td style="text-align:center;">
+                                <button onclick="downloadProjectProposal()" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-download"></i> Download
+                                </button>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
-        }
-        else
-        {
-            <div class="text-center py-4">
-                <i class="bi bi-inbox fs-1 text-muted"></i>
-                <p class="text-muted mt-2">No documents have been uploaded yet.</p>
-            </div>
-        }
-
-    </div>
-</div>
-
-
-<!-- MODAL: CUSTOM CATEGORY -->
-<div class="modal fade" id="otherCategoryModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">Specify Category</h5>
-                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-
-            <div class="modal-body">
-                <label class="form-label fw-semibold">Custom Category</label>
-                <input type="text" id="otherCategoryInput" class="form-control" />
-            </div>
-
-            <div class="modal-footer">
-                <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                <button id="saveOtherCategory" class="btn btn-primary btn-sm">Save</button>
-            </div>
-
         </div>
     </div>
 </div>
 
 @section Scripts {
-    <script>
-        const fileCategory = document.getElementById("fileCategory");
-        const otherModal = new bootstrap.Modal(document.getElementById("otherCategoryModal"));
-        const otherInput = document.getElementById("otherCategoryInput");
-        const saveOther = document.getElementById("saveOtherCategory");
+<script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script>
+function downloadAnnexA() {
+    const { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, AlignmentType, WidthType, BorderStyle } = docx;
 
-        fileCategory.addEventListener("change", () => {
-            if (fileCategory.value === "Other") {
-                otherInput.value = "";
-                otherModal.show();
-            }
+    const tableData = [
+        ['PARTICULARS', 'DEFINITION'],
+        ['Annual Barangay Youth Investment Program (ABYIP)', 'Refers to the yearly program based on the Comprehensive Barangay Youth Development Plan. It shall contain the specific programs, projects, and activities (PPAs) with corresponding project costs including the necessary fund flow to approximate the reasonable timing in the release of funds.'],
+        ['Comprehensive Barangay Youth Development Plan (CBYDP)', 'Refers to the three (3) year comprehensive youth development plan of the barangay that is formulated by the Sangguniang Kabataan (SK) in consultation and with the concurrence of the Katipunan ng Kabataan (KK) and anchored on the Philippine Youth Development Plan (PYDP) and other Local Youth Development Plan (LYDP) in provincial, city, and municipal level.'],
+        ['General Fund of the Barangay', 'Refers to all monies and resources of the Barangay which are available for the payment of expenditures, obligations or purpose not specifically declared by law as accruing and chargeable to or payable from other funds.'],
+        ['Internal Rules of Procedure', 'Refers to the guidelines adopted by the members of the SK in the discharge of their official functions, particularly in so far as internal organization, order of session, process, parliamentary procedure, and discipline of members.'],
+        ['Local Chief Executive (LCE)', 'Refers to the provincial governor, city/municipal mayor, and barangay captain.'],
+        ['Local Government Units (LGUs)', 'Refers to the provinces, cities municipalities, and barangays.'],
+        ['Local Sanggunians', 'Refers to the Sangguniang Panlalawigan, Sangguniang Panlungsod, Sangguniang Bayan, and Sangguniang Barangay.'],
+        ['Local Youth Development Council (LYDC)', 'A multi-sectoral youth association, which shall be called. Provincial Youth Development Council (PYDC), City Youth Development Council (CYDC), and Municipal Youth Development Council (MYDC), respectively, headed by the concerned SK Pederasyon President and composed of representatives of youth and youth serving organizations in the provincial, city, and municipal level.'],
+        ['Local Youth Development Plan (LYDP)', 'Refers to the provincial, city, or municipal youth development plan as initially drafted by the SK Pederasyon, finalized by the LYDC, and approved by the local Sanggunian. The LYDP shall be anchored on the PYDP and the local development plans of the LGU concerned.'],
+        ['Mandatory and Continuing Training Providers', 'Refers to persons or institutions accredited by the Commission to conduct mandatory and continuing training programs for SK and LYDC members. These shall include officers and personnel of the Local Youth Development Office (LYDO), persons designated by the chief executive in case there is no LYDO, state universities and colleges, educational and training institutions, government, and non-government agencies, and other personnel or institutions experienced in youth development.'],
+        ['National Tax Allotment', 'Refers to the automatically appropriated share of LGUs, aggregately corresponding to 40% of the national taxes based on the collection of the third fiscal year preceding the current fiscal year. The share of each LGU is determined pursuant to the provisions of the Local Government Code of 1991 (LGC) in terms of population, land area, and equal sharing.'],
+        ['Non-traditional Media', 'Refers to websites, short and multimedia messaging systems, social media platforms, and other media not considered traditional.'],
+        ['Philippine Youth Development Plan (PYDP)', 'Refers to the comprehensive national plan expressing the convergence efforts of the different youth-serving national agencies, civil society organizations, and youth organizations designed to promote the general welfare, development, and empowerment of the youth, in preparation for their vital role in nation-building. The formulation of the plan shall be spearheaded by the National Youth Commission and shall be based on the findings of the National Youth Assessment Study, Youth Development Index, and the directions set by the Philippine Development Plan. It may also take into consideration the findings of the different international organizations.'],
+        ['SK Fund', 'A mandatory allocation of 10% from the barangay\'s general fund, as required by the LGC and SK Reform Act of 2015, for the PPAs of the SK. These funds support youth development initiatives, administrative expenses, and honoraria for SK officials.'],
+        ['SK Officials', 'Refers to the composition of the SK, including the SK chairperson, seven (7) members, a secretary, and a treasurer.'],
+        ['Social Welfare Contributions', 'Refers to mandatory or voluntary payments made by LGUs for the benefit of SK officials. These primarily include PhilHealth premiums for health coverage, as mandated by the Universal Health Care Act (RA No. 11223), and may also include contributions to the Home Development Mutual Fund (Pag-IBIG) on a voluntary basis, providing additional welfare services such as housing benefits.'],
+        ['Traditional Media', 'Refers to advertisements and announcements on bulletin boards, newspapers, magazines, tabloids, periodicals, radio, television, and other similar media.'],
+        ['Youth', 'Refers to those people whose ages range from fifteen (15) to thirty (30) years old as defined in Republic Act No. 8044. For the purpose of targeted programming for the youth, the age disaggregation that shall be considered are the following: 15-17 - child youth; 18-24 - core youth; and 25-30 - adult youth'],
+        ['Youth Organizations', 'Refers to those organizations whose membership or composition are youth.'],
+        ['Youth-Serving Organizations', 'Refers to those registered organizations whose principal PPAs are youth-oriented and youth-related, and whose composition is not limited to the youth. The organization shall be duly recognized or accredited either by proper national or local government registering entities.']
+    ];
+
+    const tableRows = tableData.map((row, index) => {
+        return new TableRow({
+            children: [
+                new TableCell({
+                    children: [new Paragraph({
+                        children: [new TextRun({ text: row[0], bold: index === 0 })],
+                        alignment: AlignmentType.CENTER
+                    })],
+                    width: { size: 35, type: WidthType.PERCENTAGE }
+                }),
+                new TableCell({
+                    children: [new Paragraph({
+                        children: [new TextRun({ text: row[1], bold: index === 0 })],
+                        alignment: index === 0 ? AlignmentType.CENTER : AlignmentType.JUSTIFIED
+                    })],
+                    width: { size: 65, type: WidthType.PERCENTAGE }
+                })
+            ]
         });
+    });
 
-        saveOther.addEventListener("click", () => {
-            const val = otherInput.value.trim();
+    const doc = new Document({
+        sections: [{
+            children: [
+                new Paragraph({
+                    children: [new TextRun({ text: 'DEFINITION OF TERMS', bold: true })],
+                    alignment: AlignmentType.CENTER,
+                    spacing: { after: 200 }
+                }),
+                new Table({
+                    rows: tableRows,
+                    width: { size: 100, type: WidthType.PERCENTAGE }
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: '', size: 18 })],
+                    spacing: { before: 400 }
+                }),
+                new Paragraph({
+                    children: [new TextRun({ 
+                        text: '² Rule V, Section 3 (f) of the Implementing Rules and Regulations (IRR) of RA No. 9679 or the Home Development Mutual Fund Law of 2009, otherwise known as Pag-IBIG (Pagtutulungan sa Kinabukasan: Ikaw, Bangko, Industriya at Gobyerno) Fund',
+                        size: 18
+                    })],
+                    spacing: { after: 100 }
+                }),
+                new Paragraph({
+                    children: [new TextRun({ 
+                        text: '³ An Act Creating the National Youth Commission, Establishing a National Comprehensive and Coordinated Program on Youth Development, Appropriating Funds Therefor, and for Other Purposes',
+                        size: 18
+                    })]
+                })
+            ]
+        }]
+    });
 
-            if (val === "") {
-                alert("Please enter a category.");
-                return;
-            }
+    Packer.toBlob(doc).then(blob => {
+        saveAs(blob, 'AnnexA_DefinitionOfTerms.docx');
+    });
+}
 
-            const option = document.createElement("option");
-            option.value = val;
-            option.textContent = val;
-            option.selected = true;
+function downloadAnnexB() {
+    const { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, AlignmentType, WidthType, VerticalAlign } = docx;
 
-            fileCategory.appendChild(option);
-            otherModal.hide();
+    const doc = new Document({
+        sections: [{
+            children: [
+                new Paragraph({
+                    children: [new TextRun({ text: 'CERTIFIED STATEMENT OF INCOME', bold: true })],
+                    alignment: AlignmentType.CENTER
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: 'BARANGAY ___________________________', bold: true })],
+                    alignment: AlignmentType.CENTER
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: 'CITY/MUNICIPALITY OF ___________________________', bold: true })],
+                    alignment: AlignmentType.CENTER
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: 'PROVINCE OF ___________________________', bold: true })],
+                    alignment: AlignmentType.CENTER,
+                    spacing: { after: 200 }
+                }),
+                new Table({
+                    rows: [
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'ACCOUNT CODE\n(1)', bold: true })], alignment: AlignmentType.CENTER })], rowSpan: 2 }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'SOURCE OF INCOME\nPARTICULARS\n(2)', bold: true })], alignment: AlignmentType.CENTER })], rowSpan: 2 }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'PAST YEAR\n(actual)\n(3)', bold: true })], alignment: AlignmentType.CENTER })], rowSpan: 2 }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'CURRENT YEAR APPROPRIATION', bold: true })], alignment: AlignmentType.CENTER })], columnSpan: 3 }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'BUDGET YEAR\n(Estimate)\n(7)', bold: true })], alignment: AlignmentType.CENTER })], rowSpan: 2 })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'First Semester\n(Actual)\n(4)', bold: true })], alignment: AlignmentType.CENTER })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Second Semester\n(Estimate)\n(5)', bold: true })], alignment: AlignmentType.CENTER })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Total\n(6)', bold: true })], alignment: AlignmentType.CENTER })] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [
+                                    new Paragraph({ children: [new TextRun({ text: '1.0 Beginning Cash Balance', bold: true })] }),
+                                    new Paragraph({ text: 'Surplus/Retained Earnings' }),
+                                    new Paragraph({ text: 'Continuing Appropriations' }),
+                                    new Paragraph({ children: [new TextRun({ text: 'Total Beginning Cash Balance', bold: true })] })
+                                ]}),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [
+                                    new Paragraph({ children: [new TextRun({ text: '2.0 Income/Receipts', bold: true })] }),
+                                    new Paragraph({ text: '  2.1 Tax Revenue' }),
+                                    new Paragraph({ text: '    a. Share of Real Property Tax Collection' }),
+                                    new Paragraph({ text: '    b. Community Tax' }),
+                                    new Paragraph({ text: '    c. Share on Sand & Gravel Tax' }),
+                                    new Paragraph({ text: '    d. Share from National Tax Allotment' }),
+                                    new Paragraph({ text: '    e. Share on utilization and development of National Wealth' }),
+                                    new Paragraph({ text: '  2.2 Operating & Miscellaneous Revenue' }),
+                                    new Paragraph({ text: '    a. Permit Fees (Other Service Income)' }),
+                                    new Paragraph({ text: '    b. Registration Fees' }),
+                                    new Paragraph({ text: '    c. Clearance & Certification Fees' }),
+                                    new Paragraph({ text: '    d. Income from Cemetery Operations' }),
+                                    new Paragraph({ text: '    e. Income from Markets' }),
+                                    new Paragraph({ text: '    f. Income from Water Works System' }),
+                                    new Paragraph({ text: '    g. Rent Income' }),
+                                    new Paragraph({ text: '    h. Subsidy from other LGUs' }),
+                                    new Paragraph({ text: '' }),
+                                    new Paragraph({ children: [new TextRun({ text: 'Total Income/Receipts', bold: true })] }),
+                                    new Paragraph({ children: [new TextRun({ text: 'Total Available Resources', bold: true })] })
+                                ]}),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '3.0 Less: Continuing Appropriations', bold: true })] })] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '4.0 Net Available Resources', bold: true })] })] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [
+                                    new Paragraph({ children: [new TextRun({ text: '5.0 10% of the General Fund of the Barangay', bold: true })] }),
+                                    new Paragraph({ text: '(Sangguniang Kabataan Fund Allocation)' })
+                                ]}),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({
+                                    children: [
+                                        new Paragraph({ text: 'Prepared by:', spacing: { after: 400 } }),
+                                        new Paragraph({ text: '___________________________' }),
+                                        new Paragraph({ text: 'Barangay Treasurer' })
+                                    ],
+                                    columnSpan: 2
+                                }),
+                                new TableCell({
+                                    children: [
+                                        new Paragraph({ text: 'Certified by:', spacing: { after: 400 } }),
+                                        new Paragraph({ text: '___________________________' }),
+                                        new Paragraph({ text: 'City/Municipal Treasurer' }),
+                                        new Paragraph({ text: '', spacing: { after: 200 } }),
+                                        new Paragraph({ text: '___________________________' }),
+                                        new Paragraph({ text: 'City/Municipal Accountant' })
+                                    ],
+                                    columnSpan: 3
+                                }),
+                                new TableCell({
+                                    children: [
+                                        new Paragraph({ text: 'Approved by:', spacing: { after: 400 } }),
+                                        new Paragraph({ text: '___________________________' }),
+                                        new Paragraph({ text: 'Punong Barangay' })
+                                    ],
+                                    columnSpan: 2
+                                })
+                            ]
+                        })
+                    ],
+                    width: { size: 100, type: WidthType.PERCENTAGE }
+                })
+            ]
+        }]
+    });
+
+    Packer.toBlob(doc).then(blob => {
+        saveAs(blob, 'AnnexB_CertifiedStatementOfIncome.docx');
+    });
+}
+
+function downloadAnnexC() {
+    const { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, AlignmentType, WidthType, BorderStyle } = docx;
+
+    const doc = new Document({
+        sections: [{
+            children: [
+                new Paragraph({
+                    children: [new TextRun({ text: 'BUDGET OF EXPENDITURES AND SOURCES OF FINANCING, FY ______', bold: true })],
+                    alignment: AlignmentType.CENTER,
+                    spacing: { after: 200 }
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: 'Barangay ___________________________' })],
+                    alignment: AlignmentType.CENTER
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: 'City/Municipality of ___________________________' })],
+                    alignment: AlignmentType.CENTER
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: 'Province of ___________________________' })],
+                    alignment: AlignmentType.CENTER,
+                    spacing: { after: 200 }
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: 'SANGGUNIANG KABATAAN FUND', bold: true })],
+                    alignment: AlignmentType.CENTER,
+                    spacing: { after: 200 }
+                }),
+                new Table({
+                    rows: [
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Particulars', bold: true })], alignment: AlignmentType.CENTER })], rowSpan: 2 }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Past Year\n(Actual)', bold: true })], alignment: AlignmentType.CENTER })], rowSpan: 2 }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Current Year Appropriation', bold: true })], alignment: AlignmentType.CENTER })], columnSpan: 3 }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Budget Year\n(Proposed)', bold: true })], alignment: AlignmentType.CENTER })], rowSpan: 2 })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'First Semester\n(Actual)', bold: true })], alignment: AlignmentType.CENTER })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Second Semester\n(Estimate)', bold: true })], alignment: AlignmentType.CENTER })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Total', bold: true })], alignment: AlignmentType.CENTER })] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'I. Beginning Cash Balance', bold: true })] })] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [
+                                    new Paragraph({ children: [new TextRun({ text: 'II. Receipts Program', bold: true })] }),
+                                    new Paragraph({ text: '  Ten percent (10%) of the General Fund of the Barangay¹' }),
+                                    new Paragraph({ text: '  Miscellaneous Income²' })
+                                ]}),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'III. Expenditure Program', bold: true })] })] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [
+                                    new Paragraph({ children: [new TextRun({ text: '  Personal Services (PS)', bold: true })] }),
+                                    new Paragraph({ text: '    Honoraria³' }),
+                                    new Paragraph({ text: '    Other allowable compensation, if any' }),
+                                    new Paragraph({ children: [new TextRun({ text: '    Total PS', bold: true })] })
+                                ]}),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [
+                                    new Paragraph({ children: [new TextRun({ text: '  Maintenance and Other Operating Expenses (MOOE)', bold: true })] }),
+                                    new Paragraph({ text: '    Travelling Expenses – Local' }),
+                                    new Paragraph({ text: '    Training Expenses' }),
+                                    new Paragraph({ text: '    Office Supplies Expenses' }),
+                                    new Paragraph({ text: '    Drugs and Medicine Expenses' }),
+                                    new Paragraph({ text: '    Other Supplies and Materials Expenses' }),
+                                    new Paragraph({ text: '    Water Expenses' }),
+                                    new Paragraph({ text: '    Electricity Expenses' }),
+                                    new Paragraph({ text: '    Postage and Courier Services' }),
+                                    new Paragraph({ text: '    Telephone Expenses' }),
+                                    new Paragraph({ text: '    Internet Subscription Expenses' }),
+                                    new Paragraph({ text: '    Prizes' }),
+                                    new Paragraph({ text: '    Repairs and Maintenance' }),
+                                    new Paragraph({ text: '    Fidelity Bond Premiums' }),
+                                    new Paragraph({ text: '    Current Operating Expenditures' }),
+                                    new Paragraph({ text: '    Advertising Expenses' }),
+                                    new Paragraph({ text: '    Transportation and Delivery Expenses' }),
+                                    new Paragraph({ text: '    Rent/Lease Expenses' }),
+                                    new Paragraph({ text: '    Membership Dues and Contributions to Organizations' }),
+                                    new Paragraph({ text: '    Donations' }),
+                                    new Paragraph({ text: '    Bank Charges' }),
+                                    new Paragraph({ text: '    Other MOOE' })
+                                ]}),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Total MOOE', bold: true })] })] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [
+                                    new Paragraph({ children: [new TextRun({ text: 'Capital Outlay (CO)', bold: true })] }),
+                                    new Paragraph({ text: 'Land' }),
+                                    new Paragraph({ text: 'Land Improvements' }),
+                                    new Paragraph({ text: 'Buildings' }),
+                                    new Paragraph({ text: 'Other Structures' }),
+                                    new Paragraph({ text: 'Machinery' }),
+                                    new Paragraph({ text: 'Office Equipment' }),
+                                    new Paragraph({ text: 'Sports Equipment' }),
+                                    new Paragraph({ text: 'Transportation Equipment' }),
+                                    new Paragraph({ text: 'Furniture, Fixtures and Books' }),
+                                    new Paragraph({ text: 'Other Property and Equipment' }),
+                                    new Paragraph({ text: 'Construction in Progress – Land Improvements' }),
+                                    new Paragraph({ text: 'Construction in Progress – Buildings' }),
+                                    new Paragraph({ text: 'Construction in Progress – Other Structures' })
+                                ]}),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Total Capital Outlay', bold: true })] })] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'IV. Ending Balance', bold: true })] })] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] })
+                            ]
+                        })
+                    ],
+                    width: { size: 100, type: WidthType.PERCENTAGE }
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: '' })],
+                    spacing: { before: 400 }
+                }),
+                new Table({
+                    rows: [
+                        new TableRow({
+                            children: [
+                                new TableCell({
+                                    children: [
+                                        new Paragraph({ text: 'Prepared by:', spacing: { after: 400 } }),
+                                        new Paragraph({ text: '_________________________' }),
+                                        new Paragraph({ text: 'SK Treasurer' })
+                                    ],
+                                    borders: {
+                                        top: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        bottom: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        left: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        right: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' }
+                                    }
+                                }),
+                                new TableCell({
+                                    children: [
+                                        new Paragraph({ text: '', spacing: { after: 400 } }),
+                                        new Paragraph({ text: '_________________________' }),
+                                        new Paragraph({ text: 'SK Secretary' })
+                                    ],
+                                    borders: {
+                                        top: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        bottom: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        left: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        right: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' }
+                                    }
+                                }),
+                                new TableCell({
+                                    children: [
+                                        new Paragraph({ text: 'Approved by:', spacing: { after: 400 } }),
+                                        new Paragraph({ text: '_________________________' }),
+                                        new Paragraph({ text: 'SK Chairperson' })
+                                    ],
+                                    borders: {
+                                        top: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        bottom: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        left: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        right: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' }
+                                    }
+                                })
+                            ]
+                        })
+                    ],
+                    width: { size: 100, type: WidthType.PERCENTAGE },
+                    borders: {
+                        top: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                        bottom: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                        left: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                        right: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                        insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                        insideVertical: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' }
+                    }
+                })
+            ]
+        }]
+    });
+
+    Packer.toBlob(doc).then(blob => {
+        saveAs(blob, 'AnnexC_BudgetOfExpenditures.docx');
+    });
+}
+
+function downloadAnnexD() {
+    const { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, AlignmentType, WidthType, BorderStyle } = docx;
+
+    const doc = new Document({
+        sections: [{
+            children: [
+                new Paragraph({
+                    children: [new TextRun({ text: 'PROGRAMMED APPROPRIATION BY PPA, EXPENSE CLASS, OBJECT OF EXPENDITURE AND EXPECTED RESULTS, FY _____', bold: true })],
+                    alignment: AlignmentType.CENTER,
+                    spacing: { after: 200 }
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: 'Sangguniang Kabataan of Barangay ___________________________' })],
+                    alignment: AlignmentType.CENTER
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: 'City/Municipality of ___________________________' })],
+                    alignment: AlignmentType.CENTER
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: 'Province of ___________________________' })],
+                    alignment: AlignmentType.CENTER,
+                    spacing: { after: 200 }
+                }),
+                new Table({
+                    rows: [
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Program, Projects, Activities\n(By Expense Class and Object of Expenditure)', bold: true })], alignment: AlignmentType.CENTER })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'ABYIP Reference Code', bold: true })], alignment: AlignmentType.CENTER })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Proposed Amount\n(Budget Year)', bold: true })], alignment: AlignmentType.CENTER })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Expected Outputs', bold: true })], alignment: AlignmentType.CENTER })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Performance Indicators', bold: true })], alignment: AlignmentType.CENTER })] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '1. GENERAL ADMINISTRATION PROGRAM (GAP)', bold: true })] })] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [
+                                    new Paragraph({ children: [new TextRun({ text: 'Personal Services (PS)', bold: true })] }),
+                                    new Paragraph({ text: '  Honoraria' }),
+                                    new Paragraph({ text: '  Other allowable compensation, if any' }),
+                                    new Paragraph({ children: [new TextRun({ text: 'Total PS', bold: true })] })
+                                ]}),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [
+                                    new Paragraph({ children: [new TextRun({ text: 'Maintenance and Other Operating Expenses (MOOE)', bold: true })] }),
+                                    new Paragraph({ text: '  Travelling Expenses – Local' }),
+                                    new Paragraph({ text: '  Training Expenses' }),
+                                    new Paragraph({ text: '  Office Supplies Expenses' }),
+                                    new Paragraph({ text: '  Drugs and Medicine Expenses' }),
+                                    new Paragraph({ text: '  Other Supplies and Materials Expenses' }),
+                                    new Paragraph({ text: '  Water Expenses' }),
+                                    new Paragraph({ text: '  Electricity Expenses' }),
+                                    new Paragraph({ text: '  Postage and Courier Services' }),
+                                    new Paragraph({ text: '  Telephone Expenses' }),
+                                    new Paragraph({ text: '  Internet Subscription Expenses' }),
+                                    new Paragraph({ text: '  Prizes' }),
+                                    new Paragraph({ text: '  Repairs and Maintenance' }),
+                                    new Paragraph({ text: '  Fidelity Bond Premiums' }),
+                                    new Paragraph({ text: '  Current Operating Expenditures' }),
+                                    new Paragraph({ text: '  Advertising Expenses' }),
+                                    new Paragraph({ text: '  Transportation and Delivery Expenses' }),
+                                    new Paragraph({ text: '  Rent/Lease Expenses' }),
+                                    new Paragraph({ text: '  Membership Dues and Contributions to Organizations' }),
+                                    new Paragraph({ text: '  Donations' }),
+                                    new Paragraph({ text: '  Bank Charges' }),
+                                    new Paragraph({ text: '  Other MOOE' })
+                                ]}),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Total MOOE', bold: true })] })] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [
+                                    new Paragraph({ children: [new TextRun({ text: 'Capital Outlay (CO)', bold: true })] }),
+                                    new Paragraph({ text: '  Land' }),
+                                    new Paragraph({ text: '  Land Improvements' }),
+                                    new Paragraph({ text: '  Buildings' }),
+                                    new Paragraph({ text: '  Other Structures' }),
+                                    new Paragraph({ text: '  Machinery' }),
+                                    new Paragraph({ text: '  Office Equipment' }),
+                                    new Paragraph({ text: '  Sports Equipment' }),
+                                    new Paragraph({ text: '  Transportation Equipment' }),
+                                    new Paragraph({ text: '  Furniture, Fixtures and Books' }),
+                                    new Paragraph({ text: '  Other Property and Equipment' }),
+                                    new Paragraph({ text: '  Construction in Progress – Land Improvements' }),
+                                    new Paragraph({ text: '  Construction in Progress – Buildings' }),
+                                    new Paragraph({ text: '  Construction in Progress – Other Structures' })
+                                ]}),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Total Capital Outlay', bold: true })] })] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'TOTAL GAP', bold: true })] })] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '2. SANGGUNIANG KABATAAN YOUTH DEVELOPMENT AND EMPOWERMENT PROGRAMS, PLANS, AND ACTIVITIES (SK YDEP)', bold: true })] })] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [
+                                    new Paragraph({ text: 'PPA 1' }),
+                                    new Paragraph({ text: '  PS' }),
+                                    new Paragraph({ text: '  MOOE' }),
+                                    new Paragraph({ text: '  CO' }),
+                                    new Paragraph({ children: [new TextRun({ text: '  Total', bold: true })] }),
+                                    new Paragraph({ text: '' }),
+                                    new Paragraph({ text: 'PPA 2' }),
+                                    new Paragraph({ text: '  PS' }),
+                                    new Paragraph({ text: '  MOOE' }),
+                                    new Paragraph({ text: '  CO' }),
+                                    new Paragraph({ children: [new TextRun({ text: '  Total', bold: true })] }),
+                                    new Paragraph({ text: '' }),
+                                    new Paragraph({ text: 'PPA 3' }),
+                                    new Paragraph({ text: '  PS' }),
+                                    new Paragraph({ text: '  MOOE' }),
+                                    new Paragraph({ text: '  CO' }),
+                                    new Paragraph({ children: [new TextRun({ text: '  Total', bold: true })] })
+                                ]}),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'TOTAL SK YDEP', bold: true })] })] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'TOTAL PPA (GAP + SK YDEP)', bold: true })] })] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] }),
+                                new TableCell({ children: [new Paragraph('')] })
+                            ]
+                        })
+                    ],
+                    width: { size: 100, type: WidthType.PERCENTAGE }
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: '' })],
+                    spacing: { before: 400 }
+                }),
+                new Table({
+                    rows: [
+                        new TableRow({
+                            children: [
+                                new TableCell({
+                                    children: [
+                                        new Paragraph({ text: 'Prepared by:', spacing: { after: 400 } }),
+                                        new Paragraph({ text: '_________________________' }),
+                                        new Paragraph({ text: 'SK Treasurer' })
+                                    ],
+                                    borders: {
+                                        top: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        bottom: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        left: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        right: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' }
+                                    }
+                                }),
+                                new TableCell({
+                                    children: [
+                                        new Paragraph({ text: '', spacing: { after: 400 } }),
+                                        new Paragraph({ text: '_________________________' }),
+                                        new Paragraph({ text: 'SK Secretary' })
+                                    ],
+                                    borders: {
+                                        top: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        bottom: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        left: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        right: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' }
+                                    }
+                                }),
+                                new TableCell({
+                                    children: [
+                                        new Paragraph({ text: 'Approved by:', spacing: { after: 400 } }),
+                                        new Paragraph({ text: '_________________________' }),
+                                        new Paragraph({ text: 'SK Chairperson' })
+                                    ],
+                                    borders: {
+                                        top: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        bottom: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        left: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        right: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' }
+                                    }
+                                })
+                            ]
+                        })
+                    ],
+                    width: { size: 100, type: WidthType.PERCENTAGE },
+                    borders: {
+                        top: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                        bottom: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                        left: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                        right: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                        insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                        insideVertical: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' }
+                    }
+                })
+            ]
+        }]
+    });
+
+    Packer.toBlob(doc).then(blob => {
+        saveAs(blob, 'AnnexD_ProgrammedAppropriation.docx');
+    });
+}
+
+function downloadAnnexE() {
+    const { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, AlignmentType, WidthType, BorderStyle } = docx;
+
+    const doc = new Document({
+        sections: [{
+            children: [
+                new Paragraph({
+                    children: [new TextRun({ text: 'PLANTILLA OF SANGGUNIANG KABATAAN OFFICIALS, FY ______', bold: true })],
+                    alignment: AlignmentType.CENTER,
+                    spacing: { after: 200 }
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: 'Barangay ___________________________' })],
+                    alignment: AlignmentType.CENTER
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: 'City/Municipality of ___________________________' })],
+                    alignment: AlignmentType.CENTER
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: 'Province of ___________________________' })],
+                    alignment: AlignmentType.CENTER,
+                    spacing: { after: 400 }
+                }),
+                new Table({
+                    rows: [
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Item\nNumber\n(1)', bold: true })], alignment: AlignmentType.CENTER })], rowSpan: 2 }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Position Title\n(2)', bold: true })], alignment: AlignmentType.CENTER })], rowSpan: 2 }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Name of Incumbent\n(3)', bold: true })], alignment: AlignmentType.CENTER })], rowSpan: 2 }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Honorarium', bold: true })], alignment: AlignmentType.CENTER })], columnSpan: 2 }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Increase/Decrease\n(6)', bold: true })], alignment: AlignmentType.CENTER })], rowSpan: 2 })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Current Year\nRate\n(4)', bold: true })], alignment: AlignmentType.CENTER })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Budget Year\nRate\n(5)', bold: true })], alignment: AlignmentType.CENTER })] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ text: ' ' })] }),
+                                new TableCell({ children: [new Paragraph({ text: ' ' })] }),
+                                new TableCell({ children: [new Paragraph({ text: ' ' })] }),
+                                new TableCell({ children: [new Paragraph({ text: ' ' })] }),
+                                new TableCell({ children: [new Paragraph({ text: ' ' })] }),
+                                new TableCell({ children: [new Paragraph({ text: ' ' })] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ text: ' ' })] }),
+                                new TableCell({ children: [new Paragraph({ text: ' ' })] }),
+                                new TableCell({ children: [new Paragraph({ text: ' ' })] }),
+                                new TableCell({ children: [new Paragraph({ text: ' ' })] }),
+                                new TableCell({ children: [new Paragraph({ text: ' ' })] }),
+                                new TableCell({ children: [new Paragraph({ text: ' ' })] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ text: ' ' })] }),
+                                new TableCell({ children: [new Paragraph({ text: ' ' })] }),
+                                new TableCell({ children: [new Paragraph({ text: ' ' })] }),
+                                new TableCell({ children: [new Paragraph({ text: ' ' })] }),
+                                new TableCell({ children: [new Paragraph({ text: ' ' })] }),
+                                new TableCell({ children: [new Paragraph({ text: ' ' })] })
+                            ]
+                        })
+                    ],
+                    width: { size: 100, type: WidthType.PERCENTAGE }
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: '' })],
+                    spacing: { before: 400 }
+                }),
+                new Table({
+                    rows: [
+                        new TableRow({
+                            children: [
+                                new TableCell({
+                                    children: [
+                                        new Paragraph({ text: 'Prepared by:', spacing: { after: 400 } }),
+                                        new Paragraph({ text: '_________________________' }),
+                                        new Paragraph({ text: 'SK Secretary' })
+                                    ],
+                                    borders: {
+                                        top: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        bottom: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        left: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        right: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' }
+                                    }
+                                }),
+                                new TableCell({
+                                    children: [
+                                        new Paragraph({ text: 'Approved by:', spacing: { after: 400 } }),
+                                        new Paragraph({ text: '_________________________' }),
+                                        new Paragraph({ text: 'SK Chairperson' })
+                                    ],
+                                    borders: {
+                                        top: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        bottom: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        left: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        right: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' }
+                                    }
+                                })
+                            ]
+                        })
+                    ],
+                    width: { size: 100, type: WidthType.PERCENTAGE },
+                    borders: {
+                        top: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                        bottom: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                        left: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                        right: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                        insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                        insideVertical: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' }
+                    }
+                })
+            ]
+        }]
+    });
+
+    Packer.toBlob(doc).then(blob => {
+        saveAs(blob, 'AnnexE_PlantillaOfSKOfficials.docx');
+    });
+}
+
+function downloadAnnexF() {
+    const { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, AlignmentType, WidthType, BorderStyle } = docx;
+
+    // Create table rows for all pages
+    const createHeaderRow = () => {
+        return new TableRow({
+            children: [
+                new TableCell({
+                    children: [new Paragraph({
+                        children: [new TextRun({ text: 'Object of Expenditure', bold: true })],
+                        alignment: AlignmentType.CENTER
+                    })],
+                    width: { size: 40, type: WidthType.PERCENTAGE }
+                }),
+                new TableCell({
+                    children: [new Paragraph({
+                        children: [new TextRun({ text: 'Budget Year Expenditures\n(Proposed)', bold: true })],
+                        alignment: AlignmentType.CENTER
+                    })],
+                    width: { size: 20, type: WidthType.PERCENTAGE }
+                }),
+                new TableCell({
+                    children: [new Paragraph({
+                        children: [new TextRun({ text: 'Expected Results', bold: true })],
+                        alignment: AlignmentType.CENTER
+                    })],
+                    width: { size: 20, type: WidthType.PERCENTAGE }
+                }),
+                new TableCell({
+                    children: [new Paragraph({
+                        children: [new TextRun({ text: 'Performance Indicators', bold: true })],
+                        alignment: AlignmentType.CENTER
+                    })],
+                    width: { size: 20, type: WidthType.PERCENTAGE }
+                })
+            ]
         });
+    };
 
-        const fileInput = document.getElementById("fileInput");
-        const selectedFileName = document.getElementById("selectedFileName");
+    const createRow = (text, isBold = false, isRight = false) => {
+        return new TableRow({
+            children: [
+                new TableCell({
+                    children: [new Paragraph({
+                        children: [new TextRun({ text: text, bold: isBold })],
+                        alignment: AlignmentType.LEFT
+                    })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({
+                        children: [new TextRun({ text: '', bold: isBold })],
+                        alignment: isRight ? AlignmentType.RIGHT : AlignmentType.LEFT
+                    })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: '' })] })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: '' })] })]
+                })
+            ]
+        });
+    };
 
-        if (fileInput) {
-            fileInput.addEventListener("change", function () {
-                var f = this.files && this.files[0];
-                if (f) {
-                    selectedFileName.style.display = "block";
-                    selectedFileName.textContent = f.name + " (" + Math.round(f.size / 1024) + " KB)";
-                } else {
-                    selectedFileName.style.display = "none";
-                }
-            });
+    // Page 1 rows
+    const page1Rows = [
+        createHeaderRow(),
+        createRow('Part I. Beginning Cash Balance', true),
+        createRow('Part II. Receipts Program', true),
+        createRow('Ten percent (10%) of the general fund of the barangay', false, true),
+        createRow('Miscellaneous Income', false, true),
+        createRow('TOTAL ESTIMATED FUNDS AVAILABLE FOR APPROPRIATION', true, true),
+        createRow('Part III. Expenditure Program', true),
+        createRow('GENERAL ADMINISTRATION PROGRAM:', true),
+        createRow('CURRENT OPERATING EXPENDITURES', true),
+        createRow('Personal Services (PS)', true),
+        createRow('Honoraria', false, true),
+        createRow('Other allowable compensation, if any'),
+        createRow('TOTAL PS', true, true),
+        createRow('Maintenance and Other Operating Expenses (MOOE)', true),
+        createRow('Travelling Expenses – Local', false, true),
+        createRow('Training Expenses', false, true),
+        createRow('Office Supplies Expenses', false, true),
+        createRow('Drugs and Medicine Expenses', false, true),
+        createRow('Other Supplies and Materials Expenses', false, true),
+        createRow('Water Expenses', false, true),
+        createRow('Electricity Expenses', false, true),
+        createRow('Postage and Courier Services', false, true),
+        createRow('Telephone Expenses', false, true),
+        createRow('Internet Subscription Expenses', false, true),
+        createRow('Prizes', false, true),
+        createRow('Repairs and Maintenance', false, true),
+        createRow('Fidelity Bond Premiums', false, true)
+    ];
+
+    // Page 2 rows
+    const page2Rows = [
+        createHeaderRow(),
+        createRow('Advertising Expenses', false, true),
+        createRow('Transportation and Delivery Expenses', false, true),
+        createRow('Rent/Lease Expenses', false, true),
+        createRow('Membership Dues and Contributions to Organizations', false, true),
+        createRow('Donations', false, true),
+        createRow('Bank Charges', false, true),
+        createRow('Other MOOE', false, true),
+        createRow('TOTAL MOOE', true, true),
+        createRow('Capital Outlay (CO)', true),
+        createRow('Land', false, true),
+        createRow('Land Improvements', false, true),
+        createRow('Buildings', false, true),
+        createRow('Other Structures', false, true),
+        createRow('Machinery', false, true),
+        createRow('Office Equipment', false, true),
+        createRow('Sports Equipment', false, true),
+        createRow('Transportation Equipment', false, true),
+        createRow('Furniture, Fixtures and Books', false, true),
+        createRow('Other Property and Equipment', false, true),
+        createRow('Construction in Progress – Land Improvements', false, true),
+        createRow('Construction in Progress – Buildings', false, true),
+        createRow('Construction in Progress – Other Structures', false, true),
+        createRow('TOTAL CO', true, true),
+        createRow('TOTAL GENERAL ADMINISTRATION PROGRAM', true, true)
+    ];
+
+    // Page 3 rows
+    const page3Rows = [
+        createHeaderRow(),
+        createRow('SK YOUTH DEVELOPMENT AND EMPOWERMENT PROGRAMS', true),
+        new TableRow({
+            children: [
+                new TableCell({
+                    children: [new Paragraph({
+                        children: [new TextRun({ text: 'a. Equitable access to quality education', bold: false })]
+                    })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({
+                        children: [new TextRun({ text: '', bold: true })],
+                        alignment: AlignmentType.RIGHT
+                    })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: 'Increased number of youth' })] })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: 'Percentage increase in number of youth enrollees in Schools and Universities' })] })]
+                })
+            ]
+        }),
+        new TableRow({
+            children: [
+                new TableCell({
+                    children: [
+                        new Paragraph({ children: [new TextRun({ text: '  MOOE' })] }),
+                        new Paragraph({ children: [new TextRun({ text: '    Subsidy' })] }),
+                        new Paragraph({ children: [new TextRun({ text: '    School Supplies' })] })
+                    ]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: '' })] })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: 'Percentage increase in Schools and Universities' })] })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: '' })] })]
+                })
+            ]
+        }),
+        createRow('Total', true, true),
+        new TableRow({
+            children: [
+                new TableCell({
+                    children: [new Paragraph({
+                        children: [new TextRun({ text: 'b. Sports development (health and anti-drug abuse)', bold: false })]
+                    })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({
+                        children: [new TextRun({ text: '', bold: true })],
+                        alignment: AlignmentType.RIGHT
+                    })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: 'Improved youth health and activity levels;' })] })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: 'Number of sports and physical activities conducted, health' })] })]
+                })
+            ]
+        }),
+        new TableRow({
+            children: [
+                new TableCell({
+                    children: [
+                        new Paragraph({ children: [new TextRun({ text: '  MOOE' })] }),
+                        new Paragraph({ children: [new TextRun({ text: '    Supplies and Materials' })] }),
+                        new Paragraph({ children: [new TextRun({ text: '    Food supplies' })] }),
+                        new Paragraph({ children: [new TextRun({ text: '  CO' })] }),
+                        new Paragraph({ children: [new TextRun({ text: '    Officiating fees' })] })
+                    ]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: '' })] })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: 'Reduced incidence of preventable diseases; and' })] })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: 'implemented activities such as Reduction in the number of seminars on HIV awareness and drug-dependent individuals and reproductive health education.' })] })]
+                })
+            ]
+        }),
+        createRow('Total', true, true)
+    ];
+
+    // Page 4 rows
+    const page4Rows = [
+        createHeaderRow(),
+        new TableRow({
+            children: [
+                new TableCell({
+                    children: [new Paragraph({
+                        children: [new TextRun({ text: 'c. Youth employment and livelihood', bold: false })]
+                    })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({
+                        children: [new TextRun({ text: '', bold: true })],
+                        alignment: AlignmentType.RIGHT
+                    })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: 'Higher rate of youth employment' })] })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: 'Percentage increase in number of youth employment rate' })] })]
+                })
+            ]
+        }),
+        new TableRow({
+            children: [
+                new TableCell({
+                    children: [
+                        new Paragraph({ children: [new TextRun({ text: '  MOOE' })] }),
+                        new Paragraph({ children: [new TextRun({ text: '    Supplies and Materials' })] })
+                    ]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: '' })] })]
+                }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] })
+            ]
+        }),
+        createRow('Total', true, true),
+        new TableRow({
+            children: [
+                new TableCell({
+                    children: [new Paragraph({
+                        children: [new TextRun({ text: 'd. Environmental protection', bold: false })]
+                    })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({
+                        children: [new TextRun({ text: '', bold: true })],
+                        alignment: AlignmentType.RIGHT
+                    })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: 'Increased youth awareness, enhanced skills and empowerment' })] })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: 'Number of youth participants attending workshops and economic training sessions and number of new agricultural, fishery, or forestry enterprises initiated by the youth' })] })]
+                })
+            ]
+        }),
+        new TableRow({
+            children: [
+                new TableCell({
+                    children: [
+                        new Paragraph({ children: [new TextRun({ text: '  MOOE' })] }),
+                        new Paragraph({ children: [new TextRun({ text: '    Agricultural inputs, fishery and forestry tools' })] }),
+                        new Paragraph({ children: [new TextRun({ text: '    Training Kits' })] }),
+                        new Paragraph({ children: [new TextRun({ text: '  CO' })] })
+                    ]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: '' })] })]
+                }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] })
+            ]
+        }),
+        createRow('Total', true, true),
+        new TableRow({
+            children: [
+                new TableCell({
+                    children: [new Paragraph({
+                        children: [new TextRun({ text: 'e. Climate change adaptation', bold: false })]
+                    })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({
+                        children: [new TextRun({ text: '', bold: true })],
+                        alignment: AlignmentType.RIGHT
+                    })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: 'Strengthened community resilience to climate change' })] })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: 'Number of climate change adaptation activities conducted' })] })]
+                })
+            ]
+        }),
+        new TableRow({
+            children: [
+                new TableCell({
+                    children: [
+                        new Paragraph({ children: [new TextRun({ text: '  MOOE' })] }),
+                        new Paragraph({ children: [new TextRun({ text: '    Supplies and Materials' })] }),
+                        new Paragraph({ children: [new TextRun({ text: '  CO' })] })
+                    ]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: '' })] })]
+                }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] })
+            ]
+        }),
+        createRow('Total', true, true),
+        new TableRow({
+            children: [
+                new TableCell({
+                    children: [new Paragraph({
+                        children: [new TextRun({ text: 'f. Capacity Building', bold: false })]
+                    })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({
+                        children: [new TextRun({ text: '', bold: true })],
+                        alignment: AlignmentType.RIGHT
+                    })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: 'Increased youth capacity and competence' })] })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: 'Number of capacity-building activities delivered, including dialogues, forums, lectures, and instructional classes' })] })]
+                })
+            ]
+        }),
+        new TableRow({
+            children: [
+                new TableCell({
+                    children: [
+                        new Paragraph({ children: [new TextRun({ text: '  MOOE' })] }),
+                        new Paragraph({ children: [new TextRun({ text: '    Supplies and Materials' })] })
+                    ]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: '' })] })]
+                }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] })
+            ]
+        }),
+        createRow('Total', true, true),
+        new TableRow({
+            children: [
+                new TableCell({
+                    children: [new Paragraph({
+                        children: [new TextRun({ text: 'g. Gender sensitivity', bold: false })]
+                    })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({
+                        children: [new TextRun({ text: '', bold: true })],
+                        alignment: AlignmentType.RIGHT
+                    })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: 'Enhanced gender equality' })] })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: 'Number of gender-inclusive programs implemented' })] })]
+                })
+            ]
+        }),
+        new TableRow({
+            children: [
+                new TableCell({
+                    children: [
+                        new Paragraph({ children: [new TextRun({ text: '  MOOE' })] }),
+                        new Paragraph({ children: [new TextRun({ text: '    Supplies and Materials' })] })
+                    ]
+                }),
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: '' })] })]
+                }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] })
+            ]
+        }),
+        createRow('Total', true, true),
+        createRow('Total for Youth Development and Empowerment Programs', true, true),
+        createRow('TOTAL EXPENDITURE PROGRAM', true, true),
+        new TableRow({
+            children: [
+                new TableCell({
+                    children: [new Paragraph({
+                        children: [new TextRun({ text: 'PART IV. ENDING BALANCE', bold: true })]
+                    })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({
+                        children: [new TextRun({ text: '' })],
+                        alignment: AlignmentType.RIGHT
+                    })]
+                }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] })
+            ]
+        })
+    ];
+
+    const doc = new Document({
+        sections: [
+            {
+                properties: {
+                    page: {
+                        margin: {
+                            top: 1134,
+                            right: 1134,
+                            bottom: 1134,
+                            left: 1134
+                        }
+                    }
+                },
+                children: [
+                    new Paragraph({
+                        children: [new TextRun({ text: 'OBJECT OF EXPENDITURE', bold: true })],
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 200 }
+                    }),
+                    new Paragraph({
+                        children: [new TextRun({ text: 'Page 1', bold: false })],
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 200 }
+                    }),
+                    new Table({
+                        rows: page1Rows,
+                        width: { size: 100, type: WidthType.PERCENTAGE }
+                    })
+                ]
+            },
+            {
+                properties: {
+                    page: {
+                        margin: {
+                            top: 1134,
+                            right: 1134,
+                            bottom: 1134,
+                            left: 1134
+                        }
+                    }
+                },
+                children: [
+                    new Paragraph({
+                        children: [new TextRun({ text: 'OBJECT OF EXPENDITURE', bold: true })],
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 200 }
+                    }),
+                    new Paragraph({
+                        children: [new TextRun({ text: 'Page 2', bold: false })],
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 200 }
+                    }),
+                    new Table({
+                        rows: page2Rows,
+                        width: { size: 100, type: WidthType.PERCENTAGE }
+                    })
+                ]
+            },
+            {
+                properties: {
+                    page: {
+                        margin: {
+                            top: 1134,
+                            right: 1134,
+                            bottom: 1134,
+                            left: 1134
+                        }
+                    }
+                },
+                children: [
+                    new Paragraph({
+                        children: [new TextRun({ text: 'OBJECT OF EXPENDITURE', bold: true })],
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 200 }
+                    }),
+                    new Paragraph({
+                        children: [new TextRun({ text: 'Page 3', bold: false })],
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 200 }
+                    }),
+                    new Table({
+                        rows: page3Rows,
+                        width: { size: 100, type: WidthType.PERCENTAGE }
+                    })
+                ]
+            },
+            {
+                properties: {
+                    page: {
+                        margin: {
+                            top: 1134,
+                            right: 1134,
+                            bottom: 1134,
+                            left: 1134
+                        }
+                    }
+                },
+                children: [
+                    new Paragraph({
+                        children: [new TextRun({ text: 'OBJECT OF EXPENDITURE', bold: true })],
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 200 }
+                    }),
+                    new Paragraph({
+                        children: [new TextRun({ text: 'Page 4', bold: false })],
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 200 }
+                    }),
+                    new Table({
+                        rows: page4Rows,
+                        width: { size: 100, type: WidthType.PERCENTAGE }
+                    })
+                ]
+            }
+        ]
+    });
+
+    Packer.toBlob(doc).then(blob => {
+        saveAs(blob, 'AnnexF_ObjectOfExpenditure.docx');
+    });
+}
+
+function downloadAnnexG() {
+    const { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, AlignmentType, WidthType, BorderStyle } = docx;
+
+    const doc = new Document({
+        sections: [{
+            children: [
+                new Paragraph({
+                    children: [new TextRun({ text: 'RESOLUTION NO. ___, s. 20__', bold: true })],
+                    alignment: AlignmentType.CENTER,
+                    spacing: { after: 400 }
+                }),
+                new Paragraph({
+                    children: [
+                        new TextRun({ text: '"A RESOLUTION APPROVING THE SANGGUNIANG KABATAAN (SK)\n', bold: true }),
+                        new TextRun({ text: 'ANNUAL/SUPPLEMENTAL', bold: true, italics: true, underline: {} }),
+                        new TextRun({ text: ' BUDGET OF BARANGAY __________ FOR FISCAL\n', bold: true }),
+                        new TextRun({ text: 'YEAR _____ IN THE AMOUNT OF __________"', bold: true })
+                    ],
+                    alignment: AlignmentType.CENTER,
+                    spacing: { after: 400 }
+                }),
+                new Paragraph({
+                    children: [
+                        new TextRun({ text: 'WHEREAS, ', bold: true }),
+                        new TextRun({ text: 'Section 8 (b) of Republic Act (RA) No. 10742, otherwise known as the SK Reform Act of 2015, as amended by RA No. 11768, provides in part, that among the powers and functions of the SK is to approve the annual budget which is the annual slice of the Annual Barangay Youth Investment Program (ABYIP) before the start of the succeeding fiscal year;' })
+                    ],
+                    alignment: AlignmentType.JUSTIFIED,
+                    spacing: { after: 200 }
+                }),
+                new Paragraph({
+                    children: [
+                        new TextRun({ text: 'WHEREAS, ', bold: true }),
+                        new TextRun({ text: 'Section 8 (c) of the same Act, empowers the SK to promulgate resolutions necessary to carry out the objectives of the youth in the barangay in accordance with the Comprehensive Barangay Youth Development Plan (CBYDP) and the applicable provisions of the Act;' })
+                    ],
+                    alignment: AlignmentType.JUSTIFIED,
+                    spacing: { after: 200 }
+                }),
+                new Paragraph({
+                    children: [
+                        new TextRun({ text: 'WHEREAS, ', bold: true }),
+                        new TextRun({ text: 'Item 4.3.2.2 of JMC No. __, s. 20__ mandates the SK Chairperson, with the assistance of the SK Treasurer, to prepare the SK ' }),
+                        new TextRun({ text: 'annual/supplemental', italics: true, underline: {} }),
+                        new TextRun({ text: ' budget consisting of the following: (i) estimates of income; and (ii) expenditure program;' })
+                    ],
+                    alignment: AlignmentType.JUSTIFIED,
+                    spacing: { after: 200 }
+                }),
+                new Paragraph({
+                    children: [
+                        new TextRun({ text: 'WHEREAS, ', bold: true }),
+                        new TextRun({ text: 'in a meeting conducted last ___, the SK of Barangay __________ has approved the ' }),
+                        new TextRun({ text: 'annual/supplemental', italics: true, underline: {} }),
+                        new TextRun({ text: ' budget appropriating the amount of __________;' })
+                    ],
+                    alignment: AlignmentType.JUSTIFIED,
+                    spacing: { after: 200 }
+                }),
+                new Paragraph({
+                    children: [
+                        new TextRun({ text: 'WHEREAS, ', bold: true }),
+                        new TextRun({ text: 'said ' }),
+                        new TextRun({ text: 'annual/supplemental', italics: true, underline: {} }),
+                        new TextRun({ text: ' budget is compliant with Section 20 of RA 10742, as amended by RA No. 11768, JMC No. __, s. 20__ and other related guidelines in the use of SK Funds;' })
+                    ],
+                    alignment: AlignmentType.JUSTIFIED,
+                    spacing: { after: 200 }
+                }),
+                new Paragraph({
+                    children: [
+                        new TextRun({ text: 'WHEREAS, ', bold: true }),
+                        new TextRun({ text: 'said ' }),
+                        new TextRun({ text: 'annual/supplemental', italics: true, underline: {} }),
+                        new TextRun({ text: ' budget is necessary in order to carry out the programs, projects, and activities of the SK as outlined in the CBYDP and the ABYIP;' })
+                    ],
+                    alignment: AlignmentType.JUSTIFIED,
+                    spacing: { after: 200 }
+                }),
+                new Paragraph({
+                    children: [
+                        new TextRun({ text: 'NOW THEREFORE, ', bold: true }),
+                        new TextRun({ text: 'be it resolved by the SK of Barangay __________ to approve the ' }),
+                        new TextRun({ text: 'annual/supplemental', italics: true, underline: {} }),
+                        new TextRun({ text: ' budget in the amount of __________;' })
+                    ],
+                    alignment: AlignmentType.JUSTIFIED,
+                    spacing: { after: 200 }
+                }),
+                new Paragraph({
+                    children: [
+                        new TextRun({ text: 'RESOLVED FURTHER, ', bold: true }),
+                        new TextRun({ text: 'that the full text of the ' }),
+                        new TextRun({ text: 'annual/supplemental', italics: true, underline: {} }),
+                        new TextRun({ text: ' budget shall be read as follows:' })
+                    ],
+                    alignment: AlignmentType.JUSTIFIED,
+                    spacing: { after: 200 }
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: '(integrate the full text of the annual/supplemental budget)', italics: true })],
+                    alignment: AlignmentType.CENTER,
+                    spacing: { after: 200 }
+                }),
+                new Paragraph({
+                    children: [
+                        new TextRun({ text: 'RESOLVED FURTHERMORE, ', bold: true }),
+                        new TextRun({ text: 'that copies of this resolution shall be furnished to the Sangguniang Panlungsod/Bayan of _____, Sangguniang Barangay of _____, City Budget Office, City Accounting Office, and all offices concerned for their appropriate action.' })
+                    ],
+                    alignment: AlignmentType.JUSTIFIED,
+                    spacing: { after: 600 }
+                }),
+                new Table({
+                    rows: [
+                        new TableRow({
+                            children: [
+                                new TableCell({
+                                    children: [
+                                        new Paragraph({ children: [new TextRun({ text: '' })], spacing: { before: 800 } }),
+                                        new Paragraph({ children: [new TextRun({ text: '_________________________' })], alignment: AlignmentType.LEFT }),
+                                        new Paragraph({ children: [new TextRun({ text: 'SK Chairperson' })], alignment: AlignmentType.LEFT })
+                                    ],
+                                    width: { size: 50, type: WidthType.PERCENTAGE },
+                                    borders: {
+                                        top: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        bottom: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        left: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        right: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' }
+                                    }
+                                }),
+                                new TableCell({
+                                    children: [
+                                        new Paragraph({ children: [new TextRun({ text: '' })], spacing: { before: 800 } }),
+                                        new Paragraph({ children: [new TextRun({ text: '_________________________' })], alignment: AlignmentType.CENTER }),
+                                        new Paragraph({ children: [new TextRun({ text: 'SK Secretary' })], alignment: AlignmentType.CENTER })
+                                    ],
+                                    width: { size: 50, type: WidthType.PERCENTAGE },
+                                    borders: {
+                                        top: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        bottom: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        left: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                        right: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' }
+                                    }
+                                })
+                            ]
+                        })
+                    ],
+                    width: { size: 100, type: WidthType.PERCENTAGE },
+                    borders: {
+                        top: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                        bottom: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                        left: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                        right: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                        insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                        insideVertical: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' }
+                    }
+                })
+            ]
+        }]
+    });
+
+    Packer.toBlob(doc).then(blob => {
+        saveAs(blob, 'AnnexG_Resolution.docx');
+    });
+}
+
+function downloadAnnexH() {
+    const { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, AlignmentType, WidthType, BorderStyle, VerticalAlign } = docx;
+
+    const whiteBorder = {
+        top: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
+        bottom: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
+        left: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
+        right: { style: BorderStyle.SINGLE, size: 1, color: '000000' }
+    };
+
+    // Helper function to create header cells
+    const createHeaderCell = (text, rowSpan = 1, colSpan = 1) => {
+        return new TableCell({
+            children: [new Paragraph({
+                children: [new TextRun({ text: text, bold: true, size: 18 })],
+                alignment: AlignmentType.CENTER
+            })],
+            rowSpan: rowSpan,
+            columnSpan: colSpan,
+            verticalAlign: VerticalAlign.CENTER,
+            borders: whiteBorder
+        });
+    };
+
+    const createDataCell = (text, isBold = false) => {
+        return new TableCell({
+            children: [new Paragraph({
+                children: [new TextRun({ text: text, bold: isBold, size: 18 })]
+            })],
+            borders: whiteBorder
+        });
+    };
+
+    const createEmptyRow = (numCells) => {
+        const cells = [];
+        for (let i = 0; i < numCells; i++) {
+            cells.push(createDataCell(''));
         }
-    </script>
+        return new TableRow({ children: cells });
+    };
+
+    // Page 1 Header rows
+    const page1HeaderRow1 = new TableRow({
+        children: [
+            createHeaderCell('Particulars', 2, 1),
+            createHeaderCell('Estimate', 1, 5),
+            createHeaderCell('Actual', 1, 5),
+            createHeaderCell('Variance', 1, 2),
+            createHeaderCell('Remarks', 2, 1)
+        ]
+    });
+
+    const page1HeaderRow2 = new TableRow({
+        children: [
+            createHeaderCell('1st\nQuarter'),
+            createHeaderCell('2nd\nQuarter'),
+            createHeaderCell('3rd\nQuarter'),
+            createHeaderCell('4th\nQuarter'),
+            createHeaderCell('Total'),
+            createHeaderCell('1st\nQuarter'),
+            createHeaderCell('2nd\nQuarter'),
+            createHeaderCell('3rd\nQuarter'),
+            createHeaderCell('4th\nQuarter'),
+            createHeaderCell('Total'),
+            createHeaderCell('Amounts'),
+            createHeaderCell('%')
+        ]
+    });
+
+    const page1ColumnLabels = new TableRow({
+        children: [
+            createDataCell('(1)', false),
+            createDataCell('(2)', false),
+            createDataCell('(3)', false),
+            createDataCell('(4)', false),
+            createDataCell('(5)', false),
+            createDataCell('(6)', false),
+            createDataCell('(7)', false),
+            createDataCell('(8)', false),
+            createDataCell('(9)', false),
+            createDataCell('(10)', false),
+            createDataCell('(11)', false),
+            createDataCell('(12)', false),
+            createDataCell('(13)', false),
+            createDataCell('(14)', false)
+        ]
+    });
+
+    // Page 1 content
+    const page1Rows = [
+        page1HeaderRow1,
+        page1HeaderRow2,
+        page1ColumnLabels,
+        new TableRow({
+            children: [
+                createDataCell('I.   Beginning Balance', true),
+                ...Array(13).fill(null).map(() => createDataCell(''))
+            ]
+        }),
+        new TableRow({
+            children: [
+                new TableCell({
+                    children: [
+                        new Paragraph({ children: [new TextRun({ text: 'II.   Receipts Program', bold: true, size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Ten percent (10%) of the General Fund of the Barangay¹', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Miscellaneous Income²', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Total Receipts', bold: true, size: 18 })] })
+                    ],
+                    borders: whiteBorder
+                }),
+                ...Array(13).fill(null).map(() => createDataCell(''))
+            ]
+        }),
+        new TableRow({
+            children: [
+                createDataCell('III.   Expenditures Program', true),
+                ...Array(13).fill(null).map(() => createDataCell(''))
+            ]
+        }),
+        new TableRow({
+            children: [
+                new TableCell({
+                    children: [
+                        new Paragraph({ children: [new TextRun({ text: 'Personal Services (PS)', bold: true, size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: '  Honoraria³', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: '  Other allowable compensation, if any', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Total PS', bold: true, size: 18 })] })
+                    ],
+                    borders: whiteBorder
+                }),
+                ...Array(13).fill(null).map(() => createDataCell(''))
+            ]
+        }),
+        new TableRow({
+            children: [
+                createDataCell('Maintenance and Other Operating Expenses (MOOE)', true),
+                ...Array(13).fill(null).map(() => createDataCell(''))
+            ]
+        })
+    ];
+
+    // Page 2 header
+    const page2HeaderRow = new TableRow({
+        children: [
+            createHeaderCell('Particulars'),
+            createHeaderCell('1st Quarter'),
+            createHeaderCell('2nd Quarter'),
+            createHeaderCell('3rd Quarter'),
+            createHeaderCell('4th Quarter'),
+            createHeaderCell('Total'),
+            createHeaderCell('1st Quarter'),
+            createHeaderCell('2nd Quarter'),
+            createHeaderCell('3rd Quarter'),
+            createHeaderCell('4th Quarter'),
+            createHeaderCell('Total'),
+            createHeaderCell('Amounts'),
+            createHeaderCell('%'),
+            createHeaderCell('Remarks')
+        ]
+    });
+
+    const page2Rows = [
+        page2HeaderRow,
+        new TableRow({
+            children: [
+                new TableCell({
+                    children: [
+                        new Paragraph({ children: [new TextRun({ text: 'Travelling Expenses – Local', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Training Expenses', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Office Supplies Expenses', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Drugs and Medicine Expenses', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Other Supplies and Materials Expenses', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Water Expenses', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Electricity Expenses', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Postage and Courier Services', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Telephone Expenses', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Internet Subscription Expenses', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Prizes', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Repairs and Maintenance', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Fidelity Bond Premiums', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Current Operating Expenditures', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Advertising Expenses', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Transportation and Delivery Expenses', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Rent/Lease Expenses', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Membership Dues and Contributions to Organizations', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Donations', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Bank Charges', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Other MOOE', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Total MOOE', bold: true, size: 18 })] })
+                    ],
+                    borders: whiteBorder
+                }),
+                ...Array(13).fill(null).map(() => createDataCell(''))
+            ]
+        }),
+        new TableRow({
+            children: [
+                createDataCell('Capital Outlay (CO)', true),
+                ...Array(13).fill(null).map(() => createDataCell(''))
+            ]
+        })
+    ];
+
+    // Page 3
+    const page3HeaderRow = new TableRow({
+        children: [
+            createHeaderCell('Particulars'),
+            createHeaderCell('1st Quarter'),
+            createHeaderCell('2nd Quarter'),
+            createHeaderCell('3rd Quarter'),
+            createHeaderCell('4th Quarter'),
+            createHeaderCell('Total'),
+            createHeaderCell('1st Quarter'),
+            createHeaderCell('2nd Quarter'),
+            createHeaderCell('3rd Quarter'),
+            createHeaderCell('4th Quarter'),
+            createHeaderCell('Total'),
+            createHeaderCell('Amounts'),
+            createHeaderCell('%'),
+            createHeaderCell('Remarks')
+        ]
+    });
+
+    const page3Rows = [
+        page3HeaderRow,
+        new TableRow({
+            children: [
+                new TableCell({
+                    children: [
+                        new Paragraph({ children: [new TextRun({ text: 'Office Equipment', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Sports Equipment', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Transportation Equipment', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Furniture, Fixtures and Books', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Other Property and Equipment', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Construction in Progress – Land Improvements', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Construction in Progress – Buildings', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Construction in Progress – Other Structures', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Total Capital Outlay', bold: true, size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: '', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'Total Expenditures', bold: true, size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: '', size: 18 })] }),
+                        new Paragraph({ children: [new TextRun({ text: 'IV.   Ending Balance', bold: true, size: 18 })] })
+                    ],
+                    borders: whiteBorder
+                }),
+                ...Array(13).fill(null).map(() => createDataCell(''))
+            ]
+        })
+    ];
+
+    const doc = new Document({
+        sections: [
+            {
+                properties: {
+                    page: {
+                        margin: { top: 1134, right: 1134, bottom: 1134, left: 1134 }
+                    }
+                },
+                children: [
+                    new Paragraph({
+                        children: [new TextRun({ text: 'STATEMENT OF ACTUAL RECEIPTS AND EXPENDITURES', bold: true })],
+                        alignment: AlignmentType.CENTER
+                    }),
+                    new Paragraph({
+                        children: [new TextRun({ text: 'For the Quarter Ending ____________________', bold: true })],
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 200 }
+                    }),
+                    new Paragraph({
+                        children: [new TextRun({ text: 'Barangay ___________________________' })],
+                        alignment: AlignmentType.CENTER
+                    }),
+                    new Paragraph({
+                        children: [new TextRun({ text: 'City/Municipality of ___________________________' })],
+                        alignment: AlignmentType.CENTER
+                    }),
+                    new Paragraph({
+                        children: [new TextRun({ text: 'Province of ___________________________' })],
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 200 }
+                    }),
+                    new Table({
+                        rows: page1Rows,
+                        width: { size: 100, type: WidthType.PERCENTAGE },
+                        borders: {
+                            top: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
+                            bottom: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
+                            left: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
+                            right: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
+                            insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
+                            insideVertical: { style: BorderStyle.SINGLE, size: 1, color: '000000' }
+                        }
+                    }),
+                    new Paragraph({
+                        children: [
+                            new TextRun({ text: '¹ Based on the Certification of the Income of the Barangay issued by the Barangay Treasurer', size: 18 })
+                        ],
+                        spacing: { before: 200 }
+                    }),
+                    new Paragraph({
+                        children: [
+                            new TextRun({ text: '² Miscellaneous Income. This account is used to record the receipt of cash generated from fundraising activities of the SK and the sale of unserviceable property (HFTSK p. 108)', size: 18 })
+                        ]
+                    }),
+                    new Paragraph({
+                        children: [
+                            new TextRun({ text: '³ The total honorarium to be included in the SK Annual Budget shall cover SK Officials, whether the SK position is filled or vacant.', size: 18 })
+                        ]
+                    })
+                ]
+            },
+            {
+                properties: {
+                    page: {
+                        margin: { top: 1134, right: 1134, bottom: 1134, left: 1134 }
+                    }
+                },
+                children: [
+                    new Table({
+                        rows: page2Rows,
+                        width: { size: 100, type: WidthType.PERCENTAGE },
+                        borders: {
+                            top: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
+                            bottom: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
+                            left: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
+                            right: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
+                            insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
+                            insideVertical: { style: BorderStyle.SINGLE, size: 1, color: '000000' }
+                        }
+                    })
+                ]
+            },
+            {
+                properties: {
+                    page: {
+                        margin: { top: 1134, right: 1134, bottom: 1134, left: 1134 }
+                    }
+                },
+                children: [
+                    new Table({
+                        rows: page3Rows,
+                        width: { size: 100, type: WidthType.PERCENTAGE },
+                        borders: {
+                            top: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
+                            bottom: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
+                            left: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
+                            right: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
+                            insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
+                            insideVertical: { style: BorderStyle.SINGLE, size: 1, color: '000000' }
+                        }
+                    }),
+                    new Paragraph({
+                        children: [new TextRun({ text: '', size: 18 })],
+                        spacing: { before: 400 }
+                    }),
+                    new Table({
+                        rows: [
+                            new TableRow({
+                                children: [
+                                    new TableCell({
+                                        children: [
+                                            new Paragraph({ children: [new TextRun({ text: 'Prepared by:' })] }),
+                                            new Paragraph({ children: [new TextRun({ text: '' })], spacing: { before: 400 } }),
+                                            new Paragraph({ children: [new TextRun({ text: '_________________________' })] }),
+                                            new Paragraph({ children: [new TextRun({ text: 'SK Treasurer' })] })
+                                        ],
+                                        width: { size: 33, type: WidthType.PERCENTAGE },
+                                        borders: {
+                                            top: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                            bottom: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                            left: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                            right: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' }
+                                        }
+                                    }),
+                                    new TableCell({
+                                        children: [
+                                            new Paragraph({ children: [new TextRun({ text: '' })], spacing: { before: 400 } }),
+                                            new Paragraph({ children: [new TextRun({ text: '' })], spacing: { before: 400 } }),
+                                            new Paragraph({ children: [new TextRun({ text: '_________________________' })] }),
+                                            new Paragraph({ children: [new TextRun({ text: 'SK Secretary' })] })
+                                        ],
+                                        width: { size: 33, type: WidthType.PERCENTAGE },
+                                        borders: {
+                                            top: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                            bottom: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                            left: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                            right: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' }
+                                        }
+                                    }),
+                                    new TableCell({
+                                        children: [
+                                            new Paragraph({ children: [new TextRun({ text: 'Approved by:' })] }),
+                                            new Paragraph({ children: [new TextRun({ text: '' })], spacing: { before: 400 } }),
+                                            new Paragraph({ children: [new TextRun({ text: '_________________________' })] }),
+                                            new Paragraph({ children: [new TextRun({ text: 'SK Chairperson' })] })
+                                        ],
+                                        width: { size: 34, type: WidthType.PERCENTAGE },
+                                        borders: {
+                                            top: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                            bottom: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                            left: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                                            right: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' }
+                                        }
+                                    })
+                                ]
+                            })
+                        ],
+                        width: { size: 100, type: WidthType.PERCENTAGE },
+                        borders: {
+                            top: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                            bottom: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                            left: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                            right: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                            insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' },
+                            insideVertical: { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' }
+                        }
+                    })
+                ]
+            }
+        ]
+    });
+
+    Packer.toBlob(doc).then(blob => {
+        saveAs(blob, 'AnnexH_StatementOfActualReceiptsAndExpenditures.docx');
+    });
+}
+
+function downloadProjectProposal() {
+    const { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, AlignmentType, WidthType } = docx;
+
+    const doc = new Document({
+        sections: [{
+            children: [
+                new Paragraph({
+                    children: [new TextRun({ text: 'Sangguniang Kabataan Barangay ___________________', bold: true })],
+                    alignment: AlignmentType.CENTER,
+                    spacing: { after: 0 }
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: '_________________, Calapan, Oriental Mindoro', bold: true })],
+                    alignment: AlignmentType.CENTER,
+                    spacing: { after: 400 }
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: 'PROJECT PROPOSAL', bold: true, size: 28 })],
+                    alignment: AlignmentType.CENTER,
+                    spacing: { after: 400 }
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: 'I.   PROJECT TITLE', bold: true })],
+                    spacing: { after: 200 }
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: 'BARANGAY YOUTH DEVELOPMENT AND EMPOWERMENT PROGRAM' })],
+                    spacing: { after: 300 }
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: 'II.  PROJECT DESCRIPTION', bold: true })],
+                    spacing: { after: 200 }
+                }),
+                new Paragraph({
+                    children: [
+                        new TextRun({ text: 'a.  As stated in RA 10742 otherwise known as the "Sangguniang Kabataan Reform Act of 2015," Rule II entitled "The Katipunan ng Kabataan and the Sangguniang Kabataan" section 8 "Powers and Function of the Sangguniang Kabataan" that the Sangguniang Kabataan shall (d) Initiate and implement, in coordination with any national government agency and/or any private or nongovernment institution programs and projects designed to promote general welfare, development and empowerment of the youth.' })
+                    ],
+                    alignment: AlignmentType.JUSTIFIED,
+                    spacing: { after: 300 }
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: 'III. PROJECT OBJECTIVE', bold: true })],
+                    spacing: { after: 200 }
+                }),
+                new Paragraph({
+                    children: [
+                        new TextRun({ text: 'a.  The main target for the implementation of this program is the youth population of Barangay ___________________. This project aims to conduct development and empowerment programs that will help the youths of the barangay become civic-centered individuals and imparting the core values of Filipinos in their young minds and developing their skills and social involvement through various activities conducted within a week.' })
+                    ],
+                    alignment: AlignmentType.JUSTIFIED,
+                    spacing: { after: 300 }
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: 'IV.  ACTIVITIES AND TIMELINE', bold: true })],
+                    spacing: { after: 200 }
+                }),
+                new Table({
+                    rows: [
+                        new TableRow({
+                            children: [
+                                new TableCell({
+                                    children: [new Paragraph({
+                                        children: [new TextRun({ text: 'ACTIVITIES', bold: true })],
+                                        alignment: AlignmentType.CENTER
+                                    })],
+                                    width: { size: 40, type: WidthType.PERCENTAGE }
+                                }),
+                                new TableCell({
+                                    children: [new Paragraph({
+                                        children: [new TextRun({ text: 'PERSON INVOLVED', bold: true })],
+                                        alignment: AlignmentType.CENTER
+                                    })],
+                                    width: { size: 40, type: WidthType.PERCENTAGE }
+                                }),
+                                new TableCell({
+                                    children: [new Paragraph({
+                                        children: [new TextRun({ text: 'TARGET DATE', bold: true })],
+                                        alignment: AlignmentType.CENTER
+                                    })],
+                                    width: { size: 20, type: WidthType.PERCENTAGE }
+                                })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '1.  ' })] })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })], alignment: AlignmentType.CENTER })] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '2.  ' })] })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })], alignment: AlignmentType.CENTER })] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '3.  ' })] })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })], alignment: AlignmentType.CENTER })] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '4.  ' })] })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })], alignment: AlignmentType.CENTER })] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '5.  ' })] })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })], alignment: AlignmentType.CENTER })] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '6.  ' })] })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })], alignment: AlignmentType.CENTER })] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '7.  ' })] })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })], alignment: AlignmentType.CENTER })] })
+                            ]
+                        })
+                    ],
+                    width: { size: 100, type: WidthType.PERCENTAGE }
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: 'V.  BUDGET', bold: true })],
+                    spacing: { before: 300, after: 200 }
+                }),
+                new Table({
+                    rows: [
+                        new TableRow({
+                            children: [
+                                new TableCell({
+                                    children: [new Paragraph({
+                                        children: [new TextRun({ text: 'PARTICULARS', bold: true })],
+                                        alignment: AlignmentType.CENTER
+                                    })],
+                                    width: { size: 70, type: WidthType.PERCENTAGE }
+                                }),
+                                new TableCell({
+                                    children: [new Paragraph({
+                                        children: [new TextRun({ text: 'ESTIMATED COST', bold: true })],
+                                        alignment: AlignmentType.CENTER
+                                    })],
+                                    width: { size: 30, type: WidthType.PERCENTAGE }
+                                })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '1.  Tarpaulin' })] })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '2.  SK/Facilitator\'s Uniforms' })] })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '3.  Tokens' })] })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '4.  Stage Decoration' })] })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '5.  Trophies' })] })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '6.  Meals and Snacks' })] })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '7.  ' })] })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '8.  ' })] })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '9.  ' })] })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] })
+                            ]
+                        }),
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '10. ' })] })] }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] })
+                            ]
+                        })
+                    ],
+                    width: { size: 100, type: WidthType.PERCENTAGE }
+                })
+            ]
+        }]
+    });
+
+    Packer.toBlob(doc).then(blob => {
+        saveAs(blob, 'ProjectProposal_Template.docx');
+    });
+}
+</script>
 }

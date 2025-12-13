@@ -1,0 +1,138 @@
+@model IEnumerable<dynamic>
+@{
+    ViewData["Title"] = "Project Documents";
+    Layout = "~/Views/Shared/_LayoutFederation.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-primary">
+            <i class="bi bi-folder-open me-2"></i> Project Documents
+        </h2>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" asp-action="ProjectDocuments" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Filter by Barangay</label>
+                    <select name="barangayId" class="form-select">
+                        <option value="">All Barangays</option>
+                        @foreach (var item in ViewBag.Barangays)
+                        {
+                            <option value="@item.Value" selected="@item.Selected">@item.Text</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-funnel me-1"></i> Filter
+                    </button>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <a asp-action="ProjectDocuments" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-arrow-clockwise me-1"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Documents Table -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered align-middle">
+                        <thead class="table-primary">
+                            <tr>
+                                <th width="18%">Project Title</th>
+                                <th width="12%">Barangay</th>
+                                <th width="20%">Description</th>
+                                <th width="12%">Status</th>
+                                <th width="13%">Annex Type</th>
+                                <th width="15%">File</th>
+                                <th width="10%">Date Added</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var doc in Model)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@doc.ProjectTitle</td>
+                                    <td>
+                                        <span class="badge bg-info text-dark">@doc.BarangayName</span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            @(string.IsNullOrEmpty(doc.ProjectDescription) ? "No description" : 
+                                              (doc.ProjectDescription.Length > 100 ? doc.ProjectDescription.Substring(0, 100) + "..." : doc.ProjectDescription))
+                                        </small>
+                                    </td>
+                                    <td>
+                                        @if (doc.ProjectStatus == "Pending")
+                                        {
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="bi bi-clock-history me-1"></i> Pending
+                                            </span>
+                                        }
+                                        else if (doc.ProjectStatus == "Approved")
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-check-circle me-1"></i> Approved
+                                            </span>
+                                        }
+                                        else if (doc.ProjectStatus == "Ongoing")
+                                        {
+                                            <span class="badge bg-primary">
+                                                <i class="bi bi-arrow-repeat me-1"></i> Ongoing
+                                            </span>
+                                        }
+                                        else if (doc.ProjectStatus == "Completed")
+                                        {
+                                            <span class="badge bg-dark">
+                                                <i class="bi bi-check-all me-1"></i> Completed
+                                            </span>
+                                        }
+                                        else if (doc.ProjectStatus == "Rejected")
+                                        {
+                                            <span class="badge bg-danger">
+                                                <i class="bi bi-x-circle me-1"></i> Rejected
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">@doc.ProjectStatus</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="bi bi-file-earmark-text me-1"></i> @doc.AnnexType
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="@doc.FilePath" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-download me-1"></i> @doc.FileName
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <small>@doc.DateAdded?.ToString("MMM dd, yyyy")</small>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info text-center" role="alert">
+                    <i class="bi bi-info-circle me-2"></i>
+                    No annex documents found. Submit projects with annex files to see them here.
+                </div>
+            }
+        </div>
+    </div>
+</div>

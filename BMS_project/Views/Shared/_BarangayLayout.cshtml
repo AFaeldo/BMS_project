@@ -66,6 +66,13 @@
                         <i class="bi bi-bar-chart-line me-2"></i> Compliance
                     </a>
                 </li>
+
+                <li class="nav-item">
+                    <a asp-controller="BarangaySk" asp-action="Documents"
+                       class="nav-link @(ViewData["Title"]?.ToString() == "Document Uploads" ? "active" : "")">
+                        <i class="bi bi-file-earmark-text me-2"></i> Documents
+                    </a>
+                </li>
             </ul>
         </div>
 

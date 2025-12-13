@@ -199,6 +199,7 @@ namespace BMS_project.Controllers
                 Title = compliance.Title,
                 BarangayName = compliance.Barangay?.Barangay_Name ?? "Unknown",
                 ComplianceType = compliance.Type,
+                AnnexType = compliance.Annex_Type,
                 DueDate = compliance.Due_Date,
                 ComplianceStatus = compliance.Status,
                 Documents = compliance.Documents.Select(d => new SubmittedDocumentViewModel
@@ -373,6 +374,53 @@ namespace BMS_project.Controllers
             return View(projects);
         }
 
+        // New Action: Project Documents - Display Annex Documents
+        public async Task<IActionResult> ProjectDocuments(int? barangayId)
+        {
+            ViewData["Title"] = "Project Documents";
+
+            // Populate Barangay Dropdown
+            var barangays = await _context.barangays.OrderBy(b => b.Barangay_Name).ToListAsync();
+            ViewBag.Barangays = barangays.Select(b => new SelectListItem
+            {
+                Value = b.Barangay_ID.ToString(),
+                Text = b.Barangay_Name,
+                Selected = barangayId.HasValue && b.Barangay_ID == barangayId.Value
+            }).ToList();
+
+            ViewBag.SelectedBarangayId = barangayId;
+
+            // Query ProjectDocuments that have annex types (not "Project Proposal")
+            var query = _context.ProjectDocuments
+                .Include(pd => pd.Project)
+                .ThenInclude(p => p.User)
+                .ThenInclude(u => u.Barangay)
+                .Include(pd => pd.File)
+                .Where(pd => pd.Description != null && pd.Description != "Project Proposal"); // Only annexes
+
+            if (barangayId.HasValue)
+            {
+                query = query.Where(pd => pd.Project.User.Barangay_ID == barangayId.Value);
+            }
+
+            var documents = await query
+                .OrderByDescending(pd => pd.Date_Added)
+                .Select(pd => new
+                {
+                    ProjectTitle = pd.Project.Project_Title,
+                    ProjectDescription = pd.Project.Project_Description,
+                    BarangayName = pd.Project.User.Barangay.Barangay_Name,
+                    AnnexType = pd.Description,
+                    FileName = pd.File.File_Name,
+                    FilePath = pd.File.File,
+                    DateAdded = pd.Date_Added,
+                    ProjectStatus = pd.Project.Project_Status
+                })
+                .ToListAsync();
+
+            return View(documents);
+        }
+
         // New Action for AJAX Fetch
         [HttpGet]
         public async Task<IActionResult> GetProjectDetails(int id)
@@ -449,6 +497,7 @@ namespace BMS_project.Controllers
                 {
                     var project = await _context.Projects
                         .Include(p => p.Allocations)
+                            .ThenInclude(a => a.Budget)
                         .Include(p => p.User)
                         .FirstOrDefaultAsync(p => p.Project_ID == model.Project_ID);
 
@@ -468,34 +517,71 @@ namespace BMS_project.Controllers
                     var allocation = project.Allocations.FirstOrDefault();
                     if (allocation == null)
                     {
-                        TempData["ErrorMessage"] = "Allocation record not found.";
-                        result = RedirectToAction(nameof(ProjectApprovals));
-                        return;
+                        // Try to fetch allocation directly from database as a fallback
+                        allocation = await _context.ProjectAllocations
+                            .FirstOrDefaultAsync(pa => pa.Project_ID == model.Project_ID);
+                        
+                        if (allocation == null)
+                        {
+                            TempData["ErrorMessage"] = $"Allocation record not found for project '{project.Project_Title}'. This project may have been created incorrectly. Please contact the administrator.";
+                            result = RedirectToAction(nameof(ProjectApprovals));
+                            return;
+                        }
                     }
 
                     decimal finalAmount = allocation.Amount_Allocated;
+                    decimal originalAmount = allocation.Amount_Allocated;
+                    bool amountChanged = false;
+                    
                     if (model.Approved_Amount.HasValue && model.Approved_Amount.Value != allocation.Amount_Allocated)
                     {
                         allocation.Amount_Allocated = model.Approved_Amount.Value;
                         finalAmount = model.Approved_Amount.Value;
+                        amountChanged = true;
                         _context.ProjectAllocations.Update(allocation);
                     }
 
-                    string newStatus = !string.IsNullOrEmpty(model.Status) ? model.Status : "Approved";
+                    // Determine status: If only budget changed and no status provided, keep as Pending
+                    string newStatus;
+                    if (!string.IsNullOrEmpty(model.Status))
+                    {
+                        newStatus = model.Status;
+                    }
+                    else if (amountChanged)
+                    {
+                        newStatus = "Pending"; // Keep as pending if only budget was changed
+                    }
+                    else
+                    {
+                        newStatus = project.Project_Status; // Keep current status
+                    }
+                    
                     project.Project_Status = newStatus;
                     _context.Projects.Update(project);
 
                     if (newStatus == "Approved")
                     {
-                        var budget = await _context.Budgets.FirstOrDefaultAsync(b => b.Budget_ID == allocation.Budget_ID);
+                        var budget = await _context.Budgets
+                            .Include(b => b.Barangay)
+                            .FirstOrDefaultAsync(b => b.Budget_ID == allocation.Budget_ID);
+                        
                         if (budget == null)
                         {
                             throw new Exception("Budget not found.");
                         }
 
+                        // Validation: Check if approved amount exceeds remaining balance
                         if (budget.balance < finalAmount)
                         {
-                            throw new Exception("Insufficient budget balance for approval.");
+                            var phCulture = new System.Globalization.CultureInfo("en-PH");
+                            TempData["ErrorMessage"] = string.Format(phCulture, 
+                                "Insufficient budget balance for {0}. Requested: {1:C}, Available: {2:C}", 
+                                budget.Barangay?.Barangay_Name ?? "this barangay",
+                                finalAmount, 
+                                budget.balance);
+                            result = RedirectToAction(nameof(ProjectApprovals));
+                            await transaction.RollbackAsync();
+                            return;
                         }
 
                         budget.disbursed += finalAmount;
@@ -516,7 +602,15 @@ namespace BMS_project.Controllers
                     int? userId = GetCurrentUserId();
                     if (userId.HasValue)
                     {
-                        await _systemLogService.LogAsync(userId.Value, "Approve/Reject Project", $"Project {project.Project_Title} Status Updated to {newStatus}", "Project", project.Project_ID);
+                        var phCulture = new System.Globalization.CultureInfo("en-PH");
+                        string statusRemark = $"Project '{project.Project_Title}' status updated to {newStatus}";
+                        
+                        if (amountChanged)
+                        {
+                            statusRemark += $" - Budget changed from {originalAmount.ToString("C", phCulture)} to {finalAmount.ToString("C", phCulture)} (Change: {(finalAmount - originalAmount).ToString("C", phCulture)})";
+                        }
+                        
+                        await _systemLogService.LogAsync(userId.Value, "Approve/Reject Project", statusRemark, "Project", project.Project_ID);
                     }
 
                     await _context.SaveChangesAsync();
@@ -693,10 +787,19 @@ namespace BMS_project.Controllers
                     // Fallback: Check for old budget without TermID if you want to migrate it, or just create new.
                     // Decision: Create NEW record if TermID specific one doesn't exist to support clean slate per term.
                     
+                    int budgetId = 0;
+                    decimal oldBudget = 0;
+                    decimal newBudget = 0;
+                    string logAction = "";
+                    
                     if (existingBudget != null)
                     {
+                        oldBudget = existingBudget.budget;
                         existingBudget.budget += Allotment;
                         existingBudget.balance += Allotment;
+                        newBudget = existingBudget.budget;
+                        budgetId = existingBudget.Budget_ID;
+                        logAction = "Update Budget";
                         _context.Budgets.Update(existingBudget);
                     }
                     else
@@ -710,18 +813,27 @@ namespace BMS_project.Controllers
                             balance = Allotment
                         };
                         _context.Budgets.Add(budget);
+                        await _context.SaveChangesAsync(); // Save to get Budget_ID
+                        budgetId = budget.Budget_ID;
+                        newBudget = Allotment;
+                        logAction = "Add Budget";
                     }
 
-                    await _context.SaveChangesAsync();
+                    if (logAction != "Add Budget")
+                    {
+                        await _context.SaveChangesAsync();
+                    }
 
                     // LOGGING
                     int? userId = GetCurrentUserId();
                     if (userId.HasValue)
                     {
-                        // Log against the Budget ID (might be new, need to save first which we did)
-                        // If new, we need to grab ID. Since we saved changes, the entity 'budget' or 'existingBudget' has the ID.
-                        // However, 'budget' variable scope is inside else block. Let's simplify logging ID or just log success.
-                        await _systemLogService.LogAsync(userId.Value, "Add Budget", $"Allocated {Allotment:C} to {barangay.Barangay_Name}", "Budget", 0); 
+                        var phCulture = new System.Globalization.CultureInfo("en-PH");
+                        string remark = logAction == "Add Budget" 
+                            ? $"Added budget to {barangay.Barangay_Name}: {Allotment.ToString("C", phCulture)} (New Total: {newBudget.ToString("C", phCulture)})"
+                            : $"Updated budget for {barangay.Barangay_Name}: Added {Allotment.ToString("C", phCulture)} (Previous: {oldBudget.ToString("C", phCulture)}, New: {newBudget.ToString("C", phCulture)})";
+                        
+                        await _systemLogService.LogAsync(userId.Value, logAction, remark, "Budget", budgetId); 
                     }
 
                     await transaction.CommitAsync();
@@ -766,6 +878,33 @@ namespace BMS_project.Controllers
             _context.SaveChanges();
 
             return Ok(new { success = true, remaining = budget.balance });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetDisbursementBreakdown(int budgetId)
+        {
+            try
+            {
+                var disbursements = await _context.ProjectAllocations
+                    .Where(pa => pa.Budget_ID == budgetId)
+                    .Include(pa => pa.Project)
+                    .Where(pa => pa.Project.Project_Status == "Approved" || pa.Project.Project_Status == "Completed")
+                    .Select(pa => new
+                    {
+                        projectTitle = pa.Project.Project_Title,
+                        status = pa.Project.Project_Status,
+                        amount = pa.Amount_Allocated,
+                        date = pa.Project.Date_Submitted
+                    })
+                    .OrderByDescending(x => x.date)
+                    .ToListAsync();
+
+                return Json(disbursements);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { error = ex.Message });
+            }
         }
 
         public IActionResult Profile()
