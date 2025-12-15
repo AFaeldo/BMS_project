@@ -68,12 +68,12 @@
                                             <i class="bi bi-file-earmark-text"></i> Register
                                         </button>
                                         <button class="btn btn-sm btn-outline-success me-1" 
-                                                onclick="printCertification('@(item.Barangay?.Barangay_Name)', '@String.Format("{0:N2}", item.budget)')" 
+                                                onclick="printCertification('@(item.Barangay?.Barangay_Name?.Replace("'", "\\'"))', '@String.Format("{0:N2}", item.budget)')" 
                                                 title="Print Certification">
                                             <i class="bi bi-file-earmark-check"></i> Certificate
                                         </button>
                                         <button class="btn btn-sm btn-outline-info" 
-                                                onclick="showDisbursementBreakdown(@item.Budget_ID, '@(item.Barangay?.Barangay_Name)')" 
+                                                onclick="showDisbursementBreakdown(@item.Budget_ID, '@(item.Barangay?.Barangay_Name?.Replace("'", "\\'"))')" 
                                                 title="View Disbursement Breakdown">
                                             <i class="bi bi-cash-stack"></i> Disburse
                                         </button>
@@ -247,60 +247,60 @@ td, th { border: 1px solid #000; padding: 3px; vertical-align: middle; }
 .page-break { page-break-after: always; }
 .small { font-size: 10px; }
 .italic { font-style: italic; }
-</style>
-</head>
+<\/style>
+<\/head>
 <body>
 
-<p class="center bold">REGISTER OF CASH RECEIPTS, DEPOSITS AND OTHER RELATED FINANCIAL TRANSACTIONS</p>
+<p class="center bold">REGISTER OF CASH RECEIPTS, DEPOSITS AND OTHER RELATED FINANCIAL TRANSACTIONS<\/p>
 
 <table>
 <tr>
-<td class="bold">SK of Barangay:</td>
-<td class="bold">${barangayName}</td>
-<td class="bold">City/Municipality:</td>
-<td class="bold">CALAPAN CITY</td>
-</tr>
+<td class="bold">SK of Barangay:<\/td>
+<td class="bold">${barangayName}<\/td>
+<td class="bold">City\/Municipality:<\/td>
+<td class="bold">CALAPAN CITY<\/td>
+<\/tr>
 <tr>
-<td class="bold">SK Treasurer:</td>
-<td class="bold">________________</td>
-<td class="bold">Province:</td>
-<td class="bold">ORIENTAL MINDORO</td>
-</tr>
+<td class="bold">SK Treasurer:<\/td>
+<td class="bold">________________<\/td>
+<td class="bold">Province:<\/td>
+<td class="bold">ORIENTAL MINDORO<\/td>
+<\/tr>
 <tr>
-<td class="bold">Fund:</td>
-<td class="bold">10% SK FUND</td>
-<td class="bold">Sheet No.:</td>
-<td class="bold">${currentYear}-001</td>
-</tr>
-</table>
+<td class="bold">Fund:<\/td>
+<td class="bold">10% SK FUND<\/td>
+<td class="bold">Sheet No.:<\/td>
+<td class="bold">${currentYear}-001<\/td>
+<\/tr>
+<\/table>
 
 <table>
 <tr class="center bold">
-<td rowspan="2">Date</td>
-<td rowspan="2">Reference</td>
-<td rowspan="2">Name of Payor</td>
-<td rowspan="2">Particulars</td>
-<td colspan="3">Cash on Hand</td>
-<td rowspan="2">Direct Deposit</td>
-<td colspan="5">Breakdown of Receipts / Direct Deposits</td>
-</tr>
+<td rowspan="2">Date<\/td>
+<td rowspan="2">Reference<\/td>
+<td rowspan="2">Name of Payor<\/td>
+<td rowspan="2">Particulars<\/td>
+<td colspan="3">Cash on Hand<\/td>
+<td rowspan="2">Direct Deposit<\/td>
+<td colspan="5">Breakdown of Receipts \/ Direct Deposits<\/td>
+<\/tr>
 <tr class="center bold">
-<td>Receipt</td>
-<td>Deposit</td>
-<td>Balance</td>
-<td>Subsidy from Barangay</td>
-<td>With Specific Purpose</td>
-<td>Without Specific Purpose</td>
-<td><span class="italic">(Additional Receipt accounts)</span></td>
-<td>Refund of Cash Advances</td>
-<td>Others</td>
-</tr>
+<td>Receipt<\/td>
+<td>Deposit<\/td>
+<td>Balance<\/td>
+<td>Subsidy from Barangay<\/td>
+<td>With Specific Purpose<\/td>
+<td>Without Specific Purpose<\/td>
+<td><span class="italic">(Additional Receipt accounts)<\/span><\/td>
+<td>Refund of Cash Advances<\/td>
+<td>Others<\/td>
+<\/tr>
 
 <tr>
-<td colspan="4" class="center italic">Total/Balance Brought Forward</td>
-<td></td><td></td><td class="center">-</td>
-<td></td><td></td><td></td><td></td><td></td><td></td>
-</tr>
+<td colspan="4" class="center italic">Total\/Balance Brought Forward<\/td>
+<td><\/td><td><\/td><td class="center">-<\/td>
+<td><\/td><td><\/td><td><\/td><td><\/td><td><\/td><td><\/td>
+<\/tr>
 
 <tr>
 <td>${dateStr}</td>
@@ -326,30 +326,30 @@ td, th { border: 1px solid #000; padding: 3px; vertical-align: middle; }
 </tr>
 
 <tr>
-<td>${dateStr}</td>
-<td>O.R. _______</td>
-<td>Barangay ${barangayName}</td>
-<td>Receipt of 10% SK share for 6 months IRA</td>
-<td class="right">${(allotmentNum * 0.10).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td><td></td><td></td><td></td><td></td>
-</tr>
+<td>${dateStr}<\/td>
+<td>O.R. _______<\/td>
+<td>Barangay ${barangayName}<\/td>
+<td>Receipt of 10% SK share for 6 months IRA<\/td>
+<td class="right">${(allotmentNum * 0.10).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}<\/td>
+<td><\/td>
+<td><\/td>
+<td><\/td>
+<td><\/td><td><\/td><td><\/td><td><\/td><td><\/td>
+<\/tr>
 
 <tr>
-<td></td>
-<td>VDS (ISN) ___</td>
-<td></td>
-<td>Receipt of 10% SK share for 6 months IRA</td>
-<td class="right">${(allotmentNum * 0.10).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-<td></td>
-<td class="right">${(allotmentNum * 0.10).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-<td class="right">${(allotmentNum * 0.10).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-<td></td><td></td><td></td><td></td><td></td>
-</tr>
+<td><\/td>
+<td>VDS (ISN) ___<\/td>
+<td><\/td>
+<td>Receipt of 10% SK share for 6 months IRA<\/td>
+<td class="right">${(allotmentNum * 0.10).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}<\/td>
+<td><\/td>
+<td class="right">${(allotmentNum * 0.10).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}<\/td>
+<td class="right">${(allotmentNum * 0.10).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}<\/td>
+<td><\/td><td><\/td><td><\/td><td><\/td><td><\/td>
+<\/tr>
 
-<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>&nbsp;<\/td><td><\/td><td><\/td><td><\/td><td><\/td><td><\/td><td><\/td><td><\/td><td><\/td><td><\/td><td><\/td><td><\/td><td><\/td><\/tr>
 
 <tr class="bold">
 <td colspan="4" class="center">Totals for the Quarter</td>
@@ -374,29 +374,31 @@ td, th { border: 1px solid #000; padding: 3px; vertical-align: middle; }
 
 <br>
 
-<p class="bold">Prepared and Certified Correct:</p>
+<p class="bold">Prepared and Certified Correct:<\/p>
 
 <table class="no-border">
 <tr>
-<td class="center bold">_______________________</td>
-<td class="center bold">${dateStr}</td>
-</tr>
+<td class="center bold">_______________________<\/td>
+<td class="center bold">${dateStr}<\/td>
+<\/tr>
 <tr>
-<td class="center small">(Signature over Printed Name)</td>
-<td class="center small">Date</td>
-</tr>
+<td class="center small">(Signature over Printed Name)<\/td>
+<td class="center small">Date<\/td>
+<\/tr>
 <tr>
 <td class="center bold">SK Federation Treasurer</td>
 <td></td>
 </tr>
 </table>
 
-</body>
-</html>
+<\/body>
+<\/html>
     `);
     printWindow.document.close();
+    printWindow.focus();
     setTimeout(() => {
         printWindow.print();
+        printWindow.close();
     }, 250);
 }
 
@@ -413,67 +415,67 @@ function printCertification(barangayName, amount) {
     
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Certification</title>
-<style>
-@@page { size: A4; margin: 25mm; }
-body {
-    width: 210mm;
-    height: 297mm;
-    margin: 0 auto;
-    font-family: "Times New Roman", serif;
-    font-size: 12pt;
-    color: #000;
-}
-</style>
-</head>
-<body>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+        <meta charset="UTF-8">
+        <title>Certification</title>
+        <style>
+        @@page { size: A4; margin: 25mm; }
+        body {
+            width: 210mm;
+            height: 297mm;
+            margin: 0 auto;
+            font-family: "Times New Roman", serif;
+            font-size: 12pt;
+            color: #000;
+        }
+        <\/style>
+        <\/head>
+        <body>
 
-<p style="text-align:center; line-height:1.4;">
-Republic of the Philippines<br>
-Province of ORIENTAL MINDORO<br>
-City/Municipality of CALAPAN CITY<br>
-Barangay ${barangayName}
-</p>
+        <p style="text-align:center; line-height:1.4;">
+        Republic of the Philippines<br>
+        Province of ORIENTAL MINDORO<br>
+        City/Municipality of CALAPAN CITY<br>
+        Barangay ${barangayName}
+        <\/p>
 
-<br><br>
+        <br><br>
 
-<p style="text-align:center; font-weight:bold;">
-CERTIFICATION
-</p>
+        <p style="text-align:center; font-weight:bold;">
+        CERTIFICATION
+        <\/p>
 
-<br><br>
+        <br><br>
 
-<p style="text-align:left;">
-To the Sangguniang Kabataan (SK) of Barangay ${barangayName}:
-</p>
+        <p style="text-align:left;">
+        To the Sangguniang Kabataan (SK) of Barangay ${barangayName}:
+        <\/p>
 
-<br>
+        <br>
 
-<p style="text-align:justify;">
-This is to certify that the amount of
-(₱${formattedAmount}) representing the ten (10%) of the General Fund of Barangay
-${barangayName} is available for SK programs, projects, and activities as stipulated
-in the approved barangay expenditure program for the Fiscal Year ${currentYear}.
-</p>
+        <p style="text-align:justify;">
+        This is to certify that the amount of
+        (₱${formattedAmount}) representing the ten (10%) of the General Fund of Barangay
+        ${barangayName} is available for SK programs, projects, and activities as stipulated
+        in the approved barangay expenditure program for the Fiscal Year ${currentYear}.
+        <\/p>
 
-<br>
+        <br>
 
-<p style="text-align:justify;">
-This certification is issued this ${day} day of ${month}, at Barangay
-${barangayName}, City/Municipality of CALAPAN CITY.
-</p>
+        <p style="text-align:justify;">
+        This certification is issued this ${day} day of ${month}, at Barangay
+        ${barangayName}, City/Municipality of CALAPAN CITY.
+        <\/p>
 
-<br><br><br>
+        <br><br><br>
 
-<p style="text-align:left;">
-Certified by:
-</p>
+        <p style="text-align:left;">
+        Certified by:
+        <\/p>
 
-<br><br>
+        <br><br>
 
 <div style="width:220px; border-top:1px solid #000; margin-bottom:4px;"></div>
 <p style="text-align:left; font-weight:bold; margin:0;">
@@ -493,12 +495,14 @@ Noted by:
 SK Federation President
 </p>
 
-</body>
-</html>
+        <\/body>
+        <\/html>
     `);
     printWindow.document.close();
+    printWindow.focus();
     setTimeout(() => {
         printWindow.print();
+        printWindow.close();
     }, 250);
 }
 
@@ -564,11 +568,12 @@ function showDisbursementBreakdown(budgetId, barangayName) {
 }
 
 function getStatusBadgeColor(status) {
-    switch (status) {
-        case 'Approved': return 'success';
-        case 'Pending': return 'warning';
-        case 'Rejected': return 'danger';
-        case 'Completed': return 'info';
+    const normalizedStatus = status.toLowerCase();
+    switch (normalizedStatus) {
+        case 'approved': return 'success';
+        case 'pending': return 'warning';
+        case 'rejected': return 'danger';
+        case 'completed': return 'info';
         default: return 'secondary';
     }
 }
