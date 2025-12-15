@@ -103,6 +103,66 @@
         </div>
     </div>
 
+    <!-- Generation of Reports Card -->
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0 fw-bold">Generation of Reports</h5>
+        </div>
+        <div class="card-body">
+            @{
+                var approvedProjects = ViewBag.ApprovedProjects as List<BMS_project.Models.Project>;
+            }
+            @if (approvedProjects == null || !approvedProjects.Any())
+            {
+                <div class="text-center py-4">
+                    <p class="text-muted mb-0">No approved projects found.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Barangay</th>
+                                <th>Project Title</th>
+                                <th>Status</th>
+                                <th>Date Submitted</th>
+                                <th class="text-center">Barangay SK Documents</th>
+                                <th class="text-center">Barangay Federation</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var project in approvedProjects)
+                            {
+                                <tr>
+                                    <td>@(project.User?.Barangay?.Barangay_Name ?? "-")</td>
+                                    <td>@project.Project_Title</td>
+                                    <td>
+                                        <span class="badge bg-success">@project.Project_Status</span>
+                                    </td>
+                                    <td>@(project.Date_Submitted.HasValue ? project.Date_Submitted.Value.ToShortDateString() : "-")</td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-primary" 
+                                                onclick="openBarangayDocsModalFed(@project.Project_ID, '@Html.Raw(project.Project_Title.Replace("'", "\\'"))', '@Html.Raw((project.User?.Barangay?.Barangay_Name ?? "-").Replace("'", "\\'"))')">
+                                            <i class="bi bi-eye"></i> View
+                                        </button>
+                                    </td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-info text-white" 
+                                                onclick="openFederationDocsModalFed(@project.Project_ID, '@Html.Raw(project.Project_Title.Replace("'", "\\'"))', '@Html.Raw((project.User?.Barangay?.Barangay_Name ?? "-").Replace("'", "\\'"))')">
+                                            <i class="bi bi-eye"></i> View
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
 <!-- MODAL FOR CREATE COMPLIANCE REQUIREMENT -->
 <div class="modal fade" id="createComplianceModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -143,13 +203,6 @@
                                 <i class="bi bi-plus-lg"></i>
                             </button>
                         </div>
-                    </div>
-
-                    <!-- Template File -->
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Template / Guide</label>
-                        <input type="file" name="TemplateFile" class="form-control" accept=".pdf,.docx,.doc" required />
-                        <div class="form-text">Upload a template or guide for the barangay to use (Required).</div>
                     </div>
 
                     <!-- DueDate -->
@@ -209,6 +262,78 @@
                                 <th style="width: 120px;">Status</th>
                                 <th>Remarks</th>
                                 <th class="text-center" style="width: 140px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Documents injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Barangay SK Documents Modal -->
+<div class="modal fade" id="barangayDocsModalFed" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0 rounded-3">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Barangay SK Documents</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3 border-bottom pb-2">
+                    <h6 class="fw-bold text-primary" id="barangayDocsProjectTitleFed"></h6>
+                    <p class="text-muted mb-0" id="barangayDocsBarangayNameFed"></p>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle" id="barangayDocsTableFed">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Document Name</th>
+                                <th>Type</th>
+                                <th style="width: 150px;">Date Added</th>
+                                <th style="width: 120px;" class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Documents injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Federation Documents Modal -->
+<div class="modal fade" id="federationDocsModalFed" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0 rounded-3">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">Barangay Federation Documents</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3 border-bottom pb-2">
+                    <h6 class="fw-bold text-info" id="federationDocsProjectTitleFed"></h6>
+                    <p class="text-muted mb-0" id="federationDocsBarangayNameFed"></p>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle" id="federationDocsTableFed">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Document Name</th>
+                                <th>Type</th>
+                                <th style="width: 150px;">Date Added</th>
+                                <th style="width: 120px;" class="text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -322,48 +447,47 @@
                     // Populate Documents
                     var tbody = document.getElementById('modalDocumentsTable').querySelector('tbody');
                     tbody.innerHTML = '';
-
-                    if(documents && documents.length > 0) {
+                    
+                    // Use documents (submitted files) instead of proposalDocuments
+                    if(documents.length > 0) {
                         documents.forEach(function(doc) {
-                            var docId = doc.documentId || doc.DocumentId;
-                            var docStatus = doc.status || doc.Status;
-                            var docRemarks = doc.remarks || doc.Remarks;
-                            var docFileName = doc.fileName || doc.FileName;
-                            var docFileUrl = doc.fileUrl || doc.FileUrl;
-
                             var statusClass = 'bg-secondary';
-                            var statusText = docStatus;
+                            var statusText = doc.status || doc.Status;
 
-                            if(docStatus === 'Approved') {
+                            if(doc.status === 'Approved' || doc.Status === 'Approved') {
                                 statusClass = 'bg-success';
-                            } else if(docStatus === 'Rejected') {
+                            } else if(doc.status === 'Rejected' || doc.Status === 'Rejected') {
                                 statusClass = 'bg-danger';
-                            } else if(docStatus === 'Pending') {
+                            } else if(doc.status === 'Pending' || doc.Status === 'Pending') {
                                 statusClass = 'bg-warning text-dark';
-                                statusText = 'For Review';
+                                statusText = 'Pending';
                             }
 
                             var actions = '';
-                            if(docStatus === 'Pending') {
+                            if(doc.status === 'Pending' || doc.Status === 'Pending') {
                                 actions = `
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <button type="button" class="btn btn-outline-success" title="Approve" onclick="reviewDocument(${docId}, 'Approved', '', ${id})">
+                                        <button type="button" class="btn btn-outline-success" title="Approve" onclick="reviewDocument(${doc.documentId || doc.DocumentId}, 'Approved', '', ${id})">
                                             <i class="bi bi-check-lg"></i>
                                         </button>
-                                        <button type="button" class="btn btn-outline-danger" title="Reject" onclick="rejectDocument(${docId}, ${id})">
+                                        <button type="button" class="btn btn-outline-danger" title="Reject" onclick="rejectDocument(${doc.documentId || doc.DocumentId}, ${id})">
                                             <i class="bi bi-x-lg"></i>
                                         </button>
                                     </div>
                                 `;
                             }
 
-                            var downloadLink = `<a href="${docFileUrl}" target="_blank" class="text-decoration-none fw-semibold"><i class="bi bi-file-earmark-pdf me-1"></i>${docFileName}</a>`;
+                            var fileName = doc.fileName || doc.FileName;
+                            var fileUrl = doc.fileUrl || doc.FileUrl;
+                            var remarks = doc.remarks || doc.Remarks || '-';
+
+                            var downloadLink = `<a href="${fileUrl}" target="_blank" class="text-decoration-none fw-semibold"><i class="bi bi-file-earmark-pdf me-1"></i>${fileName}</a>`;
 
                             var row = `
                                 <tr>
                                     <td>${downloadLink}</td>
                                     <td><span class="badge ${statusClass}">${statusText}</span></td>
-                                    <td class="small text-muted">${docRemarks || '-'}</td>
+                                    <td class="small text-muted">${remarks}</td>
                                     <td class="text-center">${actions}</td>
                                 </tr>
                             `;
@@ -438,5 +562,93 @@
                 this.title = "Add Custom Type";
             }
         });
+
+        // Open Barangay SK Documents Modal
+        function openBarangayDocsModalFed(projectId, projectTitle, barangayName) {
+            document.getElementById('barangayDocsProjectTitleFed').innerText = projectTitle;
+            document.getElementById('barangayDocsBarangayNameFed').innerText = barangayName;
+            document.getElementById('barangayDocsTableFed').querySelector('tbody').innerHTML = '<tr><td colspan="4" class="text-center">Loading...</td></tr>';
+            
+            var modal = new bootstrap.Modal(document.getElementById('barangayDocsModalFed'));
+            modal.show();
+
+            fetch('@Url.Action("GetProjectBarangayDocuments", "FederationPresident")/' + projectId)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    var tbody = document.getElementById('barangayDocsTableFed').querySelector('tbody');
+                    tbody.innerHTML = '';
+                    
+                    if (data.documents && data.documents.length > 0) {
+                        data.documents.forEach(doc => {
+                            var row = `
+                                <tr>
+                                    <td><i class="bi bi-file-earmark-pdf text-danger me-1"></i>${doc.fileName}</td>
+                                    <td>${doc.description || 'Document'}</td>
+                                    <td>${new Date(doc.dateAdded).toLocaleDateString()}</td>
+                                    <td class="text-center">
+                                        <a href="${doc.fileUrl.startsWith('/') ? doc.fileUrl : '/' + doc.fileUrl}" target="_blank" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-download"></i> Download
+                                        </a>
+                                    </td>
+                                </tr>
+                            `;
+                            tbody.innerHTML += row;
+                        });
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No documents found.</td></tr>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('barangayDocsTableFed').querySelector('tbody').innerHTML = '<tr><td colspan="4" class="text-danger text-center">Failed to load documents.</td></tr>';
+                });
+        }
+
+        // Open Federation Documents Modal
+        function openFederationDocsModalFed(projectId, projectTitle, barangayName) {
+            document.getElementById('federationDocsProjectTitleFed').innerText = projectTitle;
+            document.getElementById('federationDocsBarangayNameFed').innerText = barangayName;
+            document.getElementById('federationDocsTableFed').querySelector('tbody').innerHTML = '<tr><td colspan="4" class="text-center">Loading...</td></tr>';
+            
+            var modal = new bootstrap.Modal(document.getElementById('federationDocsModalFed'));
+            modal.show();
+
+            fetch('@Url.Action("GetProjectFederationDocuments", "FederationPresident")/' + projectId)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    var tbody = document.getElementById('federationDocsTableFed').querySelector('tbody');
+                    tbody.innerHTML = '';
+                    
+                    if (data.documents && data.documents.length > 0) {
+                        data.documents.forEach(doc => {
+                            var row = `
+                                <tr>
+                                    <td><i class="bi bi-file-earmark-pdf text-danger me-1"></i>${doc.fileName}</td>
+                                    <td>${doc.description || 'Document'}</td>
+                                    <td>${new Date(doc.dateAdded).toLocaleDateString()}</td>
+                                    <td class="text-center">
+                                        <a href="${doc.fileUrl.startsWith('/') ? doc.fileUrl : '/' + doc.fileUrl}" target="_blank" class="btn btn-sm btn-info text-white">
+                                            <i class="bi bi-download"></i> Download
+                                        </a>
+                                    </td>
+                                </tr>
+                            `;
+                            tbody.innerHTML += row;
+                        });
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No federation documents found.</td></tr>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('federationDocsTableFed').querySelector('tbody').innerHTML = '<tr><td colspan="4" class="text-danger text-center">Failed to load documents.</td></tr>';
+                });
+        }
     </script>
 }

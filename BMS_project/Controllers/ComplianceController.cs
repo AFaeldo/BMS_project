@@ -167,12 +167,6 @@ namespace BMS_project.Controllers
                 [Authorize(Roles = "FederationPresident,SuperAdmin")]
                 public async Task<IActionResult> Create(CreateComplianceViewModel model)
                 {
-                    // Custom validation for TemplateFile (due to [Required] on ViewModel)
-                    if (model.TemplateFile == null || model.TemplateFile.Length == 0)
-                    {
-                        ModelState.AddModelError("TemplateFile", "Template file is required.");
-                    }
-        
                     if (ModelState.IsValid)
                     {
                         try
@@ -197,42 +191,46 @@ namespace BMS_project.Controllers
                                     Due_Date = model.DueDate, 
                                     Term_ID = activeTerm!.Term_ID, // Use ! since we checked ModelState.IsValid after activeTerm check
                                     // Instructions removed
-        
+
                                     // Set defaults
                                     Status = "Not Submitted",
-                                    File_ID = null
+                                    File_ID = null,
+                                    TemplateFile_ID = null // Template file is now optional
                                 };
-        
-                                // Handle Template File Upload
-                                var baseFolder = !string.IsNullOrEmpty(_webHostEnvironment.WebRootPath)
-                                   ? _webHostEnvironment.WebRootPath
-                                   : _webHostEnvironment.ContentRootPath;
-        
-                                string uploadFolder = Path.Combine(baseFolder, "UploadedFiles", "Templates");
-                                if (!Directory.Exists(uploadFolder))
+
+                                // Handle Template File Upload (Optional)
+                                if (model.TemplateFile != null && model.TemplateFile.Length > 0)
                                 {
-                                    Directory.CreateDirectory(uploadFolder);
+                                    var baseFolder = !string.IsNullOrEmpty(_webHostEnvironment.WebRootPath)
+                                       ? _webHostEnvironment.WebRootPath
+                                       : _webHostEnvironment.ContentRootPath;
+        
+                                    string uploadFolder = Path.Combine(baseFolder, "UploadedFiles", "Templates");
+                                    if (!Directory.Exists(uploadFolder))
+                                    {
+                                        Directory.CreateDirectory(uploadFolder);
+                                    }
+        
+                                    string uniqueFileName = $"Template_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid().ToString("N").Substring(0, 6)}{Path.GetExtension(model.TemplateFile.FileName)}";
+                                    string filePath = Path.Combine(uploadFolder, uniqueFileName);
+        
+                                    using (var stream = new FileStream(filePath, FileMode.Create))
+                                    {
+                                        await model.TemplateFile.CopyToAsync(stream);
+                                    }
+        
+                                    var templateUpload = new FileUpload
+                                    {
+                                        User_ID = GetCurrentUserId(),
+                                        File_Name = model.TemplateFile.FileName,
+                                        File = "/UploadedFiles/Templates/" + uniqueFileName,
+                                        Timestamp = DateTime.Now
+                                    };
+                                    _context.FileUploads.Add(templateUpload);
+                                    await _context.SaveChangesAsync();
+        
+                                    compliance.TemplateFile_ID = templateUpload.File_ID;
                                 }
-        
-                                string uniqueFileName = $"Template_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid().ToString("N").Substring(0, 6)}{Path.GetExtension(model.TemplateFile!.FileName)}"; // ! because it's required
-                                string filePath = Path.Combine(uploadFolder, uniqueFileName);
-        
-                                using (var stream = new FileStream(filePath, FileMode.Create))
-                                {
-                                    await model.TemplateFile.CopyToAsync(stream);
-                                }
-        
-                                var templateUpload = new FileUpload
-                                {
-                                    User_ID = GetCurrentUserId(),
-                                    File_Name = model.TemplateFile.FileName,
-                                    File = "/UploadedFiles/Templates/" + uniqueFileName,
-                                    Timestamp = DateTime.Now
-                                };
-                                _context.FileUploads.Add(templateUpload);
-                                await _context.SaveChangesAsync();
-        
-                                compliance.TemplateFile_ID = templateUpload.File_ID;
                                 
                                 // Save Compliance
                                 _context.Add(compliance);

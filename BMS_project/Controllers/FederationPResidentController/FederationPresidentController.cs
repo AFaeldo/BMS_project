@@ -159,11 +159,9 @@ namespace BMS_project.Controllers
             // Populate Document Types (FIX for ArgumentNullException)
             ViewBag.DocumentTypes = new List<SelectListItem>
             {
-                new SelectListItem { Value = "Report", Text = "Report" },
-                new SelectListItem { Value = "Financial Statement", Text = "Financial Statement" },
-                new SelectListItem { Value = "Minutes of Meeting", Text = "Minutes of Meeting" },
-                new SelectListItem { Value = "Proposal", Text = "Proposal" },
-                new SelectListItem { Value = "Project Documentation", Text = "Project Documentation" }
+                new SelectListItem { Value = "Summary", Text = "Summary" },
+                new SelectListItem { Value = "Liquidation", Text = "Liquidation" },
+                new SelectListItem { Value = "Expenses", Text = "Expenses" }
             };
 
             // 1. Get Active Term only
@@ -179,6 +177,16 @@ namespace BMS_project.Controllers
                 .OrderByDescending(c => c.Due_Date)
                 .ToListAsync();
 
+            // Get all approved projects for Generation of Reports section
+            var approvedProjects = await _context.Projects
+                .Include(p => p.User)
+                    .ThenInclude(u => u.Barangay)
+                .Where(p => p.Project_Status == "Approved" && p.Term_ID == selectedTermId)
+                .OrderByDescending(p => p.Date_Submitted)
+                .ToListAsync();
+
+            ViewBag.ApprovedProjects = approvedProjects;
+
             return View(compliances);
         }
 
@@ -193,6 +201,20 @@ namespace BMS_project.Controllers
 
             if (compliance == null) return NotFound();
 
+            // Get submitted documents from ComplianceDocuments
+            var submittedDocuments = compliance.Documents
+                .Where(d => d.File != null)
+                .Select(d => new
+                {
+                    DocumentId = d.Document_ID,
+                    FileName = d.File.File_Name,
+                    FileUrl = d.File.File,
+                    Status = d.Status,
+                    Remarks = d.Remarks ?? "",
+                    DateSubmitted = d.Date_Submitted
+                })
+                .ToList();
+
             var viewModel = new ComplianceDetailsViewModel
             {
                 ComplianceId = compliance.Compliance_ID,
@@ -201,19 +223,20 @@ namespace BMS_project.Controllers
                 ComplianceType = compliance.Type,
                 AnnexType = compliance.Annex_Type,
                 DueDate = compliance.Due_Date,
-                ComplianceStatus = compliance.Status,
-                Documents = compliance.Documents.Select(d => new SubmittedDocumentViewModel
-                {
-                    DocumentId = d.Document_ID,
-                    FileName = d.File?.File_Name ?? "Unknown",
-                    FileUrl = d.File?.File,
-                    Status = d.Status,
-                    Remarks = d.Remarks,
-                    DateSubmitted = d.Date_Submitted
-                }).ToList()
+                ComplianceStatus = compliance.Status
             };
 
-            return Ok(viewModel);
+            return Ok(new
+            {
+                complianceId = viewModel.ComplianceId,
+                title = viewModel.Title,
+                barangayName = viewModel.BarangayName,
+                complianceType = viewModel.ComplianceType,
+                annexType = viewModel.AnnexType,
+                dueDate = viewModel.DueDate,
+                complianceStatus = viewModel.ComplianceStatus,
+                documents = submittedDocuments
+            });
         }
 
         [HttpPost]
@@ -246,13 +269,22 @@ namespace BMS_project.Controllers
                         .ToListAsync();
 
                     // Logic Refined:
-                    // 1. If ANY document is Pending, the review is incomplete -> Status: "Pending".
-                    // 2. If NO Pending docs, and at least ONE is Approved -> Status: "Completed" (Assumes rejected ones are superseded).
-                    // 3. If NO Pending and NO Approved (i.e., all Rejected) -> Status: "Returned".
+                    // 1. If ANY document is Rejected, the entire compliance is "Rejected".
+                    // 2. If ANY document is Pending (and none rejected), the review is incomplete -> Status: "Pending".
+                    // 3. If NO Pending and NO Rejected, and ALL are Approved -> Status: "Approved".
+                    // 4. If NO Pending, NO Rejected and at least ONE is Approved -> Status: "Completed".
 
-                    if (allDocs.Any(d => d.Status == "Pending"))
+                    if (allDocs.Any(d => d.Status == "Rejected"))
+                    {
+                        doc.Compliance.Status = "Rejected";
+                    }
+                    else if (allDocs.Any(d => d.Status == "Pending"))
                     {
                         doc.Compliance.Status = "Pending";
+                    }
+                    else if (allDocs.All(d => d.Status == "Approved"))
+                    {
+                        doc.Compliance.Status = "Approved";
                     }
                     else if (allDocs.Any(d => d.Status == "Approved"))
                     {
@@ -276,6 +308,55 @@ namespace BMS_project.Controllers
                     return StatusCode(500, ex.Message);
                 }
             });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetProjectBarangayDocuments(int id)
+        {
+            // Get all documents for this project uploaded by Barangay SK users (Role_ID = 3)
+            var documents = await _context.ProjectDocuments
+                .Include(pd => pd.File)
+                    .ThenInclude(f => f.User)
+                .Include(pd => pd.Project)
+                    .ThenInclude(p => p.User)
+                .Where(pd => pd.Project_ID == id && 
+                             pd.File.User.Role_ID == 3) // Barangay SK role
+                .Select(pd => new
+                {
+                    FileName = pd.File.File_Name,
+                    FileUrl = pd.File.File,
+                    Description = pd.Description ?? "Document",
+                    DateAdded = pd.Date_Added
+                })
+                .OrderByDescending(d => d.DateAdded)
+                .ToListAsync();
+
+            return Ok(new { documents });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetProjectFederationDocuments(int id)
+        {
+            // Get all documents for this project uploaded by Federation President (Role_ID = 2)
+            var documents = await _context.ProjectDocuments
+                .Include(pd => pd.File)
+                    .ThenInclude(f => f.User)
+                .Include(pd => pd.Project)
+                    .ThenInclude(p => p.User)
+                .Where(pd => pd.Project_ID == id && 
+                             pd.File.User.Role_ID == 2 &&  // Federation President role
+                             pd.Description != "Project Proposal") // Exclude the original project proposal
+                .Select(pd => new
+                {
+                    FileName = pd.File.File_Name,
+                    FileUrl = pd.File.File,
+                    Description = pd.Description ?? "Document",
+                    DateAdded = pd.Date_Added
+                })
+                .OrderByDescending(d => d.DateAdded)
+                .ToListAsync();
+
+            return Ok(new { documents });
         }
 
         public IActionResult ReportGeneration()
@@ -390,13 +471,18 @@ namespace BMS_project.Controllers
 
             ViewBag.SelectedBarangayId = barangayId;
 
-            // Query ProjectDocuments that have annex types (not "Project Proposal")
+            // Query ProjectDocuments that have annex types (not "Project Proposal" and not "Additional Document")
+            // Exclude files uploaded by Federation President (Role_ID = 2) with Annex I or Annex H
             var query = _context.ProjectDocuments
                 .Include(pd => pd.Project)
                 .ThenInclude(p => p.User)
                 .ThenInclude(u => u.Barangay)
                 .Include(pd => pd.File)
-                .Where(pd => pd.Description != null && pd.Description != "Project Proposal"); // Only annexes
+                .ThenInclude(f => f.User)
+                .Where(pd => pd.Description != null && 
+                             pd.Description != "Project Proposal" && 
+                             pd.Description != "Additional Document" &&
+                             !(pd.File.User.Role_ID == 2 && (pd.Description == "Annex I" || pd.Description == "Annex H"))); // Exclude Federation uploads
 
             if (barangayId.HasValue)
             {
@@ -407,14 +493,18 @@ namespace BMS_project.Controllers
                 .OrderByDescending(pd => pd.Date_Added)
                 .Select(pd => new
                 {
+                    ProjectId = pd.Project.Project_ID,
                     ProjectTitle = pd.Project.Project_Title,
                     ProjectDescription = pd.Project.Project_Description,
                     BarangayName = pd.Project.User.Barangay.Barangay_Name,
                     AnnexType = pd.Description,
                     FileName = pd.File.File_Name,
                     FilePath = pd.File.File,
+                    UploadedBy = pd.File.User != null ? pd.File.User.First_Name + " " + pd.File.User.Last_Name : null,
                     DateAdded = pd.Date_Added,
-                    ProjectStatus = pd.Project.Project_Status
+                    ProjectStatus = pd.Project.Project_Status,
+                    UploadedFilesCount = _context.ProjectDocuments
+                        .Count(d => d.Project_ID == pd.Project.Project_ID && d.File.User.Role_ID == 2 && (d.Description == "Annex I" || d.Description == "Annex H"))
                 })
                 .ToListAsync();
 
@@ -440,14 +530,16 @@ namespace BMS_project.Controllers
 
             var amount = project.Allocations.FirstOrDefault()?.Amount_Allocated ?? 0;
             
-            // Map Documents
-            var documents = project.Documents.Select(d => new 
-            {
-                id = d.Document_ID,
-                fileName = d.File?.File_Name ?? "Unknown",
-                fileId = d.File_ID,
-                dateAdded = d.Date_Added.ToString("yyyy-MM-dd")
-            }).ToList();
+            // Map Documents - Only show "Project Proposal" documents (Barangay SK submissions)
+            var documents = project.Documents
+                .Where(d => d.Description == "Project Proposal")
+                .Select(d => new 
+                {
+                    id = d.Document_ID,
+                    fileName = d.File?.File_Name ?? "Unknown",
+                    fileId = d.File_ID,
+                    dateAdded = d.Date_Added.ToString("yyyy-MM-dd")
+                }).ToList();
 
             // Handle legacy single file attachment (File_ID on Project table)
             // If there are no entries in project_document table, check the legacy File_ID column
@@ -585,7 +677,7 @@ namespace BMS_project.Controllers
                         }
 
                         budget.disbursed += finalAmount;
-                        budget.balance -= finalAmount;
+                        // budget.balance should NOT be decremented when project is approved
                         _context.Budgets.Update(budget);
                     }
 
@@ -797,6 +889,7 @@ namespace BMS_project.Controllers
                         oldBudget = existingBudget.budget;
                         existingBudget.budget += Allotment;
                         existingBudget.balance += (Allotment * 0.10m) + InitialBalance;
+                        existingBudget.InitialBalance += InitialBalance; // Store initial balance
                         newBudget = existingBudget.budget;
                         budgetId = existingBudget.Budget_ID;
                         logAction = "Update Budget";
@@ -810,7 +903,8 @@ namespace BMS_project.Controllers
                             Term_ID = activeTerm.Term_ID, // Strictly set Term ID
                             budget = Allotment,
                             disbursed = 0m,
-                            balance = (Allotment * 0.10m) + InitialBalance
+                            balance = (Allotment * 0.10m) + InitialBalance,
+                            InitialBalance = InitialBalance // Store initial balance
                         };
                         _context.Budgets.Add(budget);
                         await _context.SaveChangesAsync(); // Save to get Budget_ID
@@ -849,6 +943,77 @@ namespace BMS_project.Controllers
             });
         }
 
+        // Add Initial Balance to existing Barangay SK Budget
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddFederationInitialBalance(int BarangayId, decimal InitialBalance)
+        {
+            if (InitialBalance <= 0)
+            {
+                TempData["ErrorMessage"] = "Initial balance must be greater than zero.";
+                return RedirectToAction("Budget");
+            }
+
+            var barangay = await _context.barangays.FirstOrDefaultAsync(b => b.Barangay_ID == BarangayId);
+            if (barangay == null)
+            {
+                TempData["ErrorMessage"] = "Selected barangay not found.";
+                return RedirectToAction("Budget");
+            }
+
+            // Get Active Term
+            var activeTerm = await _context.KabataanTermPeriods.FirstOrDefaultAsync(t => t.IsActive);
+            if (activeTerm == null)
+            {
+                TempData["ErrorMessage"] = "No active term found.";
+                return RedirectToAction("Budget");
+            }
+
+            // Find existing budget for the barangay and active term
+            var budget = await _context.Budgets
+                .FirstOrDefaultAsync(b => b.Barangay_ID == BarangayId && b.Term_ID == activeTerm.Term_ID);
+
+            if (budget == null)
+            {
+                TempData["ErrorMessage"] = "No budget found for this barangay. Please add a budget first.";
+                return RedirectToAction("Budget");
+            }
+
+            try
+            {
+                // Store old values for logging
+                var oldBalance = budget.balance;
+
+                // Add initial balance directly to balance (SK Budget)
+                budget.balance += InitialBalance;
+
+                _context.Budgets.Update(budget);
+                await _context.SaveChangesAsync();
+
+                // Log the action
+                int? userId = GetCurrentUserId();
+                if (userId.HasValue)
+                {
+                    var phCulture = new System.Globalization.CultureInfo("en-PH");
+                    await _systemLogService.LogAsync(
+                        userId.Value, 
+                        "Add Initial Balance", 
+                        $"Federation President added initial balance of {InitialBalance.ToString("C", phCulture)} to {barangay.Barangay_Name} SK Budget. Previous SK Budget: {oldBalance.ToString("C", phCulture)}, New SK Budget: {budget.balance.ToString("C", phCulture)}", 
+                        "Budget", 
+                        budget.Budget_ID
+                    );
+                }
+
+                TempData["SuccessMessage"] = $"Initial balance of ₱{InitialBalance:N2} has been added successfully to {barangay.Barangay_Name}.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "An error occurred while adding initial balance: " + ex.Message;
+            }
+
+            return RedirectToAction("Budget");
+        }
+
         // Call this when a project is approved to allocate amount to a project.
         // This action reduces the barangay balance and increases disbursed.
         [HttpPost]
@@ -872,7 +1037,7 @@ namespace BMS_project.Controllers
             }
 
             budget.disbursed += AllocatedAmount;
-            budget.balance -= AllocatedAmount;
+            // budget.balance should NOT be decremented when project is approved
 
             _context.Budgets.Update(budget);
             _context.SaveChanges();
@@ -917,6 +1082,160 @@ namespace BMS_project.Controllers
         {
             TempData["SuccessMessage"] = "Profile saved successfully!";
             return RedirectToAction("Profile");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UploadProjectDocuments(int projectId, List<IFormFile> files, string annexType)
+        {
+            try
+            {
+                if (files == null || files.Count == 0)
+                {
+                    return Json(new { success = false, message = "No files selected" });
+                }
+
+                var project = await _context.Projects.FindAsync(projectId);
+                if (project == null)
+                {
+                    return Json(new { success = false, message = "Project not found" });
+                }
+
+                // Get current user ID once at the start
+                var userId = GetCurrentUserId();
+
+                const long maxFileSize = 25 * 1024 * 1024; // 25MB
+
+                foreach (var file in files)
+                {
+                    // Validate file size
+                    if (file.Length > maxFileSize)
+                    {
+                        return Json(new { success = false, message = $"File {file.FileName} exceeds 25MB limit" });
+                    }
+
+                    // Validate PDF
+                    var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                    if (extension != ".pdf" || file.ContentType != "application/pdf")
+                    {
+                        return Json(new { success = false, message = $"File {file.FileName} is not a PDF" });
+                    }
+
+                    // Save file
+                    var baseFolder = !string.IsNullOrEmpty(_webHostEnvironment.WebRootPath)
+                        ? _webHostEnvironment.WebRootPath
+                        : _webHostEnvironment.ContentRootPath;
+
+                    var uploadFolder = Path.Combine(baseFolder, "UploadedFiles", "ProjectDocuments");
+                    
+                    if (!Directory.Exists(uploadFolder))
+                    {
+                        Directory.CreateDirectory(uploadFolder);
+                    }
+
+                    var uniqueFileName = $"{Path.GetFileNameWithoutExtension(file.FileName)}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid().ToString("N").Substring(0, 6)}{extension}";
+                    var filePath = Path.Combine(uploadFolder, uniqueFileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    // Save to database
+                    var fileUpload = new FileUpload
+                    {
+                        File_Name = file.FileName,
+                        File = "UploadedFiles/ProjectDocuments/" + uniqueFileName,
+                        User_ID = userId,
+                        Timestamp = DateTime.Now
+                    };
+                    _context.FileUploads.Add(fileUpload);
+                    await _context.SaveChangesAsync();
+
+                    var projectDocument = new ProjectDocument
+                    {
+                        Project_ID = projectId,
+                        File_ID = fileUpload.File_ID,
+                        Description = annexType ?? "Additional Document",
+                        Date_Added = DateTime.Now
+                    };
+                    _context.ProjectDocuments.Add(projectDocument);
+                }
+
+                await _context.SaveChangesAsync();
+
+                // Log the action
+                if (userId.HasValue)
+                {
+                    await _systemLogService.LogAsync(
+                        userId.Value,
+                        "Upload",
+                        $"Uploaded {files.Count} document(s) to Project ID: {projectId}",
+                        "ProjectDocuments",
+                        projectId
+                    );
+                }
+
+                return Json(new { success = true, message = $"{files.Count} file(s) uploaded successfully" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error: " + ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetUploadedProjectFiles(int projectId)
+        {
+            try
+            {
+                var files = await _context.ProjectDocuments
+                    .Include(pd => pd.File)
+                        .ThenInclude(f => f.User)
+                    .Where(pd => pd.Project_ID == projectId 
+                        && (pd.Description == "Annex I" || pd.Description == "Annex H")
+                        && pd.File.User.Role_ID == 2)
+                    .Select(pd => new
+                    {
+                        FileName = pd.File.File_Name,
+                        FileUrl = pd.File.File,
+                        DateAdded = pd.Date_Added,
+                        AnnexType = pd.Description
+                    })
+                    .OrderByDescending(f => f.DateAdded)
+                    .ToListAsync();
+
+                return Json(new { success = true, files });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error: " + ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetProjectProposalDocuments(int projectId)
+        {
+            try
+            {
+                var files = await _context.ProjectDocuments
+                    .Include(pd => pd.File)
+                    .Where(pd => pd.Project_ID == projectId 
+                        && pd.Description == "Project Proposal")
+                    .Select(pd => new
+                    {
+                        FileName = pd.File.File_Name,
+                        FileUrl = pd.File.File,
+                        DateAdded = pd.Date_Added
+                    })
+                    .OrderByDescending(f => f.DateAdded)
+                    .ToListAsync();
+
+                return Json(new { success = true, files });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error: " + ex.Message });
+            }
         }
 
         public IActionResult Documents()

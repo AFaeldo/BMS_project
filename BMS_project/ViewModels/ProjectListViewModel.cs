@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace BMS_project.ViewModels
 {
@@ -13,5 +14,11 @@ namespace BMS_project.ViewModels
         public DateTime? Start_Date { get; set; }
         public DateTime? End_Date { get; set; }
         public int? Term_ID { get; set; }
+
+        // Barangay SK submitted proposal documents
+        public List<AnnexDocumentViewModel> ProposalDocuments { get; set; } = new List<AnnexDocumentViewModel>();
+
+        // SK Federation uploaded annex documents (Annex I/H)
+        public List<AnnexDocumentViewModel> FederationAnnexDocuments { get; set; } = new List<AnnexDocumentViewModel>();
     }
 }

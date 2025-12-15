@@ -23,7 +23,6 @@ namespace BMS_project.ViewModels
         [Display(Name = "Due Date")]
         public DateTime DueDate { get; set; }
 
-        [Required(ErrorMessage = "Template file is required.")]
         [Display(Name = "Template (Word/PDF)")]
         public IFormFile? TemplateFile { get; set; }
 

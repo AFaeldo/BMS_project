@@ -52,9 +52,9 @@
                         {
                             foreach (var item in Model)
                             {
-                                var skBudget = item.budget * 0.10m;
-                                var remainingBalance = item.balance;
-                                var totalDisbursed = skBudget - remainingBalance;
+                                var skBudget = item.balance;
+                                var remainingBalance = item.balance - item.disbursed;
+                                var totalDisbursed = item.disbursed;
                                 <tr>
                                     <td>@(item.Barangay?.Barangay_Name ?? "—")</td>
                                     <td class="text-end">₱@String.Format("{0:N2}", item.budget)</td>
@@ -63,7 +63,7 @@
                                     <td class="text-end">₱@String.Format("{0:N2}", totalDisbursed)</td>
                                     <td class="text-center">
                                         <button class="btn btn-sm btn-outline-primary me-1" 
-                                                onclick="printCashReceipts('@(item.Barangay?.Barangay_Name)', '@String.Format("{0:N2}", item.budget)', '@String.Format("{0:N2}", item.balance)')" 
+                                                onclick="printCashReceipts('@(item.Barangay?.Barangay_Name)', '@String.Format("{0:N2}", item.budget)', '@String.Format("{0:N2}", item.balance)', '@String.Format("{0:N2}", item.InitialBalance)')" 
                                                 title="Print Cash Receipts Register">
                                             <i class="bi bi-file-earmark-text"></i> Register
                                         </button>
@@ -139,6 +139,35 @@
     </div>
 </div>
 
+<!-- ADD INITIAL BALANCE MODAL -->
+<div class="modal fade" id="addInitialBalanceModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-dark">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">Add Initial Balance - <span id="budgetModalBarangayName"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="/FederationPresident/AddFederationInitialBalance">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="budgetBarangayId" name="BarangayId" />
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Initial Balance Amount</label>
+                        <input type="number" step="0.01" class="form-control" name="InitialBalance" id="initialBalanceAmount" placeholder="0.00" required min="0.01">
+                        <div class="form-text">This amount will be added to the Barangay SK Budget and Remaining Balance.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning btn-sm">
+                        <i class="bi bi-plus-circle me-1"></i>Add Initial Balance
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- DISBURSEMENT BREAKDOWN MODAL -->
 <div class="modal fade" id="disbursementModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -189,12 +218,14 @@
 
 @section Scripts {
 <script>
-function printCashReceipts(barangayName, allotment, balance) {
+function printCashReceipts(barangayName, allotment, balance, initialBalance) {
     const now = new Date();
     const dateStr = now.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
     const currentYear = now.getFullYear();
     
     const allotmentNum = parseFloat(allotment.replace(/,/g, ''));
+    const balanceNum = parseFloat(balance.replace(/,/g, ''));
+    const initialBalanceNum = parseFloat(initialBalance.replace(/,/g, ''));
     
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
@@ -275,11 +306,11 @@ td, th { border: 1px solid #000; padding: 3px; vertical-align: middle; }
 <td>${dateStr}</td>
 <td>O.R. _______</td>
 <td>Barangay ${barangayName}</td>
-<td>Deposit of initial deposit for opening bank account</td>
-<td class="right">10,600.00</td>
+<td>Initial balance</td>
+<td class="right">${initialBalanceNum.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
 <td></td>
-<td class="right">10,600.00</td>
-<td class="right">10,600.00</td>
+<td class="right">${initialBalanceNum.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+<td class="right">${initialBalanceNum.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
 <td></td><td></td><td></td><td></td><td></td>
 </tr>
 
@@ -287,8 +318,8 @@ td, th { border: 1px solid #000; padding: 3px; vertical-align: middle; }
 <td></td>
 <td>VDS (ISN) ___</td>
 <td></td>
-<td>Deposit of initial deposit for opening bank account</td>
-<td class="right">10,600.00</td>
+<td>Initial balance</td>
+<td class="right">${initialBalanceNum.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
 <td></td>
 <td class="center">-</td>
 <td></td><td></td><td></td><td></td><td></td><td></td>
@@ -322,20 +353,20 @@ td, th { border: 1px solid #000; padding: 3px; vertical-align: middle; }
 
 <tr class="bold">
 <td colspan="4" class="center">Totals for the Quarter</td>
-<td class="right">${(10600 + (allotmentNum * 0.10)).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+<td class="right">${(initialBalanceNum + (allotmentNum * 0.10)).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
 <td></td>
-<td class="right">${(10600 + (allotmentNum * 0.10)).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-<td class="right">${(10600 + (allotmentNum * 0.10)).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+<td class="right">${(initialBalanceNum + (allotmentNum * 0.10)).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+<td class="right">${(initialBalanceNum + (allotmentNum * 0.10)).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
 <td class="center">-</td><td class="center">-</td>
 <td class="center">-</td><td class="center">-</td><td class="center">-</td>
 </tr>
 
 <tr class="bold">
 <td colspan="4" class="center">Total/Balance Carried Forward</td>
-<td class="right">${(10600 + (allotmentNum * 0.10)).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+<td class="right">${(initialBalanceNum + (allotmentNum * 0.10)).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
 <td></td>
-<td class="right">${(10600 + (allotmentNum * 0.10)).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-<td class="right">${(10600 + (allotmentNum * 0.10)).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+<td class="right">${(initialBalanceNum + (allotmentNum * 0.10)).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+<td class="right">${(initialBalanceNum + (allotmentNum * 0.10)).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
 <td class="center">-</td><td class="center">-</td>
 <td class="center">-</td><td class="center">-</td><td class="center">-</td>
 </tr>
@@ -355,7 +386,7 @@ td, th { border: 1px solid #000; padding: 3px; vertical-align: middle; }
 <td class="center small">Date</td>
 </tr>
 <tr>
-<td class="center bold">SK Treasurer</td>
+<td class="center bold">SK Federation Treasurer</td>
 <td></td>
 </tr>
 </table>
@@ -446,7 +477,20 @@ Certified by:
 
 <div style="width:220px; border-top:1px solid #000; margin-bottom:4px;"></div>
 <p style="text-align:left; font-weight:bold; margin:0;">
-Barangay Treasurer
+Federation Treasurer
+</p>
+
+<br><br><br>
+
+<p style="text-align:left;">
+Noted by:
+</p>
+
+<br><br>
+
+<div style="width:260px; border-top:1px solid #000; margin-bottom:4px;"></div>
+<p style="text-align:left; font-weight:bold; margin:0;">
+SK Federation President
 </p>
 
 </body>
@@ -456,6 +500,15 @@ Barangay Treasurer
     setTimeout(() => {
         printWindow.print();
     }, 250);
+}
+
+function openBudgetModal(barangayId, barangayName) {
+    document.getElementById('budgetModalBarangayName').textContent = barangayName;
+    document.getElementById('budgetBarangayId').value = barangayId;
+    document.getElementById('initialBalanceAmount').value = '';
+    
+    const modal = new bootstrap.Modal(document.getElementById('addInitialBalanceModal'));
+    modal.show();
 }
 
 function showDisbursementBreakdown(budgetId, barangayName) {

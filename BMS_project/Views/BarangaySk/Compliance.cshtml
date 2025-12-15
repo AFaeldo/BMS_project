@@ -14,7 +14,7 @@
             <h5 class="mb-0 fw-bold">Required Documents</h5>
         </div>
         <div class="card-body">
-            @if (!Model.Any())
+            @if (Model == null || !Model.Any())
             {
                 <div class="text-center py-4">
                     <p class="text-muted mb-0">No compliance requirements found.</p>
@@ -31,6 +31,7 @@
                                 <th>Due Date</th>
                                 <th>Status</th>
                                 <th>Submission Date</th>
+                                <th class="text-center">SK Federation Uploaded Files</th>
                                 <th class="text-center">Action</th>
                             </tr>
                         </thead>
@@ -42,15 +43,19 @@
                                     <td>@item.Type</td>
                                     <td>@item.DueDate.ToShortDateString()</td>
                                     <td>
-                                        @if (item.Status == "Completed" || item.Status == "Approved")
+                                        @if (item.Status == "Approved")
                                         {
-                                            <span class="badge bg-success">@item.Status</span>
+                                            <span class="badge bg-success">Approved</span>
+                                        }
+                                        else if (item.Status == "Completed")
+                                        {
+                                            <span class="badge bg-success">Completed</span>
                                         }
                                         else if (item.Status == "Returned" || item.Status == "Rejected")
                                         {
                                             <span class="badge bg-danger">@item.Status</span>
                                         }
-                                        else if (item.Date_Submitted.HasValue)
+                                        else if (item.Status == "Pending" || item.Date_Submitted.HasValue)
                                         {
                                             <span class="badge bg-warning text-dark">For Review</span>
                                         }
@@ -65,14 +70,40 @@
                                     </td>
                                     <td>@(item.Date_Submitted.HasValue ? item.Date_Submitted.Value.ToShortDateString() : "-")</td>
                                     <td class="text-center">
-                                        @if (item.Status == "Returned" || item.Status == "Rejected")
+                                        <button class="btn btn-sm btn-outline-info" 
+                                                onclick="openFederationFilesModal(@item.Compliance_ID, '@Html.Raw(item.Title.Replace("'", "\\'"))')">
+                                            <i class="bi bi-eye"></i> View
+                                        </button>
+                                    </td>
+                                    <td class="text-center">
+                                        @if (item.Type == "Project Proposal")
+                                        {
+                                            if (item.Status == "Not Submitted")
+                                            {
+                                                <button class="btn btn-sm btn-primary btn-upload" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#uploadModal"
+                                                        data-id="@item.Compliance_ID"
+                                                        data-title="@item.Title">
+                                                    Submit
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-sm btn-info text-white" 
+                                                        onclick="openDetailsModal(@item.Compliance_ID)">
+                                                    View
+                                                </button>
+                                            }
+                                        }
+                                        else if (item.Status == "Returned" || item.Status == "Rejected")
                                         {
                                             <button class="btn btn-sm btn-warning text-dark btn-upload" 
                                                     data-bs-toggle="modal" 
                                                     data-bs-target="#uploadModal"
                                                     data-id="@item.Compliance_ID"
                                                     data-title="@item.Title">
-                                                Resubmit
+                                                Re-Submit
                                             </button>
                                         }
                                         else if (item.Date_Submitted.HasValue)
@@ -92,6 +123,64 @@
                                                 Submit
                                             </button>
                                         }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Generation of Reports Card -->
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0 fw-bold">Generation of Reports</h5>
+        </div>
+        <div class="card-body">
+            @{
+                var approvedProjects = ViewBag.ApprovedProjects as List<BMS_project.Models.Project>;
+            }
+            @if (approvedProjects == null || !approvedProjects.Any())
+            {
+                <div class="text-center py-4">
+                    <p class="text-muted mb-0">No approved projects found.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Project Title</th>
+                                <th>Status</th>
+                                <th>Date Submitted</th>
+                                <th class="text-center">Barangay SK Documents</th>
+                                <th class="text-center">Barangay Federation</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var project in approvedProjects)
+                            {
+                                <tr>
+                                    <td>@project.Project_Title</td>
+                                    <td>
+                                        <span class="badge bg-success">@project.Project_Status</span>
+                                    </td>
+                                    <td>@(project.Date_Submitted.HasValue ? project.Date_Submitted.Value.ToShortDateString() : "-")</td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-primary" 
+                                                onclick="openBarangayDocsModal(@project.Project_ID, '@Html.Raw(project.Project_Title.Replace("'", "\\'"))')">
+                                            <i class="bi bi-eye"></i> View
+                                        </button>
+                                    </td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-info text-white" 
+                                                onclick="openFederationDocsModal(@project.Project_ID, '@Html.Raw(project.Project_Title.Replace("'", "\\'"))')">
+                                            <i class="bi bi-eye"></i> View
+                                        </button>
                                     </td>
                                 </tr>
                             }
@@ -201,6 +290,112 @@
     </div>
 </div>
 
+<!-- Barangay SK Documents Modal -->
+<div class="modal fade" id="barangayDocsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0 rounded-3">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Barangay SK Documents</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3 border-bottom pb-2">
+                    <h6 class="fw-bold text-primary" id="barangayDocsProjectTitle"></h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle" id="barangayDocsTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Document Name</th>
+                                <th>Type</th>
+                                <th style="width: 150px;">Date Added</th>
+                                <th style="width: 120px;" class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Documents injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Federation Documents Modal -->
+<div class="modal fade" id="federationDocsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0 rounded-3">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">Barangay Federation Documents</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3 border-bottom pb-2">
+                    <h6 class="fw-bold text-info" id="federationDocsProjectTitle"></h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle" id="federationDocsTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Document Name</th>
+                                <th>Type</th>
+                                <th style="width: 150px;">Date Added</th>
+                                <th style="width: 120px;" class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Documents injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SK Federation Files Modal -->
+<div class="modal fade" id="federationFilesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0 rounded-3">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-file-earmark-text me-2"></i>Uploaded Files</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-muted">Project Title</label>
+                    <input type="text" class="form-control-plaintext border px-2 py-1 bg-light" id="federationFilesComplianceTitle" readonly>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle" id="federationFilesTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>File Name</th>
+                                <th style="width: 150px;">Date Uploaded</th>
+                                <th style="width: 120px;">Annex Type</th>
+                                <th style="width: 120px;" class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Federation files injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-circle me-1"></i>Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         // Pass data to modal
@@ -276,9 +471,38 @@
                     var tbody = document.getElementById('modalDocumentsTable').querySelector('tbody');
                     tbody.innerHTML = '';
                     var docs = data.documents || [];
+                    var proposalDocs = data.proposalDocuments || [];
                     
-                    if(docs.length > 0) {
-                        docs.forEach(doc => {
+                    // Combine compliance documents and proposal documents
+                    var allDocs = [];
+                    
+                    // Add compliance documents
+                    docs.forEach(doc => {
+                        allDocs.push({
+                            fileName: doc.fileName,
+                            fileUrl: doc.fileUrl,
+                            status: doc.status,
+                            remarks: doc.remarks
+                        });
+                    });
+                    
+                    // Add proposal documents with their review status
+                    proposalDocs.forEach(doc => {
+                        var fileUrl = doc.fileUrl;
+                        // Only add "/" if not already present
+                        if (fileUrl && !fileUrl.startsWith('/')) {
+                            fileUrl = '/' + fileUrl;
+                        }
+                        allDocs.push({
+                            fileName: doc.fileName,
+                            fileUrl: fileUrl,
+                            status: doc.status || 'Pending',
+                            remarks: doc.remarks || 'Project proposal document'
+                        });
+                    });
+                    
+                    if(allDocs.length > 0) {
+                        allDocs.forEach(doc => {
                             var statusClass = 'bg-secondary';
                             if(doc.status === 'Approved') statusClass = 'bg-success';
                             else if(doc.status === 'Rejected') statusClass = 'bg-danger';
@@ -296,10 +520,175 @@
                     } else {
                         tbody.innerHTML = '<tr><td colspan="3" class="text-center">No documents found.</td></tr>';
                     }
+
+                    // Display federation uploaded files
+                    var federationTbody = document.getElementById('federationFilesTable').querySelector('tbody');
+                    federationTbody.innerHTML = '';
+                    
+                    if (data.federationFiles && data.federationFiles.length > 0) {
+                        data.federationFiles.forEach(file => {
+                            var row = `
+                                <tr>
+                                    <td><a href="/${file.fileUrl}" target="_blank"><i class="bi bi-file-earmark-pdf text-danger me-1"></i>${file.fileName}</a></td>
+                                    <td>${new Date(file.dateAdded).toLocaleDateString()}</td>
+                                    <td class="text-center">
+                                        <a href="/${file.fileUrl}" target="_blank" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-download"></i> Download
+                                        </a>
+                                    </td>
+                                </tr>
+                            `;
+                            federationTbody.innerHTML += row;
+                        });
+                    } else {
+                        federationTbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">No federation uploaded files.</td></tr>';
+                    }
                 })
                 .catch(error => {
                     console.error('Error:', error);
                     document.getElementById('modalDocumentsTable').querySelector('tbody').innerHTML = '<tr><td colspan="3" class="text-danger text-center">Failed to load details.</td></tr>';
+                });
+        }
+
+        // Open Barangay SK Documents Modal
+        function openBarangayDocsModal(projectId, projectTitle) {
+            document.getElementById('barangayDocsProjectTitle').innerText = projectTitle;
+            document.getElementById('barangayDocsTable').querySelector('tbody').innerHTML = '<tr><td colspan="4" class="text-center">Loading...</td></tr>';
+            
+            var modal = new bootstrap.Modal(document.getElementById('barangayDocsModal'));
+            modal.show();
+
+            fetch('@Url.Action("GetProjectBarangayDocuments", "BarangaySk")/' + projectId)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    var tbody = document.getElementById('barangayDocsTable').querySelector('tbody');
+                    tbody.innerHTML = '';
+                    
+                    if (data.documents && data.documents.length > 0) {
+                        data.documents.forEach(doc => {
+                            var row = `
+                                <tr>
+                                    <td><i class="bi bi-file-earmark-pdf text-danger me-1"></i>${doc.fileName}</td>
+                                    <td>${doc.description || 'Document'}</td>
+                                    <td>${new Date(doc.dateAdded).toLocaleDateString()}</td>
+                                    <td class="text-center">
+                                        <a href="${doc.fileUrl.startsWith('/') ? doc.fileUrl : '/' + doc.fileUrl}" target="_blank" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-download"></i> Download
+                                        </a>
+                                    </td>
+                                </tr>
+                            `;
+                            tbody.innerHTML += row;
+                        });
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No documents found.</td></tr>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('barangayDocsTable').querySelector('tbody').innerHTML = '<tr><td colspan="4" class="text-danger text-center">Failed to load documents.</td></tr>';
+                });
+        }
+
+        // Open Federation Documents Modal
+        function openFederationDocsModal(projectId, projectTitle) {
+            document.getElementById('federationDocsProjectTitle').innerText = projectTitle;
+            document.getElementById('federationDocsTable').querySelector('tbody').innerHTML = '<tr><td colspan="4" class="text-center">Loading...</td></tr>';
+            
+            var modal = new bootstrap.Modal(document.getElementById('federationDocsModal'));
+            modal.show();
+
+            fetch('@Url.Action("GetProjectFederationDocuments", "BarangaySk")/' + projectId)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    var tbody = document.getElementById('federationDocsTable').querySelector('tbody');
+                    tbody.innerHTML = '';
+                    
+                    if (data.documents && data.documents.length > 0) {
+                        data.documents.forEach(doc => {
+                            var row = `
+                                <tr>
+                                    <td><i class="bi bi-file-earmark-pdf text-danger me-1"></i>${doc.fileName}</td>
+                                    <td>${doc.description || 'Document'}</td>
+                                    <td>${new Date(doc.dateAdded).toLocaleDateString()}</td>
+                                    <td class="text-center">
+                                        <a href="${doc.fileUrl.startsWith('/') ? doc.fileUrl : '/' + doc.fileUrl}" target="_blank" class="btn btn-sm btn-info text-white">
+                                            <i class="bi bi-download"></i> Download
+                                        </a>
+                                    </td>
+                                </tr>
+                            `;
+                            tbody.innerHTML += row;
+                        });
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No federation documents found.</td></tr>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('federationDocsTable').querySelector('tbody').innerHTML = '<tr><td colspan="4" class="text-danger text-center">Failed to load documents.</td></tr>';
+                });
+        }
+
+        // Open SK Federation Files Modal for Compliance Items
+        function openFederationFilesModal(complianceId, complianceTitle) {
+            document.getElementById('federationFilesComplianceTitle').value = complianceTitle;
+            document.getElementById('federationFilesTable').querySelector('tbody').innerHTML = '<tr><td colspan="4" class="text-center">Loading...</td></tr>';
+            
+            var modal = new bootstrap.Modal(document.getElementById('federationFilesModal'));
+            modal.show();
+
+            fetch('@Url.Action("GetComplianceFederationFiles", "BarangaySk")/' + complianceId)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    var tbody = document.getElementById('federationFilesTable').querySelector('tbody');
+                    tbody.innerHTML = '';
+                    
+                    if (data.federationFiles && data.federationFiles.length > 0) {
+                        data.federationFiles.forEach(file => {
+                            var fileUrl = file.fileUrl.startsWith('/') ? file.fileUrl : '/' + file.fileUrl;
+                            // Determine annex type from description (if available)
+                            var annexType = '';
+                            var annexBadge = '';
+                            if (file.description && file.description.toLowerCase().includes('annex h')) {
+                                annexType = 'Annex H';
+                                annexBadge = '<span class="badge" style="background-color: #FFC107; color: #000;"><i class="bi bi-folder me-1"></i>Annex H</span>';
+                            } else if (file.description && file.description.toLowerCase().includes('annex i')) {
+                                annexType = 'Annex I';
+                                annexBadge = '<span class="badge" style="background-color: #FFC107; color: #000;"><i class="bi bi-folder me-1"></i>Annex I</span>';
+                            } else {
+                                annexBadge = file.description || '-';
+                            }
+                            var row = `
+                                <tr>
+                                    <td><i class="bi bi-file-earmark-pdf text-danger me-1"></i>${file.fileName}</td>
+                                    <td>${new Date(file.dateAdded).toLocaleDateString()}</td>
+                                    <td>${annexBadge}</td>
+                                    <td class="text-center">
+                                        <a href="${fileUrl}" target="_blank" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-download"></i> Download
+                                        </a>
+                                    </td>
+                                </tr>
+                            `;
+                            tbody.innerHTML += row;
+                        });
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No federation uploaded files.</td></tr>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('federationFilesTable').querySelector('tbody').innerHTML = '<tr><td colspan="3" class="text-danger text-center">Failed to load files.</td></tr>';
                 });
         }
     </script>

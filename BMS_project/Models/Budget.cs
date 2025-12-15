@@ -16,6 +16,8 @@ namespace BMS_project.Models
         public decimal balance { get; set; }
 
         public bool InitialBalanceSet { get; set; } = false;
+        
+        public decimal InitialBalance { get; set; } = 0;
 
         public int? Term_ID { get; set; }
 

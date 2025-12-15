@@ -44,59 +44,68 @@
         <div class="card-body">
             @if (Model != null && Model.Any())
             {
+                var groupedDocuments = Model.GroupBy(d => d.ProjectId).ToList();
+                
                 <div class="table-responsive">
                     <table class="table table-hover table-bordered align-middle">
                         <thead class="table-primary">
                             <tr>
-                                <th width="18%">Project Title</th>
-                                <th width="12%">Barangay</th>
-                                <th width="20%">Description</th>
-                                <th width="12%">Status</th>
-                                <th width="13%">Annex Type</th>
-                                <th width="15%">File</th>
-                                <th width="10%">Date Added</th>
+                                <th width="12%">Project Title</th>
+                                <th width="8%">Barangay</th>
+                                <th width="14%">Description</th>
+                                <th width="8%">Status</th>
+                                <th width="9%">Annex Type</th>
+                                <th width="10%">File</th>
+                                <th width="8%">Uploaded By</th>
+                                <th width="8%">Date Added</th>
+                                <th width="9%">Project Documents</th>
+                                <th width="10%">Uploaded Files</th>
+                                <th width="11%">Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var doc in Model)
+                            @foreach (var group in groupedDocuments)
                             {
+                                var firstDoc = group.First();
+                                var docCount = group.Count();
+                                
                                 <tr>
-                                    <td class="fw-semibold">@doc.ProjectTitle</td>
-                                    <td>
-                                        <span class="badge bg-info text-dark">@doc.BarangayName</span>
+                                    <td rowspan="@docCount" class="fw-semibold align-middle">@firstDoc.ProjectTitle</td>
+                                    <td rowspan="@docCount" class="align-middle">
+                                        <span class="badge bg-info text-dark">@firstDoc.BarangayName</span>
                                     </td>
-                                    <td>
+                                    <td rowspan="@docCount" class="align-middle">
                                         <small class="text-muted">
-                                            @(string.IsNullOrEmpty(doc.ProjectDescription) ? "No description" : 
-                                              (doc.ProjectDescription.Length > 100 ? doc.ProjectDescription.Substring(0, 100) + "..." : doc.ProjectDescription))
+                                            @(string.IsNullOrEmpty(firstDoc.ProjectDescription) ? "No description" : 
+                                              (firstDoc.ProjectDescription.Length > 100 ? firstDoc.ProjectDescription.Substring(0, 100) + "..." : firstDoc.ProjectDescription))
                                         </small>
                                     </td>
-                                    <td>
-                                        @if (doc.ProjectStatus == "Pending")
+                                    <td rowspan="@docCount" class="align-middle">
+                                        @if (firstDoc.ProjectStatus == "Pending")
                                         {
                                             <span class="badge bg-warning text-dark">
                                                 <i class="bi bi-clock-history me-1"></i> Pending
                                             </span>
                                         }
-                                        else if (doc.ProjectStatus == "Approved")
+                                        else if (firstDoc.ProjectStatus == "Approved")
                                         {
                                             <span class="badge bg-success">
                                                 <i class="bi bi-check-circle me-1"></i> Approved
                                             </span>
                                         }
-                                        else if (doc.ProjectStatus == "Ongoing")
+                                        else if (firstDoc.ProjectStatus == "Ongoing")
                                         {
                                             <span class="badge bg-primary">
                                                 <i class="bi bi-arrow-repeat me-1"></i> Ongoing
                                             </span>
                                         }
-                                        else if (doc.ProjectStatus == "Completed")
+                                        else if (firstDoc.ProjectStatus == "Completed")
                                         {
                                             <span class="badge bg-dark">
                                                 <i class="bi bi-check-all me-1"></i> Completed
                                             </span>
                                         }
-                                        else if (doc.ProjectStatus == "Rejected")
+                                        else if (firstDoc.ProjectStatus == "Rejected")
                                         {
                                             <span class="badge bg-danger">
                                                 <i class="bi bi-x-circle me-1"></i> Rejected
@@ -104,23 +113,70 @@
                                         }
                                         else
                                         {
-                                            <span class="badge bg-secondary">@doc.ProjectStatus</span>
+                                            <span class="badge bg-secondary">@firstDoc.ProjectStatus</span>
                                         }
                                     </td>
                                     <td>
                                         <span class="badge bg-warning text-dark">
-                                            <i class="bi bi-file-earmark-text me-1"></i> @doc.AnnexType
+                                            <i class="bi bi-file-earmark-text me-1"></i> @firstDoc.AnnexType
                                         </span>
                                     </td>
                                     <td>
-                                        <a href="@doc.FilePath" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-download me-1"></i> @doc.FileName
+                                        <a href="@firstDoc.FilePath" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-download me-1"></i> @firstDoc.FileName
                                         </a>
                                     </td>
                                     <td>
-                                        <small>@doc.DateAdded?.ToString("MMM dd, yyyy")</small>
+                                        <small>@(firstDoc.UploadedBy ?? "System")</small>
+                                    </td>
+                                    <td>
+                                        <small>@firstDoc.DateAdded?.ToString("MMM dd, yyyy")</small>
+                                    </td>
+                                    <td rowspan="@docCount" class="text-center align-middle">
+                                        <button class="btn btn-sm btn-outline-info" onclick="viewProjectProposal(@firstDoc.ProjectId, '@firstDoc.ProjectTitle')">
+                                            <i class="bi bi-file-earmark-text me-1"></i> View Proposal
+                                        </button>
+                                    </td>
+                                    <td rowspan="@docCount" class="text-center align-middle">
+                                        @if (firstDoc.UploadedFilesCount > 0)
+                                        {
+                                            <button class="btn btn-sm btn-success" onclick="viewUploadedFiles(@firstDoc.ProjectId, '@firstDoc.ProjectTitle')">
+                                                <i class="bi bi-eye me-1"></i> View (@firstDoc.UploadedFilesCount)
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">No files</span>
+                                        }
+                                    </td>
+                                    <td rowspan="@docCount" class="text-center align-middle">
+                                        <button class="btn btn-sm btn-primary" onclick="openUploadModal(@firstDoc.ProjectId, '@firstDoc.ProjectTitle')">
+                                            <i class="bi bi-cloud-upload me-1"></i> Upload Files
+                                        </button>
                                     </td>
                                 </tr>
+                                
+                                @foreach (var doc in group.Skip(1))
+                                {
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="bi bi-file-earmark-text me-1"></i> @doc.AnnexType
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="@doc.FilePath" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-download me-1"></i> @doc.FileName
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <small>@(doc.UploadedBy ?? "System")</small>
+                                        </td>
+                                        <td>
+                                            <small>@doc.DateAdded?.ToString("MMM dd, yyyy")</small>
+                                        </td>
+                                    </tr>
+                                }
                             }
                         </tbody>
                     </table>
@@ -136,3 +192,328 @@
         </div>
     </div>
 </div>
+<!-- Upload Files Modal -->
+<div class="modal fade" id="uploadFilesModal" tabindex="-1" aria-labelledby="uploadFilesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="uploadFilesModalLabel">
+                    <i class="bi bi-cloud-upload me-2"></i>Upload Project Documents
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="uploadFilesForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <input type="hidden" id="projectIdInput" name="projectId" />
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Project Title</label>
+                        <input type="text" class="form-control" id="projectTitleDisplay" readonly />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Annex Type</label>
+                        <select class="form-select" id="annexTypeSelect" name="annexType" required>
+                            <option value="">-- Select Annex Type --</option>
+                            <option value="Annex I">Annex I</option>
+                            <option value="Annex H">Annex H</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fileInput" class="form-label fw-semibold">Select PDF Files</label>
+                        <input type="file" class="form-control" id="fileInput" multiple accept="application/pdf" />
+                        <div class="form-text">
+                            <i class="bi bi-info-circle me-1"></i>You can select multiple PDF files to upload (Max 25MB per file).
+                        </div>
+                    </div>
+
+                    <div id="selectedFiles" class="mt-3"></div>
+
+                    <div class="mt-3">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('fileInput').click()">
+                            <i class="bi bi-plus-circle me-1"></i>Add More Files
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-upload me-1"></i>Upload Files
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- View Uploaded Files Modal -->
+<div class="modal fade" id="viewFilesModal" tabindex="-1" aria-labelledby="viewFilesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="viewFilesModalLabel">
+                    <i class="bi bi-file-earmark-check me-2"></i>Uploaded Files
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Project Title</label>
+                    <input type="text" class="form-control" id="viewProjectTitleDisplay" readonly />
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>File Name</th>
+                                <th width="150px">Date Uploaded</th>
+                                <th width="150px">Annex Type</th>
+                                <th width="120px" class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="uploadedFilesTableBody">
+                            <!-- Files will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i>Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Project Proposal Modal -->
+<div class="modal fade" id="viewProposalModal" tabindex="-1" aria-labelledby="viewProposalModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="viewProposalModalLabel">
+                    <i class="bi bi-file-earmark-text me-2"></i>Project Documents (Proposal)
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Project Title</label>
+                    <input type="text" class="form-control" id="viewProposalProjectTitle" readonly />
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>File Name</th>
+                                <th width="150px">Date Uploaded</th>
+                                <th width="120px" class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="proposalFilesTableBody">
+                            <!-- Proposal files will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i>Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+let selectedFilesArray = [];
+
+function openUploadModal(projectId, projectTitle) {
+    document.getElementById('projectIdInput').value = projectId;
+    document.getElementById('projectTitleDisplay').value = projectTitle;
+    document.getElementById('fileInput').value = '';
+    document.getElementById('annexTypeSelect').selectedIndex = 0;
+    selectedFilesArray = [];
+    updateFilesList();
+    
+    var modal = new bootstrap.Modal(document.getElementById('uploadFilesModal'));
+    modal.show();
+}
+
+document.getElementById('fileInput').addEventListener('change', function() {
+    if (this.files.length > 0) {
+        for (let i = 0; i < this.files.length; i++) {
+            const file = this.files[i];
+            
+            // Check if file already exists
+            const exists = selectedFilesArray.some(f => f.name === file.name && f.size === file.size);
+            if (!exists) {
+                selectedFilesArray.push(file);
+            }
+        }
+        updateFilesList();
+        this.value = ''; // Reset input to allow selecting same files again
+    }
+});
+
+function updateFilesList() {
+    const fileList = document.getElementById('selectedFiles');
+    
+    if (selectedFilesArray.length === 0) {
+        fileList.innerHTML = '<div class="alert alert-warning"><i class="bi bi-exclamation-triangle me-2"></i>No files selected</div>';
+        return;
+    }
+    
+    let html = '<div class="alert alert-info"><strong>Selected Files:</strong><ul class="list-group mt-2">';
+    selectedFilesArray.forEach((file, index) => {
+        const sizeInMB = (file.size / (1024 * 1024)).toFixed(2);
+        const sizeClass = file.size > 25 * 1024 * 1024 ? 'text-danger' : 'text-success';
+        html += `
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="bi bi-file-pdf text-danger me-2"></i>
+                    <span>${file.name}</span>
+                    <span class="badge ${sizeClass} ms-2">${sizeInMB} MB</span>
+                </div>
+                <button type="button" class="btn btn-sm btn-danger" onclick="removeFile(${index})">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </li>
+        `;
+    });
+    html += '</ul></div>';
+    fileList.innerHTML = html;
+}
+
+function removeFile(index) {
+    selectedFilesArray.splice(index, 1);
+    updateFilesList();
+}
+
+document.getElementById('uploadFilesForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (selectedFilesArray.length === 0) {
+        alert('Please select at least one file to upload');
+        return;
+    }
+    const formData = new FormData();
+    const projectId = document.getElementById('projectIdInput').value;
+    const annexType = document.getElementById('annexTypeSelect').value;
+    formData.append('projectId', projectId);
+    formData.append('annexType', annexType);
+    selectedFilesArray.forEach(file => {
+        formData.append('files', file);
+    });
+    fetch('@Url.Action("UploadProjectDocuments", "FederationPresident")', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Files uploaded successfully!');
+            bootstrap.Modal.getInstance(document.getElementById('uploadFilesModal')).hide();
+            // Reset modal for next upload
+            document.getElementById('fileInput').value = '';
+            document.getElementById('annexTypeSelect').selectedIndex = 0;
+            selectedFilesArray = [];
+            updateFilesList();
+            // Do not reload, allow repeated uploads
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('Error uploading files: ' + error);
+    });
+});
+
+function viewUploadedFiles(projectId, projectTitle) {
+    document.getElementById('viewProjectTitleDisplay').value = projectTitle;
+    
+    fetch('@Url.Action("GetUploadedProjectFiles", "FederationPresident")?projectId=' + projectId)
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.getElementById('uploadedFilesTableBody');
+            tbody.innerHTML = '';
+            
+            if (data.success && data.files && data.files.length > 0) {
+                data.files.forEach(file => {
+                    const row = `
+                        <tr>
+                            <td>
+                                <i class="bi bi-file-earmark-pdf text-danger me-2"></i>
+                                ${file.fileName}
+                            </td>
+                            <td>${new Date(file.dateAdded).toLocaleDateString()}</td>
+                            <td>
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-file-earmark-text me-1"></i>${file.annexType || 'N/A'}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <a href="/${file.fileUrl}" target="_blank" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-download"></i> Download
+                                </a>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No files uploaded yet</td></tr>';
+            }
+            
+            var modal = new bootstrap.Modal(document.getElementById('viewFilesModal'));
+            modal.show();
+        })
+        .catch(error => {
+            alert('Error loading files: ' + error);
+        });
+}
+
+function viewProjectProposal(projectId, projectTitle) {
+    document.getElementById('viewProposalProjectTitle').value = projectTitle;
+    
+    fetch('@Url.Action("GetProjectProposalDocuments", "FederationPresident")?projectId=' + projectId)
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.getElementById('proposalFilesTableBody');
+            tbody.innerHTML = '';
+            
+            if (data.success && data.files && data.files.length > 0) {
+                data.files.forEach(file => {
+                    const row = `
+                        <tr>
+                            <td>
+                                <i class="bi bi-file-earmark-pdf text-danger me-2"></i>
+                                ${file.fileName}
+                            </td>
+                            <td>${new Date(file.dateAdded).toLocaleDateString()}</td>
+                            <td class="text-center">
+                                <a href="/${file.fileUrl}" target="_blank" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-download"></i> Download
+                                </a>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">No proposal documents found</td></tr>';
+            }
+            
+            var modal = new bootstrap.Modal(document.getElementById('viewProposalModal'));
+            modal.show();
+        })
+        .catch(error => {
+            alert('Error loading proposal documents: ' + error);
+        });
+}
+</script>
+}

@@ -29,5 +29,16 @@ namespace BMS_project.ViewModels
         // Template Info
         public string? TemplateFileName { get; set; }
         public int? TemplateFileId { get; set; }
+
+        // Federation Uploaded Documents (Annex)
+        public List<AnnexDocumentViewModel>? FederationAnnexDocuments { get; set; }
+    }
+
+    public class AnnexDocumentViewModel
+    {
+        public int DocumentId { get; set; }
+        public string FileName { get; set; }
+        public string FileUrl { get; set; }
+        public DateTime DateAdded { get; set; }
     }
 }

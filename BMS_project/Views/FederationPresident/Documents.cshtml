@@ -12,7 +12,7 @@
 
     <div class="card-body">
 
-        <h5 class="fw-bold">Annex Templates</h5>
+        <h5 class="fw-bold text-white">Annex Templates</h5>
         <div class="table-responsive">
             <table class="table table-hover align-middle">
                 <thead class="table-secondary">
@@ -23,65 +23,17 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>ANNEX TEMPLATE A</td>
-                        <td style="text-align:center;">
-                            <button onclick="downloadAnnexA()" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-download"></i> Download
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>ANNEX TEMPLATE B</td>
-                        <td class="text-center">
-                            <button onclick="downloadAnnexB()" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-download"></i> Download
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>ANNEX TEMPLATE C</td>
-                        <td class="text-center">
-                            <button onclick="downloadAnnexC()" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-download"></i> Download
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>ANNEX TEMPLATE D</td>
-                        <td class="text-center">
-                            <button onclick="downloadAnnexD()" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-download"></i> Download
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>ANNEX TEMPLATE E</td>
-                        <td class="text-center">
-                            <button onclick="downloadAnnexE()" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-download"></i> Download
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>ANNEX TEMPLATE F</td>
-                        <td class="text-center">
-                            <button onclick="downloadAnnexF()" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-download"></i> Download
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>ANNEX TEMPLATE G</td>
-                        <td class="text-center">
-                            <button onclick="downloadAnnexG()" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-download"></i> Download
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
                         <td>ANNEX TEMPLATE H</td>
                         <td class="text-center">
                             <button onclick="downloadAnnexH()" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download"></i> Download
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>ANNEX TEMPLATE I</td>
+                        <td class="text-center">
+                            <button onclick="downloadAnnexI()" class="btn btn-sm btn-outline-primary">
                                 <i class="bi bi-download"></i> Download
                             </button>
                         </td>
@@ -90,29 +42,460 @@
             </table>
         </div>
 
-
-        <div class="mt-5">
-            <h5 class="fw-bold">Project Proposal Templates</h5>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-secondary">
-                        <tr>
-                            <th>Template Name</th>
-                            <th style="text-align:center;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>PROJECT PROPOSAL TEMPLATES</td>
-                            <td style="text-align:center;">
-                                <button onclick="downloadProjectProposal()" class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-download"></i> Download
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
     </div>
 </div>
+
+@section Scripts {
+<script>
+function downloadAnnexH() {
+    const htmlContent = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+<meta charset="UTF-8">
+<title>Obligation Request and Status</title>
+<!--[if gte mso 9]>
+<xml>
+<w:WordDocument>
+<w:View>Print</w:View>
+<w:Zoom>100</w:Zoom>
+<w:DoNotOptimizeForBrowser/>
+</w:WordDocument>
+</xml>
+<![endif]-->
+<style>
+@@page {
+    size: A4;
+    margin: 15mm;
+}
+
+body {
+    font-family: "Times New Roman", serif;
+    margin: 0;
+}
+
+.form {
+    width: 100%;
+    border: 2px solid #000;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+
+td, th {
+    border: 1px solid #000;
+    padding: 4px;
+    vertical-align: middle;
+}
+
+.center {
+    text-align: center;
+    font-weight: bold;
+}
+
+.no-border {
+    border: none;
+}
+
+.header-title {
+    font-size: 15px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.entity-name {
+    text-align: center;
+    font-weight: bold;
+}
+
+.tall {
+    height: 350px;
+}
+
+.signature {
+    height: 90px;
+    vertical-align: top;
+}
+
+.small {
+    font-size: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="form">
+<table>
+
+<!-- HEADER -->
+<tr>
+    <td colspan="6" style="border-right:2px solid #000;">
+        <div class="header-title">OBLIGATION REQUEST AND STATUS</div><br>
+        <div class="entity-name">
+            _______________________________<br>
+            Entity Name
+        </div>
+    </td>
+    <td colspan="2">
+        Serial No. : _______________________<br><br>
+        Date : ____________________________<br><br>
+        Fund Cluster : _____________________
+    </td>
+</tr>
+
+<!-- PAYEE / OFFICE / ADDRESS -->
+<tr>
+    <td colspan="2">Payee</td>
+    <td colspan="6"></td>
+</tr>
+<tr>
+    <td colspan="2">Office</td>
+    <td colspan="6"></td>
+</tr>
+<tr>
+    <td colspan="2">Address</td>
+    <td colspan="6"></td>
+</tr>
+
+<!-- MAIN TABLE HEADER -->
+<tr class="center">
+    <td colspan="2">Responsibility Center</td>
+    <td colspan="2">Particulars</td>
+    <td>MFO/PAP</td>
+    <td>UACS Object Code</td>
+    <td colspan="2">Amount</td>
+</tr>
+
+<!-- MAIN TABLE BODY -->
+<tr class="tall">
+    <td colspan="2"></td>
+    <td colspan="2"></td>
+    <td></td>
+    <td></td>
+    <td colspan="2"></td>
+</tr>
+
+<tr>
+    <td colspan="6" class="center">Total</td>
+    <td colspan="2"></td>
+</tr>
+
+<!-- CERTIFICATION -->
+<tr>
+    <td colspan="4" class="small signature">
+        A. <b>Certified:</b> Charges to appropriation/allotment are necessary,
+        lawful and under my direct supervision; and supporting documents valid,
+        proper and legal.<br><br>
+        Signature: ___________________________<br>
+        Printed Name: ________________________<br>
+        Position: ____________________________<br><br>
+        Head, Requesting Office/Authorized Representative<br>
+        Date: _______________________________
+    </td>
+
+    <td colspan="4" class="small signature">
+        B. <b>Certified:</b> Allotment available and obligated for the
+        purpose/adjustment necessary as indicated above.<br><br>
+        Signature: ___________________________<br>
+        Printed Name: ________________________<br>
+        Position: ____________________________<br><br>
+        Head, Budget Division/Unit/Authorized Representative<br>
+        Date: _______________________________
+    </td>
+</tr>
+
+<!-- STATUS OF OBLIGATION -->
+<tr>
+    <td colspan="8" class="center">STATUS OF OBLIGATION</td>
+</tr>
+
+<tr class="center">
+    <td rowspan="2">Date</td>
+    <td rowspan="2">Particulars</td>
+    <td rowspan="2">ORS/JEV/Check/<br>ADA/TRA No.</td>
+    <td rowspan="2">Obligation<br>(a)</td>
+    <td rowspan="2">Payable<br>(b)</td>
+    <td rowspan="2">Payment<br>(c)</td>
+    <td rowspan="2">Not Yet Due<br>(a-b)</td>
+    <td rowspan="2">Due and Demandable<br>(b-c)</td>
+</tr>
+
+<tr></tr>
+
+<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+
+</table>
+</div>
+
+</body>
+</html>`;
+
+    const blob = new Blob(['\ufeff', htmlContent], {
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    });
+    
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'AnnexH_ObligationRequestAndStatus.docx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+}
+
+function downloadAnnexI() {
+    const htmlContent = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+<meta charset="UTF-8">
+<title>Disbursement Voucher</title>
+<!--[if gte mso 9]>
+<xml>
+<w:WordDocument>
+<w:View>Print</w:View>
+<w:Zoom>100</w:Zoom>
+<w:DoNotOptimizeForBrowser/>
+</w:WordDocument>
+</xml>
+<![endif]-->
+<style>
+@@page {
+    size: A4;
+    margin: 20mm;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 0;
+}
+
+.voucher {
+    width: 100%;
+    border: 2px solid #000;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+td, th {
+    border: 1px solid #000;
+    padding: 4px;
+    vertical-align: top;
+}
+
+.center {
+    text-align: center;
+    font-weight: bold;
+}
+
+.title {
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.particulars-box {
+    height: 220px;
+}
+
+.signature {
+    height: 70px;
+    text-align: center;
+    vertical-align: bottom;
+    font-size: 11px;
+}
+
+.small {
+    font-size: 11px;
+}
+
+.no-border {
+    border: none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="voucher">
+<table>
+
+<!-- HEADER -->
+<tr>
+    <td colspan="3" class="title">DISBURSEMENT VOUCHER</td>
+    <td>DV No.</td>
+</tr>
+
+<!-- TOP INFO -->
+<tr>
+    <td>Barangay:</td>
+    <td>City/Municipality:</td>
+    <td>Province:</td>
+    <td>Date:</td>
+</tr>
+
+<tr>
+    <td>Payee:</td>
+    <td colspan="2">TIN:</td>
+    <td>Fund:</td>
+</tr>
+
+<tr>
+    <td>Address:</td>
+    <td colspan="3"></td>
+</tr>
+
+<!-- PARTICULARS HEADER -->
+<tr>
+    <th colspan="3" class="center">PARTICULARS</th>
+    <th class="center">AMOUNT</th>
+</tr>
+
+<!-- PARTICULARS BODY -->
+<tr>
+    <td colspan="3" class="particulars-box"></td>
+    <td></td>
+</tr>
+
+<!-- CERTIFICATION -->
+<tr>
+    <td class="small">
+        A. Certified as to Existence of Appropriation for Obligation.
+    </td>
+    <td class="small">
+        B. Certified as to Availability of Funds for the Purpose, and Completeness
+        and Propriety of Supporting Documents.
+    </td>
+    <td colspan="2" class="small">
+        C. Certified as to Validity, Propriety, and Legality of Claim and Approved
+        for Payment
+    </td>
+</tr>
+
+<tr>
+    <td class="signature">
+        ___________________________<br>
+        (Signature Over Printed Name)<br>
+        SK Budget Monitoring Officer<br><br>
+        Date: ____________
+    </td>
+
+    <td class="signature">
+        ___________________________<br>
+        (Signature Over Printed Name)<br>
+        SK Treasurer<br><br>
+        Date: ____________
+    </td>
+
+    <td colspan="2" class="signature">
+        ___________________________<br>
+        (Signature Over Printed Name)<br>
+        SK Chairperson<br><br>
+        Date: ____________
+    </td>
+</tr>
+
+<!-- RECEIVED PAYMENT -->
+<tr>
+    <td colspan="4" class="small">D. Received Payment</td>
+</tr>
+
+<tr>
+    <td class="signature">
+        ___________________________<br>
+        (Signature Over Printed Name)
+    </td>
+
+    <td colspan="2" class="small">
+        Check No.: ____________________<br>
+        Bank Name: ___________________<br>
+        OR No.: ______________________
+    </td>
+
+    <td class="small">Date: ____________</td>
+</tr>
+
+<!-- ACCOUNTING ENTRIES -->
+<tr>
+    <td colspan="4" class="small">E. Accounting Entries</td>
+</tr>
+
+<tr>
+    <th>Account</th>
+    <th>Account Code</th>
+    <th>Debit</th>
+    <th>Credit</th>
+</tr>
+
+<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>
+<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>
+<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>
+
+<!-- ACCOUNTING ENTRIES -->
+<tr>
+    <td colspan="4" class="small">E. Accounting Entries</td>
+</tr>
+
+<tr>
+    <th>Account</th>
+    <th>Account Code</th>
+    <th>Debit</th>
+    <th>Credit</th>
+</tr>
+
+<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>
+<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>
+<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>
+<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>
+
+<!-- FOOTER WITH VERTICAL DIVIDER -->
+<tr>
+    <td colspan="2" style="border-right:1px solid #000; height:140px;"></td>
+
+    <td colspan="2" style="height:140px;">
+        <div style="margin-top:10px;">
+            Prepared by:<br><br>
+            ___________________________<br>
+            <b>Barangay Bookkeeper</b>
+            <span style="float:right;">Date ____________</span>
+        </div>
+
+        <br><br>
+
+        <div>
+            Approved by:<br><br>
+            ___________________________<br>
+            <b>City/Municipal Accountant</b>
+            <span style="float:right;">Date ____________</span>
+        </div>
+    </td>
+</tr>
+
+
+</table>
+</div>
+
+</body>
+</html>`;
+
+    const blob = new Blob(['\ufeff', htmlContent], {
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    });
+    
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'AnnexI_DisbursementVoucher.docx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+}
+</script>
+}
+
