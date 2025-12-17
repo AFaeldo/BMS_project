@@ -105,10 +105,32 @@
 
     <!-- Generation of Reports Card -->
     <div class="card shadow-sm mt-4">
-        <div class="card-header bg-info text-white">
+        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0 fw-bold">Generation of Reports</h5>
+            <button type="button" class="btn btn-light btn-sm" onclick="printGenerationReports()">
+                <i class="bi bi-printer me-1"></i> Print Reports
+            </button>
         </div>
         <div class="card-body">
+            <!-- Filter Section -->
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Filter by Barangay:</label>
+                    <select id="barangayFilterReports" class="form-select" onchange="filterReportsTable()">
+                        <option value="">All Barangays</option>
+                        @{
+                            var barangaysList = ViewBag.Barangays as List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>;
+                            if (barangaysList != null)
+                            {
+                                foreach (var barangay in barangaysList)
+                                {
+                                    <option value="@barangay.Text">@barangay.Text</option>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
             @{
                 var approvedProjects = ViewBag.ApprovedProjects as List<BMS_project.Models.Project>;
             }
@@ -121,7 +143,7 @@
             else
             {
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle">
+                    <table class="table table-hover align-middle" id="reportsTable">
                         <thead class="table-light">
                             <tr>
                                 <th>Barangay</th>
@@ -135,13 +157,13 @@
                         <tbody>
                             @foreach (var project in approvedProjects)
                             {
-                                <tr>
-                                    <td>@(project.User?.Barangay?.Barangay_Name ?? "-")</td>
-                                    <td>@project.Project_Title</td>
+                                <tr data-barangay="@(project.User?.Barangay?.Barangay_Name ?? "-")" data-project-id="@project.Project_ID">
+                                    <td class="barangay-name">@(project.User?.Barangay?.Barangay_Name ?? "-")</td>
+                                    <td class="project-title">@project.Project_Title</td>
                                     <td>
-                                        <span class="badge bg-success">@project.Project_Status</span>
+                                        <span class="badge bg-success project-status">@project.Project_Status</span>
                                     </td>
-                                    <td>@(project.Date_Submitted.HasValue ? project.Date_Submitted.Value.ToShortDateString() : "-")</td>
+                                    <td class="date-submitted">@(project.Date_Submitted.HasValue ? project.Date_Submitted.Value.ToShortDateString() : "-")</td>
                                     <td class="text-center">
                                         <button class="btn btn-sm btn-primary" 
                                                 onclick="openBarangayDocsModalFed(@project.Project_ID, '@Html.Raw(project.Project_Title.Replace("'", "\\'"))', '@Html.Raw((project.User?.Barangay?.Barangay_Name ?? "-").Replace("'", "\\'"))')">
@@ -649,6 +671,181 @@
                     console.error('Error:', error);
                     document.getElementById('federationDocsTableFed').querySelector('tbody').innerHTML = '<tr><td colspan="4" class="text-danger text-center">Failed to load documents.</td></tr>';
                 });
+        }
+
+        // Filter Reports Table
+        function filterReportsTable() {
+            var selectedBarangay = document.getElementById('barangayFilterReports').value;
+            var table = document.getElementById('reportsTable');
+            var rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+            
+            for (var i = 0; i < rows.length; i++) {
+                var barangayName = rows[i].getAttribute('data-barangay');
+                if (selectedBarangay === '' || barangayName === selectedBarangay) {
+                    rows[i].style.display = '';
+                } else {
+                    rows[i].style.display = 'none';
+                }
+            }
+        }
+
+        // Print Generation Reports
+        function printGenerationReports() {
+            var selectedBarangay = document.getElementById('barangayFilterReports').value;
+            var table = document.getElementById('reportsTable');
+            var rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+            
+            var printContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Generation of Reports</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; }
+                        h1 { text-align: center; color: #0d6efd; margin-bottom: 10px; }
+                        .subtitle { text-align: center; color: #6c757d; margin-bottom: 30px; }
+                        .project-section { margin-bottom: 40px; page-break-inside: avoid; }
+                        .project-header { background-color: #f8f9fa; padding: 15px; border-left: 4px solid #0d6efd; margin-bottom: 15px; }
+                        .project-title { font-size: 18px; font-weight: bold; color: #0d6efd; margin-bottom: 5px; }
+                        .project-info { display: grid; grid-template-columns: 150px 1fr; gap: 10px; margin-bottom: 15px; }
+                        .info-label { font-weight: bold; color: #495057; }
+                        .info-value { color: #212529; }
+                        .documents-section { margin-top: 15px; }
+                        .documents-title { font-weight: bold; color: #0d6efd; margin-bottom: 10px; border-bottom: 2px solid #0d6efd; padding-bottom: 5px; }
+                        .document-list { list-style-type: none; padding-left: 0; }
+                        .document-item { padding: 8px; margin-bottom: 5px; background-color: #f8f9fa; border-left: 3px solid #28a745; }
+                        .document-type { font-weight: bold; color: #28a745; }
+                        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+                        .status-approved { background-color: #d1e7dd; color: #0f5132; }
+                        .status-pending { background-color: #fff3cd; color: #664d03; }
+                        .status-rejected { background-color: #f8d7da; color: #842029; }
+                        @@media print {
+                            .project-section { page-break-inside: avoid; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>Generation of Reports</h1>
+                    <div class="subtitle">${selectedBarangay ? 'Barangay: ' + selectedBarangay : 'All Barangays'}</div>
+            `;
+            
+            var projectCount = 0;
+            var projectPromises = [];
+            
+            for (var i = 0; i < rows.length; i++) {
+                var barangayName = rows[i].getAttribute('data-barangay');
+                if (selectedBarangay === '' || barangayName === selectedBarangay) {
+                    var projectId = rows[i].getAttribute('data-project-id');
+                    var projectTitle = rows[i].querySelector('.project-title').innerText;
+                    var projectStatus = rows[i].querySelector('.project-status').innerText;
+                    var dateSubmitted = rows[i].querySelector('.date-submitted').innerText;
+                    
+                    projectCount++;
+                    
+                    // Fetch documents for this project
+                    var promise = Promise.all([
+                        fetch('@Url.Action("GetProjectBarangayDocuments", "FederationPresident")/' + projectId).then(r => r.json()),
+                        fetch('@Url.Action("GetProjectFederationDocuments", "FederationPresident")/' + projectId).then(r => r.json())
+                    ]).then(([barangayDocs, federationDocs]) => {
+                        return {
+                            barangayName: barangayName,
+                            projectTitle: projectTitle,
+                            projectStatus: projectStatus,
+                            dateSubmitted: dateSubmitted,
+                            barangayDocs: barangayDocs.documents || [],
+                            federationDocs: federationDocs.documents || []
+                        };
+                    });
+                    
+                    projectPromises.push(promise);
+                }
+            }
+            
+            if (projectCount === 0) {
+                alert('No projects to print for the selected filter.');
+                return;
+            }
+            
+            Promise.all(projectPromises).then(projects => {
+                projects.forEach(project => {
+                    var statusClass = project.projectStatus === 'Approved' ? 'status-approved' : 
+                                     project.projectStatus === 'Pending' ? 'status-pending' : 'status-rejected';
+                    
+                    printContent += `
+                        <div class="project-section">
+                            <div class="project-header">
+                                <div class="project-title">${project.projectTitle}</div>
+                            </div>
+                            <div class="project-info">
+                                <div class="info-label">Barangay:</div>
+                                <div class="info-value">${project.barangayName}</div>
+                                <div class="info-label">Status:</div>
+                                <div class="info-value"><span class="status-badge ${statusClass}">${project.projectStatus}</span></div>
+                                <div class="info-label">Date Submitted:</div>
+                                <div class="info-value">${project.dateSubmitted}</div>
+                            </div>
+                            
+                            <div class="documents-section">
+                                <div class="documents-title">Barangay SK Documents</div>
+                                <ul class="document-list">
+                    `;
+                    
+                    if (project.barangayDocs.length > 0) {
+                        project.barangayDocs.forEach(doc => {
+                            printContent += `
+                                <li class="document-item">
+                                    <span class="document-type">${doc.description || 'Document'}:</span> ${doc.fileName}
+                                </li>
+                            `;
+                        });
+                    } else {
+                        printContent += '<li class="document-item">No documents found.</li>';
+                    }
+                    
+                    printContent += `
+                                </ul>
+                            </div>
+                            
+                            <div class="documents-section">
+                                <div class="documents-title">Barangay Federation Documents</div>
+                                <ul class="document-list">
+                    `;
+                    
+                    if (project.federationDocs.length > 0) {
+                        project.federationDocs.forEach(doc => {
+                            printContent += `
+                                <li class="document-item">
+                                    <span class="document-type">${doc.description || 'Document'}:</span> ${doc.fileName}
+                                </li>
+                            `;
+                        });
+                    } else {
+                        printContent += '<li class="document-item">No federation documents found.</li>';
+                    }
+                    
+                    printContent += `
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                printContent += `
+                </body>
+                </html>
+                `;
+                
+                var printWindow = window.open('', '', 'height=800,width=1000');
+                printWindow.document.write(printContent);
+                printWindow.document.close();
+                printWindow.focus();
+                setTimeout(() => {
+                    printWindow.print();
+                }, 500);
+            }).catch(error => {
+                console.error('Error fetching documents:', error);
+                alert('Failed to load all documents for printing.');
+            });
         }
     </script>
 }

@@ -473,6 +473,7 @@ namespace BMS_project.Controllers
 
             // Query ProjectDocuments that have annex types (not "Project Proposal" and not "Additional Document")
             // Exclude files uploaded by Federation President (Role_ID = 2) with Annex I or Annex H
+            // Exclude rejected projects
             var query = _context.ProjectDocuments
                 .Include(pd => pd.Project)
                 .ThenInclude(p => p.User)
@@ -482,6 +483,7 @@ namespace BMS_project.Controllers
                 .Where(pd => pd.Description != null && 
                              pd.Description != "Project Proposal" && 
                              pd.Description != "Additional Document" &&
+                             pd.Project.Project_Status != "Rejected" &&
                              !(pd.File.User.Role_ID == 2 && (pd.Description == "Annex I" || pd.Description == "Annex H"))); // Exclude Federation uploads
 
             if (barangayId.HasValue)

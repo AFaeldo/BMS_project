@@ -6,6 +6,9 @@ namespace BMS_project.ViewModels
 {
     public class ProjectCreationViewModel
     {
+        // Used for resubmission - if > 0, update existing project
+        public int Project_ID { get; set; } = 0;
+
         [Required]
         public string Project_Title { get; set; }
 

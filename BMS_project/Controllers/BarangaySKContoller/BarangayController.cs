@@ -149,6 +149,43 @@ namespace BMS_project.Controllers
         [RequestFormLimits(MultipartBodyLengthLimit = 100 * 1024 * 1024)] // 100 MB
         public async Task<IActionResult> CreateProject(ProjectCreationViewModel model)
         {
+            var username = User.Identity?.Name;
+            var loginRecord = await _context.Login
+                .Include(l => l.User)
+                .FirstOrDefaultAsync(l => l.Username == username);
+
+            if (loginRecord == null || loginRecord.User == null)
+            {
+                TempData["ErrorMessage"] = "User not found.";
+                return RedirectToAction(nameof(Projects));
+            }
+
+            var user = loginRecord.User;
+            if (user.Barangay_ID == null)
+            {
+                TempData["ErrorMessage"] = "User is not assigned to a Barangay.";
+                return RedirectToAction(nameof(Projects));
+            }
+
+            // Check if this is a resubmission
+            bool isResubmit = model.Project_ID > 0;
+            Project? existingProject = null;
+
+            if (isResubmit)
+            {
+                existingProject = await _context.Projects
+                    .Include(p => p.User)
+                    .FirstOrDefaultAsync(p => p.Project_ID == model.Project_ID && 
+                                              p.User.Barangay_ID == user.Barangay_ID &&
+                                              p.Project_Status == "Rejected");
+
+                if (existingProject == null)
+                {
+                    TempData["ErrorMessage"] = "Cannot resubmit: Project not found or not in rejected status.";
+                    return RedirectToAction(nameof(Projects));
+                }
+            }
+
             // 1. Date Validation: Ensure start date is before end date
             if (model.Start_Date.HasValue && model.End_Date.HasValue && model.Start_Date > model.End_Date)
             {
@@ -218,30 +255,20 @@ namespace BMS_project.Controllers
                 }
             }
 
-            var username = User.Identity?.Name;
-            var loginRecord = await _context.Login
-                .Include(l => l.User)
-                .FirstOrDefaultAsync(l => l.Username == username);
-
-            if (loginRecord == null || loginRecord.User == null)
-            {
-                TempData["ErrorMessage"] = "User not found.";
-                return RedirectToAction(nameof(Projects));
-            }
-
-            var user = loginRecord.User;
-            if (user.Barangay_ID == null)
-            {
-                TempData["ErrorMessage"] = "User is not assigned to a Barangay.";
-                return RedirectToAction(nameof(Projects));
-            }
-
             // 4.1 Date Overlap Validation: Check if the new project overlaps with an existing project
             if (model.Start_Date.HasValue && model.End_Date.HasValue)
             {
-                bool dateOverlap = await _context.Projects
+                var query = _context.Projects
                     .Include(p => p.User)
-                    .Where(p => p.User.Barangay_ID == user.Barangay_ID && !p.IsArchived && p.Project_Status != "Rejected")
+                    .Where(p => p.User.Barangay_ID == user.Barangay_ID && !p.IsArchived && p.Project_Status != "Rejected");
+
+                // If resubmitting, exclude the current project from overlap check
+                if (isResubmit)
+                {
+                    query = query.Where(p => p.Project_ID != model.Project_ID);
+                }
+
+                bool dateOverlap = await query
                     .AnyAsync(p => p.Start_Date != null && p.End_Date != null &&
                                    p.Start_Date <= model.End_Date && p.End_Date >= model.Start_Date);
 
@@ -254,10 +281,11 @@ namespace BMS_project.Controllers
             }
 
             // 4. Uniqueness Validation: Check if a project with the same title exists in the user's Barangay
-            // We check this after retrieving the user to ensure we scope the uniqueness to their Barangay.
             bool titleExists = await _context.Projects
                 .Include(p => p.User)
-                .AnyAsync(p => p.Project_Title == model.Project_Title && p.User.Barangay_ID == user.Barangay_ID);
+                .Where(p => p.User.Barangay_ID == user.Barangay_ID)
+                .AnyAsync(p => p.Project_Title == model.Project_Title && 
+                              (!isResubmit || p.Project_ID != model.Project_ID));
 
             if (titleExists)
             {
@@ -368,21 +396,48 @@ namespace BMS_project.Controllers
                         if (mainFileId == 0) mainFileId = fileUpload.File_ID; // First file is main
                     }
 
-                    // 2. Create Project with Main File_ID
-                    var project = new Project
+                    // 2. Create or Update Project
+                    Project project;
+                    if (isResubmit && existingProject != null)
                     {
-                        User_ID = user.User_ID,
-                        Project_Title = model.Project_Title,
-                        Project_Description = model.Project_Description,
-                        Date_Submitted = DateTime.Now,
-                        Project_Status = "Pending",
-                        Start_Date = model.Start_Date,
-                        End_Date = model.End_Date,
-                        Term_ID = budget.Term_ID,
-                        File_ID = mainFileId // Main attachment
-                    };
+                        // Update existing project
+                        project = existingProject;
+                        project.Project_Title = model.Project_Title;
+                        project.Project_Description = model.Project_Description;
+                        project.Date_Submitted = DateTime.Now;
+                        project.Project_Status = "Pending"; // Reset to Pending
+                        project.Start_Date = model.Start_Date;
+                        project.End_Date = model.End_Date;
+                        project.Rejection_Reason = null; // Clear rejection reason
 
-                    _context.Projects.Add(project);
+                        // Delete old project documents if resubmitting
+                        var oldDocs = await _context.ProjectDocuments
+                            .Where(pd => pd.Project_ID == project.Project_ID)
+                            .ToListAsync();
+                        _context.ProjectDocuments.RemoveRange(oldDocs);
+                        await _context.SaveChangesAsync();
+
+                        _context.Projects.Update(project);
+                    }
+                    else
+                    {
+                        // Create new project
+                        project = new Project
+                        {
+                            User_ID = user.User_ID,
+                            Project_Title = model.Project_Title,
+                            Project_Description = model.Project_Description,
+                            Date_Submitted = DateTime.Now,
+                            Project_Status = "Pending",
+                            Start_Date = model.Start_Date,
+                            End_Date = model.End_Date,
+                            Term_ID = budget.Term_ID,
+                            File_ID = mainFileId // Main attachment
+                        };
+
+                        _context.Projects.Add(project);
+                    }
+
                     await _context.SaveChangesAsync(); // Save to get Project_ID
 
                     // 3. Create ProjectDocuments for PROPOSAL files
@@ -448,14 +503,40 @@ namespace BMS_project.Controllers
                         await _context.SaveChangesAsync();
                     }
 
-                    // 4. Create Allocation
-                    var allocation = new ProjectAllocation
+                    // 4. Create or Update Allocation
+                    if (isResubmit && existingProject != null)
                     {
-                        Budget_ID = budget.Budget_ID,
-                        Project_ID = project.Project_ID,
-                        Amount_Allocated = model.Allocated_Amount
-                    };
-                    _context.ProjectAllocations.Add(allocation);
+                        // Update existing allocation
+                        var existingAllocation = await _context.ProjectAllocations
+                            .FirstOrDefaultAsync(pa => pa.Project_ID == project.Project_ID);
+                        
+                        if (existingAllocation != null)
+                        {
+                            existingAllocation.Amount_Allocated = model.Allocated_Amount;
+                            _context.ProjectAllocations.Update(existingAllocation);
+                        }
+                        else
+                        {
+                            var allocation = new ProjectAllocation
+                            {
+                                Budget_ID = budget.Budget_ID,
+                                Project_ID = project.Project_ID,
+                                Amount_Allocated = model.Allocated_Amount
+                            };
+                            _context.ProjectAllocations.Add(allocation);
+                        }
+                    }
+                    else
+                    {
+                        // Create new allocation
+                        var allocation = new ProjectAllocation
+                        {
+                            Budget_ID = budget.Budget_ID,
+                            Project_ID = project.Project_ID,
+                            Amount_Allocated = model.Allocated_Amount
+                        };
+                        _context.ProjectAllocations.Add(allocation);
+                    }
                     await _context.SaveChangesAsync(); // Ensure allocation is saved
 
                     // 5. Create Log
@@ -465,19 +546,23 @@ namespace BMS_project.Controllers
                         User_ID = user.User_ID,
                         Status = "Pending",
                         Changed_On = DateTime.Now,
-                        Remarks = "Project created and submitted for approval."
+                        Remarks = isResubmit ? "Project resubmitted for approval after rejection." : "Project created and submitted for approval."
                     };
                     _context.ProjectLogs.Add(log);
 
                     // LOGGING (System Log)
-                    await _systemLogService.LogAsync(user.User_ID, "Create Project", $"Created Project: {project.Project_Title} with {allFileIds.Count} proposal documents and {(model.AnnexFiles?.Count ?? 0)} annex documents", "Project", project.Project_ID);
+                    await _systemLogService.LogAsync(user.User_ID, 
+                        isResubmit ? "Resubmit Project" : "Create Project", 
+                        $"{(isResubmit ? "Resubmitted" : "Created")} Project: {project.Project_Title} with {allFileIds.Count} proposal documents and {(model.AnnexFiles?.Count ?? 0)} annex documents", 
+                        "Project", 
+                        project.Project_ID);
 
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
                     transactionCommitted = true;
 
                     _logger.LogInformation("Transaction committed for project {ProjectId}", project.Project_ID);
-                    TempData["SuccessMessage"] = "Project submitted successfully!";
+                    TempData["SuccessMessage"] = isResubmit ? "Project resubmitted successfully!" : "Project submitted successfully!";
                 }
                 catch (Exception ex)
                 {

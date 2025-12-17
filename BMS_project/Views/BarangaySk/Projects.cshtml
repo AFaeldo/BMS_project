@@ -172,21 +172,24 @@
                                     }
                                 </td>
                                 <td>
-                                    <button class="btn btn-sm btn-warning text-white btn-edit"
-                                            data-id="@project.Project_ID"
-                                            data-title="@project.Project_Title"
-                                            data-desc="@project.Project_Description"
-                                            data-start="@(project.Start_Date?.ToString("yyyy-MM-dd"))"
-                                            data-end="@(project.End_Date?.ToString("yyyy-MM-dd"))"
-                                            data-status="@project.Project_Status"
-                                            data-bs-toggle="modal" data-bs-target="#editProjectModal">
-                                        <i class="bi bi-pencil-square"></i> Edit
-                                    </button>
+                                    @if (project.Project_Status == "Rejected")
+                                    {
+                                        <button class="btn btn-sm btn-warning text-dark btn-resubmit"
+                                                data-id="@project.Project_ID"
+                                                data-title="@project.Project_Title"
+                                                data-desc="@project.Project_Description"
+                                                data-start="@(project.Start_Date?.ToString("yyyy-MM-dd"))"
+                                                data-end="@(project.End_Date?.ToString("yyyy-MM-dd"))"
+                                                data-budget="@project.Allocated_Budget"
+                                                data-bs-toggle="modal" data-bs-target="#addProjectModal">
+                                            <i class="bi bi-arrow-repeat"></i> Re-Submit
+                                        </button>
+                                    }
                                     <button class="btn btn-sm btn-danger btn-delete"
                                             data-id="@project.Project_ID"
                                             data-title="@project.Project_Title"
                                             data-bs-toggle="modal" data-bs-target="#deleteProjectModal">
-                                        <i class="bi bi-trash"></i> Archive
+                                        <i class="bi bi-archive"></i> Archive
                                     </button>
                                 </td>
                             </tr>
@@ -214,29 +217,30 @@
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form method="post" asp-action="CreateProject" enctype="multipart/form-data">
+            <form method="post" asp-action="CreateProject" enctype="multipart/form-data" id="projectForm">
+                <input type="hidden" name="Project_ID" id="resubmitProjectId" value="">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Project Title</label>
-                        <input type="text" name="Project_Title" class="form-control" placeholder="Enter project title" required>
+                        <input type="text" name="Project_Title" id="projectTitle" class="form-control" placeholder="Enter project title" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Description</label>
-                        <textarea name="Project_Description" class="form-control" rows="2" placeholder="Enter description" required></textarea>
+                        <textarea name="Project_Description" id="projectDescription" class="form-control" rows="2" placeholder="Enter description" required></textarea>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-semibold">Start Date</label>
-                            <input type="date" name="Start_Date" class="form-control">
+                            <input type="date" name="Start_Date" id="projectStartDate" class="form-control">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-semibold">End Date</label>
-                            <input type="date" name="End_Date" class="form-control">
+                            <input type="date" name="End_Date" id="projectEndDate" class="form-control">
                         </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Alloted Budget</label>
-                        <input type="number" step="0.01" name="Allocated_Amount" class="form-control" placeholder="Enter a Budget" required>
+                        <input type="number" step="0.01" name="Allocated_Amount" id="projectBudget" class="form-control" placeholder="Enter a Budget" required>
                     </div>
                     <hr />
                     <h6 class="fw-bold text-primary"><i class="bi bi-paperclip me-2"></i>Project Proposal Documents (Required)</h6>
@@ -586,6 +590,31 @@
                 alert(errorMessage);
                 return false;
             }
+        });
+
+        // Handle Re-Submit button
+        document.querySelectorAll('.btn-resubmit').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update modal title
+                document.querySelector('#addProjectModal .modal-title').innerHTML = '<i class="bi bi-arrow-repeat me-2"></i> Re-Submit Project Proposal';
+                
+                // Populate form with existing data
+                document.getElementById('resubmitProjectId').value = btn.dataset.id;
+                document.getElementById('projectTitle').value = btn.dataset.title;
+                document.getElementById('projectDescription').value = btn.dataset.desc;
+                document.getElementById('projectStartDate').value = btn.dataset.start;
+                document.getElementById('projectEndDate').value = btn.dataset.end;
+                document.getElementById('projectBudget').value = btn.dataset.budget;
+            });
+        });
+
+        // Reset modal when closed
+        document.getElementById('addProjectModal').addEventListener('hidden.bs.modal', function () {
+            // Reset modal title
+            document.querySelector('#addProjectModal .modal-title').innerHTML = '<i class="bi bi-file-earmark-arrow-up me-2"></i> Submit Project Proposal';
+            // Clear form
+            document.getElementById('projectForm').reset();
+            document.getElementById('resubmitProjectId').value = '';
         });
 
         // Populate Edit Modal

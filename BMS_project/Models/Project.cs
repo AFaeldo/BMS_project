@@ -50,6 +50,9 @@ namespace BMS_project.Models
         [Column("IsArchived")]
         public bool IsArchived { get; set; } = false;
 
+        [Column("Rejection_Reason")]
+        public string? Rejection_Reason { get; set; }
+
         // Navigation properties
         public ICollection<ProjectAllocation> Allocations { get; set; } = new List<ProjectAllocation>();
         public ICollection<ProjectLog> Logs { get; set; } = new List<ProjectLog>();
